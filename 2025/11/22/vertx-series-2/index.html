@@ -123,7 +123,7 @@
     
     <!--- Seo Part-->
     
-    <link rel="canonical" href="http://example.com/2025/11/16/vertx-series-1/"/>
+    <link rel="canonical" href="http://example.com/2025/11/22/vertx-series-2/"/>
     <meta name="robots" content="index,follow">
     <meta name="googlebot" content="index,follow">
     <meta name="revisit-after" content="1 days">
@@ -133,14 +133,14 @@
         
         <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vert.x从入门到放弃第一弹">
-<meta property="og:url" content="http://example.com/2025/11/16/vertx-series-1/index.html">
+<meta property="og:title" content="Vert.x从入门到放弃第二弹">
+<meta property="og:url" content="http://example.com/2025/11/22/vertx-series-2/index.html">
 <meta property="og:site_name" content="Elvis&#39; Guraden">
 <meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/redefine-og.webp">
-<meta property="article:published_time" content="2025-11-16T09:40:05.000Z">
-<meta property="article:modified_time" content="2025-11-16T10:25:59.660Z">
+<meta property="article:published_time" content="2025-11-22T01:01:05.000Z">
+<meta property="article:modified_time" content="2025-11-22T01:01:16.707Z">
 <meta property="article:author" content="Elvis Qian">
 <meta property="article:tag" content="Distribution">
 <meta property="article:tag" content="Java">
@@ -160,7 +160,7 @@
     
     <title>
         
-            Vert.x从入门到放弃第一弹 | Elvis&#39; Guraden
+            Vert.x从入门到放弃第二弹 | Elvis&#39; Guraden
         
     </title>
 
@@ -424,10 +424,10 @@
 			
 			
 			
-			<img src="https://www.notion.so/images/page-cover/met_william_morris_1875.jpg" alt="Vert.x从入门到放弃第一弹" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			<img src="https://www.notion.so/images/page-cover/met_emanuel_leutze.jpg" alt="Vert.x从入门到放弃第二弹" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
 			
 			<div class="w-full flex items-center absolute bottom-0 justify-start">
-				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第一弹</h1>
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第二弹</h1>
 			</div>
 			
 		</div>
@@ -448,15 +448,15 @@
 					<div class="article-meta-info">
     <span class="article-date article-meta-item">
         <i class="fa-regular fa-pen-fancy"></i>&nbsp;
-        <span class="desktop">2025-11-16 17:40:05</span>
-        <span class="mobile">2025-11-16 17:40:05</span>
+        <span class="desktop">2025-11-22 09:01:05</span>
+        <span class="mobile">2025-11-22 09:01:05</span>
         <span class="hover-info">Created</span>
     </span>
     
         <span class="article-date article-meta-item">
             <i class="fa-regular fa-wrench"></i>&nbsp;
-            <span class="desktop">2025-11-16 18:25:59</span>
-            <span class="mobile">2025-11-16 18:25:59</span>
+            <span class="desktop">2025-11-22 09:01:16</span>
+            <span class="mobile">2025-11-22 09:01:16</span>
             <span class="hover-info">Updated</span>
         </span>
     
@@ -510,132 +510,115 @@
 
 
 		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
-			<p>现代应用正在朝着高性能、事件驱动、分布式与云原生方向快速演进。<br>传统的多线程阻塞式模型（如 Servlet&#x2F;JDBC）在高并发场景中逐渐显得力不从心，而响应式、异步非阻塞的架构正在变成新的主流。</p>
-<p>在 Java 生态中，Vert.x 就是一颗极具潜力的明星。</p>
-<p>这一系列教程将带你从 0 到 1 深入掌握 Vert.x 的设计思想、使用模式、分布式特性与企业级架构实践。本章作为第一章，将帮助你建立全局认知。</p>
-<h1 id="🌟-1-为什么需要-Vert-x？"><a href="#🌟-1-为什么需要-Vert-x？" class="headerlink" title="🌟 1. 为什么需要 Vert.x？"></a>🌟 1. 为什么需要 Vert.x？</h1><p>我们先从一个现实问题开始：</p>
-<blockquote>
-<p>在极高并发场景下，是否可以让 Java 像 Node.js 一样轻盈高效，但仍保留企业级语言的可靠性、生态与性能？</p>
-</blockquote>
-<p>Vert.x 的答案是：可以，并且更强。</p>
-<p>在传统 Java Web 框架中（如 Spring MVC），每个请求通常对应一个线程。当连接数达到几千甚至上万时，线程切换、上下文切换会成为巨大开销，应用性能会快速下降。</p>
-<p>Vert.x 的设计目标则完全不同：</p>
-<p>不使用传统“线程 per request”模型</p>
-<p>基于事件循环（Event Loop）</p>
-<p>每个事件循环线程处理海量连接</p>
-<p>广泛使用异步非阻塞 API</p>
-<p>让开发者以同步的感觉写异步代码</p>
-<p>也就是说，它试图做到：</p>
-<blockquote>
-<p>在保证 JVM 稳定性与类型安全的前提下，提供接近 Node.js 的高并发吞吐能力。</p>
-</blockquote>
-<h1 id="⚡-2-Vert-x-是什么？"><a href="#⚡-2-Vert-x-是什么？" class="headerlink" title="⚡ 2. Vert.x 是什么？"></a>⚡ 2. Vert.x 是什么？</h1><p>Vert.x 是一个开源、轻量级、事件驱动的应用开发框架，由 Eclipse 基金会维护。</p>
-<p>用一句话概括：</p>
-<blockquote>
-<p>Vert.x &#x3D; 高性能事件驱动的 Java 应用平台<br>（Netty 的易用版 + 响应式编程模型 + 微服务内核）</p>
-</blockquote>
-<p>它不是传统意义上的“Web 框架”，而是一整套应用开发生态，包括：</p>
-<ul>
-<li>HTTP 服务器与路由器</li>
-<li>WebClient HTTP 客户端</li>
-<li>Event Bus（事件总线、内存消息系统、分布式消息）</li>
-<li>异步数据库访问</li>
-<li>Config、Auth、OpenAPI、Circuit Breaker</li>
-<li>强大的 Verticle 模块化模型</li>
-<li>原生分布式能力（Cluster Event Bus）</li>
-</ul>
-<p>Vert.x 的设计哲学是：</p>
-<blockquote>
-<p>让开发者构建可伸缩、响应式、高并发系统，同时保持简单和灵活。</p>
-</blockquote>
-<h1 id="🔍-3-Vert-x-与-Spring-Netty-WebFlux-的关系"><a href="#🔍-3-Vert-x-与-Spring-Netty-WebFlux-的关系" class="headerlink" title="🔍 3. Vert.x 与 Spring &#x2F; Netty &#x2F; WebFlux 的关系"></a>🔍 3. Vert.x 与 Spring &#x2F; Netty &#x2F; WebFlux 的关系</h1><p>初学者常会困惑：Vert.x 到底处于什么位置？它取代什么？比谁强？<br>下面给你一个直观对比。</p>
-<h2 id="Vert-x-vs-Spring-Boot"><a href="#Vert-x-vs-Spring-Boot" class="headerlink" title="Vert.x vs Spring Boot"></a>Vert.x vs Spring Boot</h2><table>
-<thead>
-<tr>
-<th>特性</th>
-<th>Vert.x</th>
-<th>Spring Boot</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>线程模型</td>
-<td>Event Loop 非阻塞</td>
-<td>传统阻塞式线程池</td>
-</tr>
-<tr>
-<td>并发性能</td>
-<td>⭐⭐⭐⭐⭐（极高）</td>
-<td>⭐⭐⭐（中等）</td>
-</tr>
-<tr>
-<td>编程方式</td>
-<td>事件驱动 &#x2F; Future</td>
-<td>注解驱动 &#x2F; IOC</td>
-</tr>
-<tr>
-<td>学习曲线</td>
-<td>中等</td>
-<td>低</td>
-</tr>
-<tr>
-<td>适用场景</td>
-<td>高并发网关&#x2F;IoT&#x2F;IM&#x2F;流式处理</td>
-<td>大多数企业应用</td>
-</tr>
-</tbody></table>
-<p>Spring Boot 更加“赶快上线业务”，Vert.x 更适合“极致性能 + 事件驱动 + 分布式通信”。</p>
-<h2 id="Vert-x-vs-WebFlux"><a href="#Vert-x-vs-WebFlux" class="headerlink" title="Vert.x vs WebFlux"></a>Vert.x vs WebFlux</h2><p>两者都是响应式模型，但：</p>
-<ul>
-<li>WebFlux 架构更偏向 Spring 生态</li>
-<li>Vert.x 更底层、更自由、更轻量、性能更高</li>
-</ul>
-<h2 id="Vert-x-vs-Netty"><a href="#Vert-x-vs-Netty" class="headerlink" title="Vert.x vs Netty"></a>Vert.x vs Netty</h2><p>Vert.x 是基于 Netty 的高级封装：</p>
-<ul>
-<li>如果你不想自己处理 Handler、ChannelPipeline</li>
-<li>不想手写 TCP&#x2F;HTTP 编解码</li>
-<li>但又想要 Netty 的高性能<br>→ Vert.x 是更适合应用开发的选择</li>
-</ul>
-<p>一句总结：</p>
-<blockquote>
-<p>Spring 解决业务复杂性，Vert.x 解决并发复杂性。两者不是对立关系，而是适用不同场景。</p>
-</blockquote>
-<h1 id="🧠-4-Vert-x-的核心设计理念"><a href="#🧠-4-Vert-x-的核心设计理念" class="headerlink" title="🧠 4. Vert.x 的核心设计理念"></a>🧠 4. Vert.x 的核心设计理念</h1><p>理解 Vert.x 的四大核心理念，有助于你更快掌握这个框架：</p>
-<h2 id="4-1-事件驱动（Event-Driven）"><a href="#4-1-事件驱动（Event-Driven）" class="headerlink" title="4.1. 事件驱动（Event Driven）"></a>4.1. 事件驱动（Event Driven）</h2><p>Vert.x 的本质是一个事件驱动系统：</p>
-<p>网络请求是一个事件</p>
-<p>数据库响应是一个事件</p>
-<p>消息总线消息也是一个事件</p>
-<p>Timer 触发是一个事件</p>
-<p>事件驱动让应用避免阻塞，从而提高吞吐量。</p>
-<h2 id="4-2-非阻塞（Non-Blocking）"><a href="#4-2-非阻塞（Non-Blocking）" class="headerlink" title="4.2. 非阻塞（Non-Blocking）"></a>4.2. 非阻塞（Non-Blocking）</h2><p>“非阻塞”意味着：</p>
-<p>绝不让 Event Loop 去执行阻塞操作</p>
-<p>所有 IO 都必须异步执行</p>
-<p>如果有阻塞代码，必须交给 Worker Pool</p>
-<p>这就是为什么 Vert.x 能用 很少的线程 支撑 大量连接。</p>
-<h2 id="4-3-模块化（Verticle）"><a href="#4-3-模块化（Verticle）" class="headerlink" title="4.3. 模块化（Verticle）"></a>4.3. 模块化（Verticle）</h2><p>Vert.x 不是 MVC，而是 Verticle 模块化架构：</p>
-<p>每个 Verticle 相当于一个业务单元</p>
-<p>Verticle 之间通过 EventBus 通信</p>
-<p>Verticle 可以独立扩容、独立部署</p>
-<p>非常适合微服务设计<br>一个大型系统可以拆成：</p>
-<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">api-verticle</span><br><span class="line">service-verticle</span><br><span class="line">db-verticle</span><br><span class="line">event-verticle</span><br><span class="line">timer-verticle</span><br></pre></td></tr></table></figure></div>
+			<p>在上一章我们了解了 Vert.x 的核心理念与技术价值，本章将带你正式进入实践。</p>
+<p>从创建一个可运行的 Vert.x 项目开始，你将熟悉项目结构、依赖管理以及常见构建方式。</p>
+<p>无论你使用 Maven、Gradle 还是 IDE，这篇文章都能满足需求。</p>
+<hr>
+<h1 id="🌟-1-环境准备"><a href="#🌟-1-环境准备" class="headerlink" title="🌟 1. 环境准备"></a>🌟 1. 环境准备</h1><p>在开始之前，请确保你拥有以下工具：</p>
+<h3 id="✔-Java（JDK-17-）"><a href="#✔-Java（JDK-17-）" class="headerlink" title="✔ Java（JDK 17+）"></a>✔ Java（JDK 17+）</h3><p>Vert.x 4.x 建议使用 <strong>JDK 11 或 JDK 17</strong>。</p>
+<p>查询 Java 版本：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -version</span><br></pre></td></tr></table></figure></div>
 
-<h2 id="4-4-分布式-Event-Bus"><a href="#4-4-分布式-Event-Bus" class="headerlink" title="4.4. 分布式 Event Bus"></a>4.4. 分布式 Event Bus</h2><p>这是 Vert.x 最独特的能力。</p>
-<p>像在同一个 JVM 中一样发送消息，但消息可以跨机器传输；天然支持微服务架构，性能远高于 HTTP RPC</p>
-<p>例如：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eventBus.send(<span class="string">&quot;order.create&quot;</span>, orderJson);</span><br></pre></td></tr></table></figure></div>
+<hr>
+<h3 id="✔-Maven-或-Gradle（任选其一）"><a href="#✔-Maven-或-Gradle（任选其一）" class="headerlink" title="✔ Maven 或 Gradle（任选其一）"></a>✔ Maven 或 Gradle（任选其一）</h3><p>两者都支持，Maven 更常见，Gradle 更灵活。</p>
+<p>示例（检查 Maven）：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn -v</span><br></pre></td></tr></table></figure></div>
 
+<p>示例（检查 Gradle）：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gradle -v</span><br></pre></td></tr></table></figure></div>
 
-<p>不需要关心目标服务在哪里运行，因为 Event Bus 会自动路由。</p>
-<h1 id="🌍-5-Vert-x-的应用场景"><a href="#🌍-5-Vert-x-的应用场景" class="headerlink" title="🌍 5. Vert.x 的应用场景"></a>🌍 5. Vert.x 的应用场景</h1><p>Vert.x 尤其适合以下场景：</p>
-<p>✔ 高并发 API 服务</p>
-<p>如网关层、BFF 层、大量 IO 的场景。</p>
-<p>✔ 聊天系统 &#x2F; IM &#x2F; WebSocket 服务</p>
-<p>得益于非阻塞与事件驱动，处理海量长连接游刃有余。</p>
-<p>✔ 物联网（IoT）平台</p>
-<p>IoT 设备数量巨大，Vert.x 非常适合这种模型。</p>
-<p>✔ 流式处理 &#x2F; 实时分析</p>
-<p>与 Kafka、MQ 集成后表现很好。</p>
-<p>✔ 轻量级分布式微服务</p>
-<p>Vert.x 给你 Event Bus、服务发现、负载均衡，构成天然的微服务组件。</p>
+<hr>
+<h3 id="✔-一个现代-IDE"><a href="#✔-一个现代-IDE" class="headerlink" title="✔ 一个现代 IDE"></a>✔ 一个现代 IDE</h3><p>推荐：</p>
+<ul>
+<li>IntelliJ IDEA（最强支持）</li>
+<li>VS Code（轻量但推荐插件）</li>
+<li>Eclipse（官方提供 Vert.x 插件）</li>
+</ul>
+<p>配置完成后，我们就可以开始创建项目了。</p>
+<hr>
+<h1 id="🧱-2-创建一个-Vert-x-项目"><a href="#🧱-2-创建一个-Vert-x-项目" class="headerlink" title="🧱 2. 创建一个 Vert.x 项目"></a>🧱 2. 创建一个 Vert.x 项目</h1><p>Vert.x 提供官方脚手架，为我们快速生成模板项目。</p>
+<p>我们可以通过 3 种方式创建项目：</p>
+<hr>
+<h1 id="✨-方式一：使用-Vert-x-官方脚手架（推荐）"><a href="#✨-方式一：使用-Vert-x-官方脚手架（推荐）" class="headerlink" title="✨ 方式一：使用 Vert.x 官方脚手架（推荐）"></a>✨ 方式一：使用 Vert.x 官方脚手架（推荐）</h1><p>脚手架地址：</p>
+<p>👉 <a class="link"   target="_blank" rel="noopener" href="https://start.vertx.io/" >https://start.vertx.io<i class="fa-solid fa-arrow-up-right ml-[0.2em] font-light align-text-top text-[0.7em] link-icon"></i></a></p>
+<p>类似 Spring Initializr，你可以选择：</p>
+<ul>
+<li>Vert.x 版本</li>
+<li>Maven 或 Gradle</li>
+<li>Kotlin &#x2F; Java</li>
+<li>包名、项目名</li>
+<li>需要的依赖（Web、Config、Auth、SQL Client 等）</li>
+</ul>
+<p>选择好后点击 <strong>Generate Project</strong>，解压即可使用。</p>
+<p>示例依赖选择：</p>
+<p>✔ Vert.x Core</p>
+<p>✔ Vert.x Web</p>
+<p>✔ Vert.x Web Client</p>
+<p>生成的结构如下：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">my-vertx-app</span><br><span class="line"> ├── src</span><br><span class="line"> │   ├── main</span><br><span class="line"> │   │   ├── java</span><br><span class="line"> │   │   │   └── com.example.MainVerticle.java</span><br><span class="line"> │   │   └── resources</span><br><span class="line"> │   └── test</span><br><span class="line"> ├── pom.xml / build.gradle</span><br><span class="line"> └── README.md</span><br></pre></td></tr></table></figure></div>
+
+<p>非常简单清晰。</p>
+<hr>
+<h1 id="✨-方式二：使用-Maven-手动创建项目"><a href="#✨-方式二：使用-Maven-手动创建项目" class="headerlink" title="✨ 方式二：使用 Maven 手动创建项目"></a>✨ 方式二：使用 Maven 手动创建项目</h1><p>如果你喜欢动手，可以直接使用 Maven：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mvn archetype:generate \</span><br><span class="line">  -DgroupId=com.example \</span><br><span class="line">  -DartifactId=vertx-demo \</span><br><span class="line">  -DarchetypeArtifactId=maven-archetype-quickstart \</span><br><span class="line">  -DinteractiveMode=<span class="literal">false</span></span><br></pre></td></tr></table></figure></div>
+
+<p>进入项目后，编辑 <code>pom.xml</code>，加入 Vert.x 依赖：</p>
+<div class="code-container" data-rel="Xml"><figure class="iseeu highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- vert.x 核心依赖 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.vertx<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>vertx-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.5.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- 可选：HTTP Web 支持 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.vertx<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>vertx-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.5.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure></div>
+
+<hr>
+<h1 id="✨-方式三：使用-Gradle-手动创建项目"><a href="#✨-方式三：使用-Gradle-手动创建项目" class="headerlink" title="✨ 方式三：使用 Gradle 手动创建项目"></a>✨ 方式三：使用 Gradle 手动创建项目</h1><p>如果你喜欢 Gradle（尤其 Kotlin DSL），创建项目：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gradle init --<span class="built_in">type</span> java-application</span><br></pre></td></tr></table></figure></div>
+
+<p>添加 Vert.x 依赖（<code>build.gradle</code>）：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    implementation &quot;io.vertx:vertx-core:4.5.1&quot;</span><br><span class="line">    implementation &quot;io.vertx:vertx-web:4.5.1&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>Gradle 用户也可以使用 Kotlin DSL：</p>
+<div class="code-container" data-rel="Kotlin"><figure class="iseeu highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    implementation(<span class="string">&quot;io.vertx:vertx-core:4.5.1&quot;</span>)</span><br><span class="line">    implementation(<span class="string">&quot;io.vertx:vertx-web:4.5.1&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<hr>
+<h1 id="🔧-3-项目结构与最佳实践"><a href="#🔧-3-项目结构与最佳实践" class="headerlink" title="🔧 3. 项目结构与最佳实践"></a>🔧 3. 项目结构与最佳实践</h1><p>一个典型的 Vert.x 项目通常包含：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">src/main/java</span><br><span class="line"> ├── config             # 配置（可选）</span><br><span class="line"> ├── api                # HTTP Verticle</span><br><span class="line"> ├── service            # 业务 Verticle</span><br><span class="line"> ├── infra              # DB / Redis 等基础设施</span><br><span class="line"> ├── util               # 工具类（JSON、日志等）</span><br><span class="line"> └── MainVerticle       # 启动入口</span><br></pre></td></tr></table></figure></div>
+
+<p>当然，初学阶段不需要拆这么细，但随着系统变大，这种分层能带来更高的可维护性。</p>
+<hr>
+<h1 id="🚀-4-创建你的第一个-Verticle"><a href="#🚀-4-创建你的第一个-Verticle" class="headerlink" title="🚀 4. 创建你的第一个 Verticle"></a>🚀 4. 创建你的第一个 Verticle</h1><p>创建一个简单的 <code>MainVerticle</code>：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MainVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    vertx.createHttpServer()</span><br><span class="line">      .requestHandler(req -&gt; req.response().end(<span class="string">&quot;Hello Vert.x&quot;</span>))</span><br><span class="line">      .listen(<span class="number">8080</span>)</span><br><span class="line">      .onSuccess(server -&gt;</span><br><span class="line">        System.out.println(<span class="string">&quot;HTTP server started on port &quot;</span> + server.actualPort())</span><br><span class="line">      );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>Verticle 本质上是一个“可部署模块”，你可以使用以下方式启动它：</p>
+<hr>
+<h1 id="▶-5-运行-Vert-x-项目"><a href="#▶-5-运行-Vert-x-项目" class="headerlink" title="▶ 5. 运行 Vert.x 项目"></a>▶ 5. 运行 Vert.x 项目</h1><h2 id="Maven-运行："><a href="#Maven-运行：" class="headerlink" title="Maven 运行："></a>Maven 运行：</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn compile <span class="built_in">exec</span>:java -Dexec.mainClass=com.example.MainVerticle</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="Gradle-运行："><a href="#Gradle-运行：" class="headerlink" title="Gradle 运行："></a>Gradle 运行：</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew run</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="IDE-启动"><a href="#IDE-启动" class="headerlink" title="IDE 启动"></a>IDE 启动</h2><p>在 <code>MainVerticle</code> 上右键 → Run。</p>
+<p>启动成功后访问：</p>
+<p>👉 <a class="link"   target="_blank" rel="noopener" href="http://localhost:8080/" >http://localhost:8080<i class="fa-solid fa-arrow-up-right ml-[0.2em] font-light align-text-top text-[0.7em] link-icon"></i></a></p>
+<p>你将看到：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hello Vert.x</span><br></pre></td></tr></table></figure></div>
+
+<p>至此，恭喜你完成了第一个 Vert.x HTTP 服务 🎉</p>
+<hr>
+<h1 id="🎁-6-在开发阶段启用“热重载”"><a href="#🎁-6-在开发阶段启用“热重载”" class="headerlink" title="🎁 6. 在开发阶段启用“热重载”"></a>🎁 6. 在开发阶段启用“热重载”</h1><p>Vert.x 提供自动热部署功能 —— <code>vertx-maven-plugin</code>。</p>
+<p>在 <code>pom.xml</code> 中加入：</p>
+<div class="code-container" data-rel="Xml"><figure class="iseeu highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.vertx<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>vertx-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.25<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">id</span>&gt;</span>vtx-run<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">goal</span>&gt;</span>run<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure></div>
+
+<p>启动热部署：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn vertx:run</span><br></pre></td></tr></table></figure></div>
+
+<p>编辑 Java 文件后，系统自动重启，无需手动 stop&#x2F;start，开发体验更流畅。</p>
+<hr>
+<h1 id="🔍-7-工具推荐：Vert-x-Dev-模式（Gradle）"><a href="#🔍-7-工具推荐：Vert-x-Dev-模式（Gradle）" class="headerlink" title="🔍 7. 工具推荐：Vert.x Dev 模式（Gradle）"></a>🔍 7. 工具推荐：Vert.x Dev 模式（Gradle）</h1><p>Gradle 用户可以使用：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew vertxRun</span><br></pre></td></tr></table></figure></div>
+
+<p>配合 <code>vertx-gradle-plugin</code> 达到热重载效果。</p>
+<hr>
+<h1 id="🧭-8-本章总结"><a href="#🧭-8-本章总结" class="headerlink" title="🧭 8. 本章总结"></a>🧭 8. 本章总结</h1><p>至此，你已经完成：</p>
+<p>✔ JDK、Maven&#x2F;Gradle 与 IDE 准备</p>
+<p>✔ 通过脚手架生成 Vert.x 项目</p>
+<p>✔ 手动创建 Maven &#x2F; Gradle 项目</p>
+<p>✔ 编写第一个 Verticle</p>
+<p>✔ 运行 HTTP 服务</p>
+<p>✔ 启用热重载工具</p>
 
 		</div>
 
@@ -643,18 +626,18 @@
 		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
 			<div class="article-copyright-info-container">
     <ul>
-        <li><strong>Title:</strong> Vert.x从入门到放弃第一弹</li>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第二弹</li>
         <li><strong>Author:</strong> Elvis</li>
         <li><strong>Created at
-                :</strong> 2025-11-16 17:40:05</li>
+                :</strong> 2025-11-22 09:01:05</li>
         
             <li>
                 <strong>Updated at
-                    :</strong> 2025-11-16 18:25:59
+                    :</strong> 2025-11-22 09:01:16
             </li>
         
         <li>
-            <strong>Link:</strong> https://qianwj.github.io/2025/11/16/vertx-series-1/
+            <strong>Link:</strong> https://qianwj.github.io/2025/11/22/vertx-series-2/
         </li>
         <li>
             <strong>
@@ -703,23 +686,11 @@
 		
 		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
 			
-			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
-				<a class="prev" rel="prev" href="/2025/11/22/vertx-series-2/">
-					<span class="left arrow-icon flex justify-center items-center">
-						<i class="fa-solid fa-chevron-left"></i>
-					</span>
-					<span class="title flex justify-center items-center">
-						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第二弹</span>
-						<span class="post-nav-item">Prev posts</span>
-					</span>
-				</a>
-			</div>
-			
 			
 			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
-				<a class="next" rel="next" href="/2025/11/15/hiring/">
+				<a class="next" rel="next" href="/2025/11/16/vertx-series-1/">
 					<span class="title flex justify-center items-center">
-						<span class="post-nav-title-item truncate max-w-48">小而美的海外社交公司招人啦</span>
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第一弹</span>
 						<span class="post-nav-item">Next posts</span>
 					</span>
 					<span class="right arrow-icon flex justify-center items-center">
@@ -740,8 +711,8 @@
 		<div class="post-toc-wrap">
 	<div class="post-toc">
 		<div class="toc-title">On this page</div>
-		<div class="page-title">Vert.x从入门到放弃第一弹</div>
-		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Vert-x%EF%BC%9F"><span class="nav-text">🌟 1. 为什么需要 Vert.x？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-2-Vert-x-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-text">⚡ 2. Vert.x 是什么？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8D-3-Vert-x-%E4%B8%8E-Spring-Netty-WebFlux-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">🔍 3. Vert.x 与 Spring &#x2F; Netty &#x2F; WebFlux 的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Vert-x-vs-Spring-Boot"><span class="nav-text">Vert.x vs Spring Boot</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vert-x-vs-WebFlux"><span class="nav-text">Vert.x vs WebFlux</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vert-x-vs-Netty"><span class="nav-text">Vert.x vs Netty</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A0-4-Vert-x-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="nav-text">🧠 4. Vert.x 的核心设计理念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E4%BA%8B%E4%BB%B6%E9%A9%B1%E5%8A%A8%EF%BC%88Event-Driven%EF%BC%89"><span class="nav-text">4.1. 事件驱动（Event Driven）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E9%9D%9E%E9%98%BB%E5%A1%9E%EF%BC%88Non-Blocking%EF%BC%89"><span class="nav-text">4.2. 非阻塞（Non-Blocking）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E6%A8%A1%E5%9D%97%E5%8C%96%EF%BC%88Verticle%EF%BC%89"><span class="nav-text">4.3. 模块化（Verticle）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-%E5%88%86%E5%B8%83%E5%BC%8F-Event-Bus"><span class="nav-text">4.4. 分布式 Event Bus</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%8D-5-Vert-x-%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-text">🌍 5. Vert.x 的应用场景</span></a></li></ol>
+		<div class="page-title">Vert.x从入门到放弃第二弹</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-text">🌟 1. 环境准备</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-Java%EF%BC%88JDK-17-%EF%BC%89"><span class="nav-text">✔ Java（JDK 17+）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-Maven-%E6%88%96-Gradle%EF%BC%88%E4%BB%BB%E9%80%89%E5%85%B6%E4%B8%80%EF%BC%89"><span class="nav-text">✔ Maven 或 Gradle（任选其一）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E4%B8%80%E4%B8%AA%E7%8E%B0%E4%BB%A3-IDE"><span class="nav-text">✔ 一个现代 IDE</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%B1-2-%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA-Vert-x-%E9%A1%B9%E7%9B%AE"><span class="nav-text">🧱 2. 创建一个 Vert.x 项目</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9C%A8-%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E4%BD%BF%E7%94%A8-Vert-x-%E5%AE%98%E6%96%B9%E8%84%9A%E6%89%8B%E6%9E%B6%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="nav-text">✨ 方式一：使用 Vert.x 官方脚手架（推荐）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9C%A8-%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9A%E4%BD%BF%E7%94%A8-Maven-%E6%89%8B%E5%8A%A8%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE"><span class="nav-text">✨ 方式二：使用 Maven 手动创建项目</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9C%A8-%E6%96%B9%E5%BC%8F%E4%B8%89%EF%BC%9A%E4%BD%BF%E7%94%A8-Gradle-%E6%89%8B%E5%8A%A8%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE"><span class="nav-text">✨ 方式三：使用 Gradle 手动创建项目</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%A7-3-%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-text">🔧 3. 项目结构与最佳实践</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%80-4-%E5%88%9B%E5%BB%BA%E4%BD%A0%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA-Verticle"><span class="nav-text">🚀 4. 创建你的第一个 Verticle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%96%B6-5-%E8%BF%90%E8%A1%8C-Vert-x-%E9%A1%B9%E7%9B%AE"><span class="nav-text">▶ 5. 运行 Vert.x 项目</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven-%E8%BF%90%E8%A1%8C%EF%BC%9A"><span class="nav-text">Maven 运行：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gradle-%E8%BF%90%E8%A1%8C%EF%BC%9A"><span class="nav-text">Gradle 运行：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDE-%E5%90%AF%E5%8A%A8"><span class="nav-text">IDE 启动</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%81-6-%E5%9C%A8%E5%BC%80%E5%8F%91%E9%98%B6%E6%AE%B5%E5%90%AF%E7%94%A8%E2%80%9C%E7%83%AD%E9%87%8D%E8%BD%BD%E2%80%9D"><span class="nav-text">🎁 6. 在开发阶段启用“热重载”</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8D-7-%E5%B7%A5%E5%85%B7%E6%8E%A8%E8%8D%90%EF%BC%9AVert-x-Dev-%E6%A8%A1%E5%BC%8F%EF%BC%88Gradle%EF%BC%89"><span class="nav-text">🔍 7. 工具推荐：Vert.x Dev 模式（Gradle）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AD-8-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">🧭 8. 本章总结</span></a></li></ol>
 
 	</div>
 </div>
