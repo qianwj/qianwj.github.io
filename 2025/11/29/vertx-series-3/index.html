@@ -123,7 +123,7 @@
     
     <!--- Seo Part-->
     
-    <link rel="canonical" href="http://example.com/2025/11/16/vertx-series-1/"/>
+    <link rel="canonical" href="http://example.com/2025/11/29/vertx-series-3/"/>
     <meta name="robots" content="index,follow">
     <meta name="googlebot" content="index,follow">
     <meta name="revisit-after" content="1 days">
@@ -133,14 +133,14 @@
         
         <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vert.x从入门到放弃第一弹">
-<meta property="og:url" content="http://example.com/2025/11/16/vertx-series-1/index.html">
+<meta property="og:title" content="Vert.x从入门到放弃第三弹：Verticle基础">
+<meta property="og:url" content="http://example.com/2025/11/29/vertx-series-3/index.html">
 <meta property="og:site_name" content="Elvis&#39; Guraden">
 <meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/redefine-og.webp">
-<meta property="article:published_time" content="2025-11-16T09:40:05.000Z">
-<meta property="article:modified_time" content="2025-11-16T10:25:59.660Z">
+<meta property="article:published_time" content="2025-11-29T15:47:57.000Z">
+<meta property="article:modified_time" content="2025-11-29T15:50:03.951Z">
 <meta property="article:author" content="Elvis Qian">
 <meta property="article:tag" content="Distribution">
 <meta property="article:tag" content="Java">
@@ -160,7 +160,7 @@
     
     <title>
         
-            Vert.x从入门到放弃第一弹 | Elvis&#39; Guraden
+            Vert.x从入门到放弃第三弹：Verticle基础 | Elvis&#39; Guraden
         
     </title>
 
@@ -424,10 +424,10 @@
 			
 			
 			
-			<img src="https://www.notion.so/images/page-cover/met_william_morris_1875.jpg" alt="Vert.x从入门到放弃第一弹" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			<img src="https://www.notion.so/images/page-cover/woodcuts_14.jpg" alt="Vert.x从入门到放弃第三弹：Verticle基础" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
 			
 			<div class="w-full flex items-center absolute bottom-0 justify-start">
-				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第一弹</h1>
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第三弹：Verticle基础</h1>
 			</div>
 			
 		</div>
@@ -448,15 +448,15 @@
 					<div class="article-meta-info">
     <span class="article-date article-meta-item">
         <i class="fa-regular fa-pen-fancy"></i>&nbsp;
-        <span class="desktop">2025-11-16 17:40:05</span>
-        <span class="mobile">2025-11-16 17:40:05</span>
+        <span class="desktop">2025-11-29 23:47:57</span>
+        <span class="mobile">2025-11-29 23:47:57</span>
         <span class="hover-info">Created</span>
     </span>
     
         <span class="article-date article-meta-item">
             <i class="fa-regular fa-wrench"></i>&nbsp;
-            <span class="desktop">2025-11-16 18:25:59</span>
-            <span class="mobile">2025-11-16 18:25:59</span>
+            <span class="desktop">2025-11-29 23:50:03</span>
+            <span class="mobile">2025-11-29 23:50:03</span>
             <span class="hover-info">Updated</span>
         </span>
     
@@ -510,132 +510,198 @@
 
 
 		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
-			<p>现代应用正在朝着高性能、事件驱动、分布式与云原生方向快速演进。<br>传统的多线程阻塞式模型（如 Servlet&#x2F;JDBC）在高并发场景中逐渐显得力不从心，而响应式、异步非阻塞的架构正在变成新的主流。</p>
-<p>在 Java 生态中，Vert.x 就是一颗极具潜力的明星。</p>
-<p>这一系列教程将带你从 0 到 1 深入掌握 Vert.x 的设计思想、使用模式、分布式特性与企业级架构实践。本章作为第一章，将帮助你建立全局认知。</p>
-<h1 id="🌟-1-为什么需要-Vert-x？"><a href="#🌟-1-为什么需要-Vert-x？" class="headerlink" title="🌟 1. 为什么需要 Vert.x？"></a>🌟 1. 为什么需要 Vert.x？</h1><p>我们先从一个现实问题开始：</p>
+			<p>在前面两章中，我们搭建了开发环境并运行了第一个 Vert.x 项目。</p>
+<p>从本章开始，我们将进入 Vert.x 最核心的概念之一：</p>
 <blockquote>
-<p>在极高并发场景下，是否可以让 Java 像 Node.js 一样轻盈高效，但仍保留企业级语言的可靠性、生态与性能？</p>
+<p>Verticle —— Vert.x 中部署、隔离、调度的最小执行单元。</p>
 </blockquote>
-<p>Vert.x 的答案是：可以，并且更强。</p>
-<p>在传统 Java Web 框架中（如 Spring MVC），每个请求通常对应一个线程。当连接数达到几千甚至上万时，线程切换、上下文切换会成为巨大开销，应用性能会快速下降。</p>
-<p>Vert.x 的设计目标则完全不同：</p>
-<p>不使用传统“线程 per request”模型</p>
-<p>基于事件循环（Event Loop）</p>
-<p>每个事件循环线程处理海量连接</p>
-<p>广泛使用异步非阻塞 API</p>
-<p>让开发者以同步的感觉写异步代码</p>
-<p>也就是说，它试图做到：</p>
-<blockquote>
-<p>在保证 JVM 稳定性与类型安全的前提下，提供接近 Node.js 的高并发吞吐能力。</p>
-</blockquote>
-<h1 id="⚡-2-Vert-x-是什么？"><a href="#⚡-2-Vert-x-是什么？" class="headerlink" title="⚡ 2. Vert.x 是什么？"></a>⚡ 2. Vert.x 是什么？</h1><p>Vert.x 是一个开源、轻量级、事件驱动的应用开发框架，由 Eclipse 基金会维护。</p>
-<p>用一句话概括：</p>
-<blockquote>
-<p>Vert.x &#x3D; 高性能事件驱动的 Java 应用平台<br>（Netty 的易用版 + 响应式编程模型 + 微服务内核）</p>
-</blockquote>
-<p>它不是传统意义上的“Web 框架”，而是一整套应用开发生态，包括：</p>
+<p>你可以把 Verticle 理解成：</p>
 <ul>
-<li>HTTP 服务器与路由器</li>
-<li>WebClient HTTP 客户端</li>
-<li>Event Bus（事件总线、内存消息系统、分布式消息）</li>
-<li>异步数据库访问</li>
-<li>Config、Auth、OpenAPI、Circuit Breaker</li>
-<li>强大的 Verticle 模块化模型</li>
-<li>原生分布式能力（Cluster Event Bus）</li>
+<li>类似 Node.js 中的“模块”</li>
+<li>类似微服务内部的“服务单元”</li>
+<li>类似 Java 应用中的一个“独立组件”</li>
 </ul>
-<p>Vert.x 的设计哲学是：</p>
-<blockquote>
-<p>让开发者构建可伸缩、响应式、高并发系统，同时保持简单和灵活。</p>
-</blockquote>
-<h1 id="🔍-3-Vert-x-与-Spring-Netty-WebFlux-的关系"><a href="#🔍-3-Vert-x-与-Spring-Netty-WebFlux-的关系" class="headerlink" title="🔍 3. Vert.x 与 Spring &#x2F; Netty &#x2F; WebFlux 的关系"></a>🔍 3. Vert.x 与 Spring &#x2F; Netty &#x2F; WebFlux 的关系</h1><p>初学者常会困惑：Vert.x 到底处于什么位置？它取代什么？比谁强？<br>下面给你一个直观对比。</p>
-<h2 id="Vert-x-vs-Spring-Boot"><a href="#Vert-x-vs-Spring-Boot" class="headerlink" title="Vert.x vs Spring Boot"></a>Vert.x vs Spring Boot</h2><table>
-<thead>
-<tr>
-<th>特性</th>
-<th>Vert.x</th>
-<th>Spring Boot</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>线程模型</td>
-<td>Event Loop 非阻塞</td>
-<td>传统阻塞式线程池</td>
-</tr>
-<tr>
-<td>并发性能</td>
-<td>⭐⭐⭐⭐⭐（极高）</td>
-<td>⭐⭐⭐（中等）</td>
-</tr>
-<tr>
-<td>编程方式</td>
-<td>事件驱动 &#x2F; Future</td>
-<td>注解驱动 &#x2F; IOC</td>
-</tr>
-<tr>
-<td>学习曲线</td>
-<td>中等</td>
-<td>低</td>
-</tr>
-<tr>
-<td>适用场景</td>
-<td>高并发网关&#x2F;IoT&#x2F;IM&#x2F;流式处理</td>
-<td>大多数企业应用</td>
-</tr>
-</tbody></table>
-<p>Spring Boot 更加“赶快上线业务”，Vert.x 更适合“极致性能 + 事件驱动 + 分布式通信”。</p>
-<h2 id="Vert-x-vs-WebFlux"><a href="#Vert-x-vs-WebFlux" class="headerlink" title="Vert.x vs WebFlux"></a>Vert.x vs WebFlux</h2><p>两者都是响应式模型，但：</p>
+<p>Verticle 是构建 Vert.x 应用的基础模块，本章将带你系统掌握它的原理、生命周期、部署方式、线程模型等关键知识。</p>
+<h1 id="🌟-1-什么是-Verticle？"><a href="#🌟-1-什么是-Verticle？" class="headerlink" title="🌟 1. 什么是 Verticle？"></a>🌟 1. 什么是 Verticle？</h1><p>Verticle（组件&#x2F;单元）是 Vert.x 程序的可部署单元，每个 Verticle：</p>
 <ul>
-<li>WebFlux 架构更偏向 Spring 生态</li>
-<li>Vert.x 更底层、更自由、更轻量、性能更高</li>
+<li>有独立的生命周期（start&#x2F;stop）</li>
+<li>跑在 Event Loop 或 Worker 线程中</li>
+<li>可以独立部署、独立扩容</li>
+<li>通过 EventBus 与其他 Verticle 通信</li>
 </ul>
-<h2 id="Vert-x-vs-Netty"><a href="#Vert-x-vs-Netty" class="headerlink" title="Vert.x vs Netty"></a>Vert.x vs Netty</h2><p>Vert.x 是基于 Netty 的高级封装：</p>
+<p>一个典型的 Verticle 就像这样：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Verticle started!&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Verticle stopped!&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>部署方式：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">MyVerticle</span>());</span><br></pre></td></tr></table></figure></div>
+
+<hr>
+<h1 id="🌱-2-Verticle-的生命周期"><a href="#🌱-2-Verticle-的生命周期" class="headerlink" title="🌱 2. Verticle 的生命周期"></a>🌱 2. Verticle 的生命周期</h1><p>Verticle 有 2 个核心生命周期方法：</p>
+<h2 id="✔-1）start"><a href="#✔-1）start" class="headerlink" title="✔ 1）start()"></a>✔ 1）<code>start()</code></h2><p>Verticle 部署时执行。</p>
+<p>通常在这里：</p>
 <ul>
-<li>如果你不想自己处理 Handler、ChannelPipeline</li>
-<li>不想手写 TCP&#x2F;HTTP 编解码</li>
-<li>但又想要 Netty 的高性能<br>→ Vert.x 是更适合应用开发的选择</li>
+<li>创建 HTTP 服务器</li>
+<li>注册事件总线消费者</li>
+<li>初始化数据库连接</li>
+<li>启动定时任务</li>
 </ul>
-<p>一句总结：</p>
+<h2 id="✔-2）stop"><a href="#✔-2）stop" class="headerlink" title="✔ 2）stop()"></a>✔ 2）<code>stop()</code></h2><p>Verticle 被卸载时执行。</p>
+<p>通常在这里：</p>
+<ul>
+<li>关闭资源（DB、Redis）</li>
+<li>取消定时器</li>
+<li>清理业务逻辑</li>
+</ul>
+<h3 id="带异步操作的生命周期"><a href="#带异步操作的生命周期" class="headerlink" title="带异步操作的生命周期"></a>带异步操作的生命周期</h3><p>支持异步返回：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">(Promise&lt;Void&gt; startPromise)</span> &#123;</span><br><span class="line">  vertx.createHttpServer().listen(<span class="number">8080</span>)</span><br><span class="line">    .onSuccess(server -&gt; startPromise.complete())</span><br><span class="line">    .onFailure(startPromise::fail);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>Vert.x 会等待异步完成后再确定 Verticle 是否成功启动。</p>
+<hr>
+<h1 id="🧱-3-Verticle-的分类"><a href="#🧱-3-Verticle-的分类" class="headerlink" title="🧱 3. Verticle 的分类"></a>🧱 3. Verticle 的分类</h1><p>Vert.x 提供两大类 Verticle：</p>
+<hr>
+<h2 id="🔹-1）标准-Verticle（Event-Loop-Verticle）"><a href="#🔹-1）标准-Verticle（Event-Loop-Verticle）" class="headerlink" title="🔹 1）标准 Verticle（Event Loop Verticle）"></a>🔹 1）标准 Verticle（Event Loop Verticle）</h2><p>默认类型。</p>
+<p>特点：</p>
+<ul>
+<li><strong>运行在 Event Loop 线程</strong></li>
+<li>不允许长时间阻塞</li>
+<li>响应速度极快</li>
+</ul>
+<p>适合：</p>
+<ul>
+<li>HTTP 请求处理</li>
+<li>WebClient 调用</li>
+<li>EventBus 事件处理</li>
+<li>轻量业务逻辑</li>
+</ul>
+<p><strong>不要做</strong>：</p>
+<ul>
+<li>阻塞 IO</li>
+<li>大量 CPU 密集型操作</li>
+<li>睡眠、等待锁、循环卡死</li>
+</ul>
+<p>因为 Event Loop 线程一旦阻塞，整个系统吞吐立即下降。</p>
+<hr>
+<h2 id="🔹-2）Worker-Verticle（阻塞-Verticle）"><a href="#🔹-2）Worker-Verticle（阻塞-Verticle）" class="headerlink" title="🔹 2）Worker Verticle（阻塞 Verticle）"></a>🔹 2）Worker Verticle（阻塞 Verticle）</h2><p>用于执行阻塞任务。</p>
+<p>部署方式：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">WorkerVerticle</span>(),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setWorker(<span class="literal">true</span>));</span><br></pre></td></tr></table></figure></div>
+
+<p>特点：</p>
+<ul>
+<li>运行在线程池 Worker Pool</li>
+<li>可以执行阻塞操作</li>
+<li>不影响 Event Loop</li>
+</ul>
+<p>适合：</p>
+<ul>
+<li>JDBC 阻塞查询（非 Reactive 查询）</li>
+<li>文件 IO、大量 CPU 计算</li>
+<li>需要睡眠、线程等待的业务逻辑</li>
+</ul>
+<hr>
+<h1 id="⚙-4-Verticle-的部署与选项（DeploymentOptions）"><a href="#⚙-4-Verticle-的部署与选项（DeploymentOptions）" class="headerlink" title="⚙ 4. Verticle 的部署与选项（DeploymentOptions）"></a>⚙ 4. Verticle 的部署与选项（DeploymentOptions）</h1><p>Verticle 部署时可以传递配置：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">DeploymentOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>()</span><br><span class="line">    .setInstances(<span class="number">4</span>)         <span class="comment">// 部署数量</span></span><br><span class="line">    .setWorker(<span class="literal">true</span>)         <span class="comment">// 是否 Worker Verticle</span></span><br><span class="line">    .setConfig(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;port&quot;</span>, <span class="number">8080</span>)); <span class="comment">// 配置</span></span><br><span class="line"></span><br><span class="line">vertx.deployVerticle(MyVerticle.class.getName(), options);</span><br></pre></td></tr></table></figure></div>
+
+<hr>
+<h1 id="🧩-5-多实例-Verticle：并发能力的核心"><a href="#🧩-5-多实例-Verticle：并发能力的核心" class="headerlink" title="🧩 5. 多实例 Verticle：并发能力的核心"></a>🧩 5. 多实例 Verticle：并发能力的核心</h1><p>默认情况下，一个 Verticle → 一个 Event Loop 线程。</p>
+<p>但如果你要提升处理能力，可以创建多个实例：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setInstances(<span class="number">4</span>)</span><br></pre></td></tr></table></figure></div>
+
+<p>这意味着：</p>
+<ul>
+<li>同一个 Verticle 会跑在 4 个 Event Loop 线程上</li>
+<li>同时处理更多并发请求</li>
+<li>更适合 CPU 较多的服务器</li>
+</ul>
+<p>Vert.x 默认 Event Loop 线程数 &#x3D; CPU 核数 × 2</p>
+<p>因此在多核机器上多实例非常有用。</p>
+<hr>
+<h1 id="🧠-6-Verticle-的线程模型"><a href="#🧠-6-Verticle-的线程模型" class="headerlink" title="🧠 6. Verticle 的线程模型"></a>🧠 6. Verticle 的线程模型</h1><p>Vert.x 的线程模型是异步高性能的基础。</p>
+<hr>
+<h2 id="🔸-Event-Loop-Thread（事件循环线程）"><a href="#🔸-Event-Loop-Thread（事件循环线程）" class="headerlink" title="🔸 Event Loop Thread（事件循环线程）"></a>🔸 Event Loop Thread（事件循环线程）</h2><ul>
+<li>用于处理所有非阻塞业务逻辑</li>
+<li>每个 Event Loop 线程必须“永不阻塞”</li>
+<li>如果阻塞会导致整个线程 stall（卡死）</li>
+</ul>
+<p>这是 Vert.x 性能强大的核心原因。</p>
+<hr>
+<h2 id="🔸-Worker-Thread（工作线程）"><a href="#🔸-Worker-Thread（工作线程）" class="headerlink" title="🔸 Worker Thread（工作线程）"></a>🔸 Worker Thread（工作线程）</h2><ul>
+<li>来自 Worker Pool（默认 20）</li>
+<li>允许阻塞逻辑</li>
+<li>不会影响 Event Loop</li>
+</ul>
+<hr>
+<h2 id="🔸-Context：Vert-x-的“线程上下文”"><a href="#🔸-Context：Vert-x-的“线程上下文”" class="headerlink" title="🔸 Context：Vert.x 的“线程上下文”"></a>🔸 Context：Vert.x 的“线程上下文”</h2><p>每个 Verticle 都运行在一个“Context”中。</p>
+<p>重要特性：</p>
+<ul>
+<li>同一个 Verticle 实例永远运行在同一个 Event Loop</li>
+<li>避免了传统多线程的同步问题（不需要 synchronized&#x2F;lock）</li>
+<li>构建 Actor-like 架构非常容易</li>
+</ul>
+<p>你可以通过：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertx.getOrCreateContext()</span><br></pre></td></tr></table></figure></div>
+
+<p>获取当前上下文信息。</p>
+<hr>
+<h1 id="🔄-7-Verticle-与-EventBus：天然解耦"><a href="#🔄-7-Verticle-与-EventBus：天然解耦" class="headerlink" title="🔄 7. Verticle 与 EventBus：天然解耦"></a>🔄 7. Verticle 与 EventBus：天然解耦</h1><p>Verticle 之间不直接调用，而是通过 EventBus 发送消息：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">API Verticle  -----&gt;  Service Verticle  -----&gt; DB Verticle</span><br></pre></td></tr></table></figure></div>
+
+<p>好处：</p>
+<ul>
+<li>Verticle 之间无强依赖（解耦）</li>
+<li>天然支持分布式部署</li>
+<li>容易做负载均衡（多个实例自动分发）</li>
+</ul>
+<p>这为后续的微服务架构打下基础。</p>
+<p>将在后续章节中专门讲 EventBus 深入机制。</p>
+<hr>
+<h1 id="🧪-8-示例：编写一个标准-Verticle"><a href="#🧪-8-示例：编写一个标准-Verticle" class="headerlink" title="🧪 8. 示例：编写一个标准 Verticle"></a>🧪 8. 示例：编写一个标准 Verticle</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    vertx.setPeriodic(<span class="number">2000</span>, id -&gt;</span><br><span class="line">      System.out.println(<span class="string">&quot;Hello from &quot;</span> + Thread.currentThread().getName())</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>部署：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">HelloVerticle</span>());</span><br></pre></td></tr></table></figure></div>
+
+<p>你会看到输出来自：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vert.x-eventloop-thread-0</span><br></pre></td></tr></table></figure></div>
+
+<hr>
+<h1 id="🧪-9-示例：编写一个-Worker-Verticle"><a href="#🧪-9-示例：编写一个-Worker-Verticle" class="headerlink" title="🧪 9. 示例：编写一个 Worker Verticle"></a>🧪 9. 示例：编写一个 Worker Verticle</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">BlockingVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    vertx.executeBlocking(promise -&gt; &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        Thread.sleep(<span class="number">3000</span>); <span class="comment">// 阻塞操作</span></span><br><span class="line">        promise.complete(<span class="string">&quot;done&quot;</span>);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        promise.fail(e);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;, res -&gt; &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;Result: &quot;</span> + res.result());</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>部署为 Worker：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">BlockingVerticle</span>(),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setWorker(<span class="literal">true</span>)</span><br><span class="line">);</span><br><span class="line"></span><br></pre></td></tr></table></figure></div>
+
+<p>输出来自：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vert.x-worker-thread-0</span><br></pre></td></tr></table></figure></div>
+
+<p>不会阻塞 Event Loop。</p>
+<hr>
+<h1 id="🎯-10-实战建议（最佳实践）"><a href="#🎯-10-实战建议（最佳实践）" class="headerlink" title="🎯 10. 实战建议（最佳实践）"></a>🎯 10. 实战建议（最佳实践）</h1><h3 id="✔-保持-Event-Loop-上的代码“轻量”"><a href="#✔-保持-Event-Loop-上的代码“轻量”" class="headerlink" title="✔ 保持 Event Loop 上的代码“轻量”"></a>✔ 保持 Event Loop 上的代码“轻量”</h3><p>规则：</p>
 <blockquote>
-<p>Spring 解决业务复杂性，Vert.x 解决并发复杂性。两者不是对立关系，而是适用不同场景。</p>
+<p>Event Loop 上的代码永不上锁、不睡眠、不做耗时操作。</p>
 </blockquote>
-<h1 id="🧠-4-Vert-x-的核心设计理念"><a href="#🧠-4-Vert-x-的核心设计理念" class="headerlink" title="🧠 4. Vert.x 的核心设计理念"></a>🧠 4. Vert.x 的核心设计理念</h1><p>理解 Vert.x 的四大核心理念，有助于你更快掌握这个框架：</p>
-<h2 id="4-1-事件驱动（Event-Driven）"><a href="#4-1-事件驱动（Event-Driven）" class="headerlink" title="4.1. 事件驱动（Event Driven）"></a>4.1. 事件驱动（Event Driven）</h2><p>Vert.x 的本质是一个事件驱动系统：</p>
-<p>网络请求是一个事件</p>
-<p>数据库响应是一个事件</p>
-<p>消息总线消息也是一个事件</p>
-<p>Timer 触发是一个事件</p>
-<p>事件驱动让应用避免阻塞，从而提高吞吐量。</p>
-<h2 id="4-2-非阻塞（Non-Blocking）"><a href="#4-2-非阻塞（Non-Blocking）" class="headerlink" title="4.2. 非阻塞（Non-Blocking）"></a>4.2. 非阻塞（Non-Blocking）</h2><p>“非阻塞”意味着：</p>
-<p>绝不让 Event Loop 去执行阻塞操作</p>
-<p>所有 IO 都必须异步执行</p>
-<p>如果有阻塞代码，必须交给 Worker Pool</p>
-<p>这就是为什么 Vert.x 能用 很少的线程 支撑 大量连接。</p>
-<h2 id="4-3-模块化（Verticle）"><a href="#4-3-模块化（Verticle）" class="headerlink" title="4.3. 模块化（Verticle）"></a>4.3. 模块化（Verticle）</h2><p>Vert.x 不是 MVC，而是 Verticle 模块化架构：</p>
-<p>每个 Verticle 相当于一个业务单元</p>
-<p>Verticle 之间通过 EventBus 通信</p>
-<p>Verticle 可以独立扩容、独立部署</p>
-<p>非常适合微服务设计<br>一个大型系统可以拆成：</p>
-<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">api-verticle</span><br><span class="line">service-verticle</span><br><span class="line">db-verticle</span><br><span class="line">event-verticle</span><br><span class="line">timer-verticle</span><br></pre></td></tr></table></figure></div>
-
-<h2 id="4-4-分布式-Event-Bus"><a href="#4-4-分布式-Event-Bus" class="headerlink" title="4.4. 分布式 Event Bus"></a>4.4. 分布式 Event Bus</h2><p>这是 Vert.x 最独特的能力。</p>
-<p>像在同一个 JVM 中一样发送消息，但消息可以跨机器传输；天然支持微服务架构，性能远高于 HTTP RPC</p>
-<p>例如：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eventBus.send(<span class="string">&quot;order.create&quot;</span>, orderJson);</span><br></pre></td></tr></table></figure></div>
-
-
-<p>不需要关心目标服务在哪里运行，因为 Event Bus 会自动路由。</p>
-<h1 id="🌍-5-Vert-x-的应用场景"><a href="#🌍-5-Vert-x-的应用场景" class="headerlink" title="🌍 5. Vert.x 的应用场景"></a>🌍 5. Vert.x 的应用场景</h1><p>Vert.x 尤其适合以下场景：</p>
-<p>✔ 高并发 API 服务</p>
-<p>如网关层、BFF 层、大量 IO 的场景。</p>
-<p>✔ 聊天系统 &#x2F; IM &#x2F; WebSocket 服务</p>
-<p>得益于非阻塞与事件驱动，处理海量长连接游刃有余。</p>
-<p>✔ 物联网（IoT）平台</p>
-<p>IoT 设备数量巨大，Vert.x 非常适合这种模型。</p>
-<p>✔ 流式处理 &#x2F; 实时分析</p>
-<p>与 Kafka、MQ 集成后表现很好。</p>
-<p>✔ 轻量级分布式微服务</p>
-<p>Vert.x 给你 Event Bus、服务发现、负载均衡，构成天然的微服务组件。</p>
+<h3 id="✔-阻塞逻辑必须放到-Worker-Verticle-或-executeBlocking"><a href="#✔-阻塞逻辑必须放到-Worker-Verticle-或-executeBlocking" class="headerlink" title="✔ 阻塞逻辑必须放到 Worker Verticle 或 executeBlocking"></a>✔ 阻塞逻辑必须放到 Worker Verticle 或 executeBlocking</h3><h3 id="✔-每种类型的业务写成独立-Verticle"><a href="#✔-每种类型的业务写成独立-Verticle" class="headerlink" title="✔ 每种类型的业务写成独立 Verticle"></a>✔ 每种类型的业务写成独立 Verticle</h3><p>比如：</p>
+<ul>
+<li>API Verticle（HTTP 接口）</li>
+<li>Service Verticle（业务）</li>
+<li>DB Verticle（数据访问）</li>
+<li>Timer Verticle（定时任务）</li>
+</ul>
+<p>这样可扩展性、可维护性非常强。</p>
+<h3 id="✔-合理设置实例数量"><a href="#✔-合理设置实例数量" class="headerlink" title="✔ 合理设置实例数量"></a>✔ 合理设置实例数量</h3><ul>
+<li>API Verticle：多实例</li>
+<li>DB Verticle：按连接池大小决定</li>
+<li>Worker：根据 Worker Pool 数量</li>
+</ul>
+<hr>
+<h1 id="📌-11-本章总结"><a href="#📌-11-本章总结" class="headerlink" title="📌 11. 本章总结"></a>📌 11. 本章总结</h1><p>本章我们深入掌握了 Vert.x 的核心概念：</p>
+<ul>
+<li>什么是 Verticle</li>
+<li>生命周期（start&#x2F;stop）</li>
+<li>标准 Verticle 与 Worker Verticle</li>
+<li>多实例与并发模型</li>
+<li>Event Loop vs Worker Thread</li>
+<li>部署选项 DeploymentOptions</li>
+<li>与 EventBus 的解耦关系</li>
+</ul>
+<p>Verticle 是 Vert.x 应用的基石，理解它的设计思想后，后续的 EventBus、Web、微服务架构都会变得容易。</p>
 
 		</div>
 
@@ -643,18 +709,18 @@
 		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
 			<div class="article-copyright-info-container">
     <ul>
-        <li><strong>Title:</strong> Vert.x从入门到放弃第一弹</li>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第三弹：Verticle基础</li>
         <li><strong>Author:</strong> Elvis</li>
         <li><strong>Created at
-                :</strong> 2025-11-16 17:40:05</li>
+                :</strong> 2025-11-29 23:47:57</li>
         
             <li>
                 <strong>Updated at
-                    :</strong> 2025-11-16 18:25:59
+                    :</strong> 2025-11-29 23:50:03
             </li>
         
         <li>
-            <strong>Link:</strong> https://qianwj.github.io/2025/11/16/vertx-series-1/
+            <strong>Link:</strong> https://qianwj.github.io/2025/11/29/vertx-series-3/
         </li>
         <li>
             <strong>
@@ -703,23 +769,11 @@
 		
 		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
 			
-			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
-				<a class="prev" rel="prev" href="/2025/11/22/vertx-series-2/">
-					<span class="left arrow-icon flex justify-center items-center">
-						<i class="fa-solid fa-chevron-left"></i>
-					</span>
-					<span class="title flex justify-center items-center">
-						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第二弹：搭建开发环境</span>
-						<span class="post-nav-item">Prev posts</span>
-					</span>
-				</a>
-			</div>
-			
 			
 			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
-				<a class="next" rel="next" href="/2025/11/15/hiring/">
+				<a class="next" rel="next" href="/2025/11/22/vertx-series-2/">
 					<span class="title flex justify-center items-center">
-						<span class="post-nav-title-item truncate max-w-48">小而美的海外社交公司招人啦</span>
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第二弹：搭建开发环境</span>
 						<span class="post-nav-item">Next posts</span>
 					</span>
 					<span class="right arrow-icon flex justify-center items-center">
@@ -740,8 +794,8 @@
 		<div class="post-toc-wrap">
 	<div class="post-toc">
 		<div class="toc-title">On this page</div>
-		<div class="page-title">Vert.x从入门到放弃第一弹</div>
-		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Vert-x%EF%BC%9F"><span class="nav-text">🌟 1. 为什么需要 Vert.x？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-2-Vert-x-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-text">⚡ 2. Vert.x 是什么？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8D-3-Vert-x-%E4%B8%8E-Spring-Netty-WebFlux-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">🔍 3. Vert.x 与 Spring &#x2F; Netty &#x2F; WebFlux 的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Vert-x-vs-Spring-Boot"><span class="nav-text">Vert.x vs Spring Boot</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vert-x-vs-WebFlux"><span class="nav-text">Vert.x vs WebFlux</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vert-x-vs-Netty"><span class="nav-text">Vert.x vs Netty</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A0-4-Vert-x-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="nav-text">🧠 4. Vert.x 的核心设计理念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E4%BA%8B%E4%BB%B6%E9%A9%B1%E5%8A%A8%EF%BC%88Event-Driven%EF%BC%89"><span class="nav-text">4.1. 事件驱动（Event Driven）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E9%9D%9E%E9%98%BB%E5%A1%9E%EF%BC%88Non-Blocking%EF%BC%89"><span class="nav-text">4.2. 非阻塞（Non-Blocking）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E6%A8%A1%E5%9D%97%E5%8C%96%EF%BC%88Verticle%EF%BC%89"><span class="nav-text">4.3. 模块化（Verticle）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-%E5%88%86%E5%B8%83%E5%BC%8F-Event-Bus"><span class="nav-text">4.4. 分布式 Event Bus</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%8D-5-Vert-x-%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-text">🌍 5. Vert.x 的应用场景</span></a></li></ol>
+		<div class="page-title">Vert.x从入门到放弃第三弹：Verticle基础</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%BB%80%E4%B9%88%E6%98%AF-Verticle%EF%BC%9F"><span class="nav-text">🌟 1. 什么是 Verticle？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%B1-2-Verticle-%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-text">🌱 2. Verticle 的生命周期</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%9C%94-1%EF%BC%89start"><span class="nav-text">✔ 1）start()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%9C%94-2%EF%BC%89stop"><span class="nav-text">✔ 2）stop()</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%A6%E5%BC%82%E6%AD%A5%E6%93%8D%E4%BD%9C%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-text">带异步操作的生命周期</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%B1-3-Verticle-%E7%9A%84%E5%88%86%E7%B1%BB"><span class="nav-text">🧱 3. Verticle 的分类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B9-1%EF%BC%89%E6%A0%87%E5%87%86-Verticle%EF%BC%88Event-Loop-Verticle%EF%BC%89"><span class="nav-text">🔹 1）标准 Verticle（Event Loop Verticle）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B9-2%EF%BC%89Worker-Verticle%EF%BC%88%E9%98%BB%E5%A1%9E-Verticle%EF%BC%89"><span class="nav-text">🔹 2）Worker Verticle（阻塞 Verticle）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%99-4-Verticle-%E7%9A%84%E9%83%A8%E7%BD%B2%E4%B8%8E%E9%80%89%E9%A1%B9%EF%BC%88DeploymentOptions%EF%BC%89"><span class="nav-text">⚙ 4. Verticle 的部署与选项（DeploymentOptions）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A9-5-%E5%A4%9A%E5%AE%9E%E4%BE%8B-Verticle%EF%BC%9A%E5%B9%B6%E5%8F%91%E8%83%BD%E5%8A%9B%E7%9A%84%E6%A0%B8%E5%BF%83"><span class="nav-text">🧩 5. 多实例 Verticle：并发能力的核心</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A0-6-Verticle-%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-text">🧠 6. Verticle 的线程模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B8-Event-Loop-Thread%EF%BC%88%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF%E7%BA%BF%E7%A8%8B%EF%BC%89"><span class="nav-text">🔸 Event Loop Thread（事件循环线程）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B8-Worker-Thread%EF%BC%88%E5%B7%A5%E4%BD%9C%E7%BA%BF%E7%A8%8B%EF%BC%89"><span class="nav-text">🔸 Worker Thread（工作线程）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B8-Context%EF%BC%9AVert-x-%E7%9A%84%E2%80%9C%E7%BA%BF%E7%A8%8B%E4%B8%8A%E4%B8%8B%E6%96%87%E2%80%9D"><span class="nav-text">🔸 Context：Vert.x 的“线程上下文”</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%84-7-Verticle-%E4%B8%8E-EventBus%EF%BC%9A%E5%A4%A9%E7%84%B6%E8%A7%A3%E8%80%A6"><span class="nav-text">🔄 7. Verticle 与 EventBus：天然解耦</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-8-%E7%A4%BA%E4%BE%8B%EF%BC%9A%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA%E6%A0%87%E5%87%86-Verticle"><span class="nav-text">🧪 8. 示例：编写一个标准 Verticle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-9-%E7%A4%BA%E4%BE%8B%EF%BC%9A%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA-Worker-Verticle"><span class="nav-text">🧪 9. 示例：编写一个 Worker Verticle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-10-%E5%AE%9E%E6%88%98%E5%BB%BA%E8%AE%AE%EF%BC%88%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%EF%BC%89"><span class="nav-text">🎯 10. 实战建议（最佳实践）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E4%BF%9D%E6%8C%81-Event-Loop-%E4%B8%8A%E7%9A%84%E4%BB%A3%E7%A0%81%E2%80%9C%E8%BD%BB%E9%87%8F%E2%80%9D"><span class="nav-text">✔ 保持 Event Loop 上的代码“轻量”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E9%98%BB%E5%A1%9E%E9%80%BB%E8%BE%91%E5%BF%85%E9%A1%BB%E6%94%BE%E5%88%B0-Worker-Verticle-%E6%88%96-executeBlocking"><span class="nav-text">✔ 阻塞逻辑必须放到 Worker Verticle 或 executeBlocking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E6%AF%8F%E7%A7%8D%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%9A%E5%8A%A1%E5%86%99%E6%88%90%E7%8B%AC%E7%AB%8B-Verticle"><span class="nav-text">✔ 每种类型的业务写成独立 Verticle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E5%90%88%E7%90%86%E8%AE%BE%E7%BD%AE%E5%AE%9E%E4%BE%8B%E6%95%B0%E9%87%8F"><span class="nav-text">✔ 合理设置实例数量</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-11-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 11. 本章总结</span></a></li></ol>
 
 	</div>
 </div>
