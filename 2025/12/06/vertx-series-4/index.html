@@ -123,7 +123,7 @@
     
     <!--- Seo Part-->
     
-    <link rel="canonical" href="http://example.com/2025/11/29/vertx-series-3/"/>
+    <link rel="canonical" href="http://example.com/2025/12/06/vertx-series-4/"/>
     <meta name="robots" content="index,follow">
     <meta name="googlebot" content="index,follow">
     <meta name="revisit-after" content="1 days">
@@ -133,14 +133,14 @@
         
         <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vert.x从入门到放弃第三弹：Verticle基础">
-<meta property="og:url" content="http://example.com/2025/11/29/vertx-series-3/index.html">
+<meta property="og:title" content="Vert.x从入门到放弃第四弹：Event Bus入门">
+<meta property="og:url" content="http://example.com/2025/12/06/vertx-series-4/index.html">
 <meta property="og:site_name" content="Elvis&#39; Guraden">
 <meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/redefine-og.webp">
-<meta property="article:published_time" content="2025-11-29T15:47:57.000Z">
-<meta property="article:modified_time" content="2025-11-29T15:50:03.951Z">
+<meta property="article:published_time" content="2025-12-06T02:23:14.000Z">
+<meta property="article:modified_time" content="2025-12-06T02:26:00.002Z">
 <meta property="article:author" content="Elvis Qian">
 <meta property="article:tag" content="Distribution">
 <meta property="article:tag" content="Java">
@@ -160,7 +160,7 @@
     
     <title>
         
-            Vert.x从入门到放弃第三弹：Verticle基础 | Elvis&#39; Guraden
+            Vert.x从入门到放弃第四弹：Event Bus入门 | Elvis&#39; Guraden
         
     </title>
 
@@ -424,10 +424,10 @@
 			
 			
 			
-			<img src="https://www.notion.so/images/page-cover/woodcuts_14.jpg" alt="Vert.x从入门到放弃第三弹：Verticle基础" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			<img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第四弹：Event Bus入门" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
 			
 			<div class="w-full flex items-center absolute bottom-0 justify-start">
-				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第三弹：Verticle基础</h1>
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第四弹：Event Bus入门</h1>
 			</div>
 			
 		</div>
@@ -448,15 +448,15 @@
 					<div class="article-meta-info">
     <span class="article-date article-meta-item">
         <i class="fa-regular fa-pen-fancy"></i>&nbsp;
-        <span class="desktop">2025-11-29 23:47:57</span>
-        <span class="mobile">2025-11-29 23:47:57</span>
+        <span class="desktop">2025-12-06 10:23:14</span>
+        <span class="mobile">2025-12-06 10:23:14</span>
         <span class="hover-info">Created</span>
     </span>
     
         <span class="article-date article-meta-item">
             <i class="fa-regular fa-wrench"></i>&nbsp;
-            <span class="desktop">2025-11-29 23:50:03</span>
-            <span class="mobile">2025-11-29 23:50:03</span>
+            <span class="desktop">2025-12-06 10:26</span>
+            <span class="mobile">2025-12-06 10:26</span>
             <span class="hover-info">Updated</span>
         </span>
     
@@ -510,198 +510,155 @@
 
 
 		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
-			<p>在前面两章中，我们搭建了开发环境并运行了第一个 Vert.x 项目。</p>
-<p>从本章开始，我们将进入 Vert.x 最核心的概念之一：</p>
+			<h1 id="🌟-1-什么是-Event-Bus？"><a href="#🌟-1-什么是-Event-Bus？" class="headerlink" title="🌟 1. 什么是 Event Bus？"></a>🌟 1. 什么是 Event Bus？</h1><p>Vert.x Event Bus 是一个轻量级的消息总线，用于 Verticle 之间乃至应用之间的通信。它具有以下特性：</p>
+<ul>
+<li><strong>进程内通信（Local）</strong></li>
+<li><strong>跨 Verticle 通信</strong></li>
+<li><strong>跨 JVM 通信（Cluster 模式）</strong></li>
+<li><strong>浏览器通信（SockJS&#x2F;WebSocket Bridge）</strong></li>
+</ul>
+<p>也就是说：</p>
 <blockquote>
-<p>Verticle —— Vert.x 中部署、隔离、调度的最小执行单元。</p>
+<p>Event Bus 不只是内部通信总线，它是一种天然支持分布式的消息机制。</p>
 </blockquote>
-<p>你可以把 Verticle 理解成：</p>
+<h1 id="🎯-2-Event-Bus-的消息模式（非常重要）"><a href="#🎯-2-Event-Bus-的消息模式（非常重要）" class="headerlink" title="🎯 2. Event Bus 的消息模式（非常重要）"></a>🎯 2. Event Bus 的消息模式（非常重要）</h1><p>Event Bus 提供三种基础通信模式，理解它们是使用 Event Bus 的关键。</p>
+<h2 id="①-Send（点对点，Request-Response-模式）"><a href="#①-Send（点对点，Request-Response-模式）" class="headerlink" title="① Send（点对点，Request&#x2F;Response 模式）"></a>① <strong>Send（点对点，Request&#x2F;Response 模式）</strong></h2><p>只会发送给一个消费者。</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vertx.eventBus().request(<span class="string">&quot;order.create&quot;</span>, orderJson)</span><br><span class="line">  .onSuccess(reply -&gt; &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Return: &quot;</span> + reply.body());</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<p>消费者：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">eventBus.consumer(<span class="string">&quot;order.create&quot;</span>, message -&gt; &#123;</span><br><span class="line">  <span class="comment">// 一般用来处理业务并返回结果</span></span><br><span class="line">  message.reply(<span class="string">&quot;OK&quot;</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<p>适用场景：</p>
 <ul>
-<li>类似 Node.js 中的“模块”</li>
-<li>类似微服务内部的“服务单元”</li>
-<li>类似 Java 应用中的一个“独立组件”</li>
+<li>RPC 风格调用</li>
+<li>请求–响应业务处理链</li>
+<li>需要返回值的场景</li>
 </ul>
-<p>Verticle 是构建 Vert.x 应用的基础模块，本章将带你系统掌握它的原理、生命周期、部署方式、线程模型等关键知识。</p>
-<h1 id="🌟-1-什么是-Verticle？"><a href="#🌟-1-什么是-Verticle？" class="headerlink" title="🌟 1. 什么是 Verticle？"></a>🌟 1. 什么是 Verticle？</h1><p>Verticle（组件&#x2F;单元）是 Vert.x 程序的可部署单元，每个 Verticle：</p>
+<h2 id="②-Publish（发布-订阅）"><a href="#②-Publish（发布-订阅）" class="headerlink" title="② Publish（发布&#x2F;订阅）"></a>② <strong>Publish（发布&#x2F;订阅）</strong></h2><p>发送到所有订阅者（广播）。</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eventBus.publish(<span class="string">&quot;system.broadcast&quot;</span>, <span class="string">&quot;System updated!&quot;</span>);</span><br></pre></td></tr></table></figure></div>
+
+<p>适用：</p>
 <ul>
-<li>有独立的生命周期（start&#x2F;stop）</li>
-<li>跑在 Event Loop 或 Worker 线程中</li>
-<li>可以独立部署、独立扩容</li>
-<li>通过 EventBus 与其他 Verticle 通信</li>
+<li>状态同步</li>
+<li>系统通知</li>
+<li>广播事件</li>
 </ul>
-<p>一个典型的 Verticle 就像这样：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Verticle started!&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Verticle stopped!&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+<h2 id="③-Send-with-reply（请求–响应）"><a href="#③-Send-with-reply（请求–响应）" class="headerlink" title="③ Send with reply（请求–响应）"></a>③ <strong>Send with reply（请求–响应）</strong></h2><p>Send 就是点对点，带上 <code>reply()</code> 就是同步调用风格。</p>
+<p>多数业务场景用它。</p>
+<h1 id="🧩-3-基本使用示例：创建消费者与发送消息"><a href="#🧩-3-基本使用示例：创建消费者与发送消息" class="headerlink" title="🧩 3. 基本使用示例：创建消费者与发送消息"></a>🧩 3. 基本使用示例：创建消费者与发送消息</h1><h2 id="创建一个消费者（Consumer）"><a href="#创建一个消费者（Consumer）" class="headerlink" title="创建一个消费者（Consumer）"></a>创建一个消费者（Consumer）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">EventBus</span> <span class="variable">eb</span> <span class="operator">=</span> vertx.eventBus();</span><br><span class="line"></span><br><span class="line">eb.consumer(<span class="string">&quot;news.sport&quot;</span>, message -&gt; &#123;</span><br><span class="line">  System.out.println(<span class="string">&quot;Received: &quot;</span> + message.body());</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
 
-<p>部署方式：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">MyVerticle</span>());</span><br></pre></td></tr></table></figure></div>
+<h2 id="发送消息"><a href="#发送消息" class="headerlink" title="发送消息"></a>发送消息</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eb.send(<span class="string">&quot;news.sport&quot;</span>, <span class="string">&quot;Hello Sports!&quot;</span>);</span><br></pre></td></tr></table></figure></div>
 
-<hr>
-<h1 id="🌱-2-Verticle-的生命周期"><a href="#🌱-2-Verticle-的生命周期" class="headerlink" title="🌱 2. Verticle 的生命周期"></a>🌱 2. Verticle 的生命周期</h1><p>Verticle 有 2 个核心生命周期方法：</p>
-<h2 id="✔-1）start"><a href="#✔-1）start" class="headerlink" title="✔ 1）start()"></a>✔ 1）<code>start()</code></h2><p>Verticle 部署时执行。</p>
-<p>通常在这里：</p>
+<p>输出：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Received: Hello Sports!</span><br></pre></td></tr></table></figure></div>
+
+<p>这是一个最简单的 Event Bus Demo。</p>
+<h1 id="⚙-4-消息类型与编码（MessageCodec）"><a href="#⚙-4-消息类型与编码（MessageCodec）" class="headerlink" title="⚙ 4. 消息类型与编码（MessageCodec）"></a>⚙ 4. 消息类型与编码（MessageCodec）</h1><p>Event Bus 默认支持：</p>
 <ul>
-<li>创建 HTTP 服务器</li>
-<li>注册事件总线消费者</li>
-<li>初始化数据库连接</li>
-<li>启动定时任务</li>
+<li>String</li>
+<li>JsonObject</li>
+<li>JsonArray</li>
+<li>Buffer</li>
+<li>基本类型（Integer&#x2F;Boolean 等）</li>
 </ul>
-<h2 id="✔-2）stop"><a href="#✔-2）stop" class="headerlink" title="✔ 2）stop()"></a>✔ 2）<code>stop()</code></h2><p>Verticle 被卸载时执行。</p>
-<p>通常在这里：</p>
-<ul>
-<li>关闭资源（DB、Redis）</li>
-<li>取消定时器</li>
-<li>清理业务逻辑</li>
-</ul>
-<h3 id="带异步操作的生命周期"><a href="#带异步操作的生命周期" class="headerlink" title="带异步操作的生命周期"></a>带异步操作的生命周期</h3><p>支持异步返回：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">(Promise&lt;Void&gt; startPromise)</span> &#123;</span><br><span class="line">  vertx.createHttpServer().listen(<span class="number">8080</span>)</span><br><span class="line">    .onSuccess(server -&gt; startPromise.complete())</span><br><span class="line">    .onFailure(startPromise::fail);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+<p>如果你想发送自定义对象，需要注册 <code>MessageCodec</code>：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertx.eventBus().registerDefaultCodec(User.class, <span class="keyword">new</span> <span class="title class_">UserCodec</span>());</span><br></pre></td></tr></table></figure></div>
 
-<p>Vert.x 会等待异步完成后再确定 Verticle 是否成功启动。</p>
-<hr>
-<h1 id="🧱-3-Verticle-的分类"><a href="#🧱-3-Verticle-的分类" class="headerlink" title="🧱 3. Verticle 的分类"></a>🧱 3. Verticle 的分类</h1><p>Vert.x 提供两大类 Verticle：</p>
-<hr>
-<h2 id="🔹-1）标准-Verticle（Event-Loop-Verticle）"><a href="#🔹-1）标准-Verticle（Event-Loop-Verticle）" class="headerlink" title="🔹 1）标准 Verticle（Event Loop Verticle）"></a>🔹 1）标准 Verticle（Event Loop Verticle）</h2><p>默认类型。</p>
-<p>特点：</p>
-<ul>
-<li><strong>运行在 Event Loop 线程</strong></li>
-<li>不允许长时间阻塞</li>
-<li>响应速度极快</li>
-</ul>
-<p>适合：</p>
-<ul>
-<li>HTTP 请求处理</li>
-<li>WebClient 调用</li>
-<li>EventBus 事件处理</li>
-<li>轻量业务逻辑</li>
-</ul>
-<p><strong>不要做</strong>：</p>
-<ul>
-<li>阻塞 IO</li>
-<li>大量 CPU 密集型操作</li>
-<li>睡眠、等待锁、循环卡死</li>
-</ul>
-<p>因为 Event Loop 线程一旦阻塞，整个系统吞吐立即下降。</p>
-<hr>
-<h2 id="🔹-2）Worker-Verticle（阻塞-Verticle）"><a href="#🔹-2）Worker-Verticle（阻塞-Verticle）" class="headerlink" title="🔹 2）Worker Verticle（阻塞 Verticle）"></a>🔹 2）Worker Verticle（阻塞 Verticle）</h2><p>用于执行阻塞任务。</p>
-<p>部署方式：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">WorkerVerticle</span>(),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setWorker(<span class="literal">true</span>));</span><br></pre></td></tr></table></figure></div>
+<p>自定义 codec 用于序列化&#x2F;反序列化，支持分布式传输。</p>
+<p>示例 codec 实现大致如下：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserCodec</span> <span class="keyword">implements</span> <span class="title class_">MessageCodec</span>&lt;User, User&gt; &#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">encodeToWire</span><span class="params">(Buffer buffer, User user)</span> &#123;</span><br><span class="line">    buffer.appendString(user.toJson().encode());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> User <span class="title function_">decodeFromWire</span><span class="params">(<span class="type">int</span> pos, Buffer buffer)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> buffer.getString(pos, buffer.length());</span><br><span class="line">    <span class="keyword">return</span> User.fromJson(<span class="keyword">new</span> <span class="title class_">JsonObject</span>(json));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> User <span class="title function_">transform</span><span class="params">(User user)</span> &#123; <span class="keyword">return</span> user; &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> String <span class="title function_">name</span><span class="params">()</span> &#123; <span class="keyword">return</span> <span class="string">&quot;userCodec&quot;</span>; &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="type">byte</span> <span class="title function_">systemCodecID</span><span class="params">()</span> &#123; <span class="keyword">return</span> -<span class="number">1</span>; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
 
-<p>特点：</p>
-<ul>
-<li>运行在线程池 Worker Pool</li>
-<li>可以执行阻塞操作</li>
-<li>不影响 Event Loop</li>
-</ul>
-<p>适合：</p>
-<ul>
-<li>JDBC 阻塞查询（非 Reactive 查询）</li>
-<li>文件 IO、大量 CPU 计算</li>
-<li>需要睡眠、线程等待的业务逻辑</li>
-</ul>
-<hr>
-<h1 id="⚙-4-Verticle-的部署与选项（DeploymentOptions）"><a href="#⚙-4-Verticle-的部署与选项（DeploymentOptions）" class="headerlink" title="⚙ 4. Verticle 的部署与选项（DeploymentOptions）"></a>⚙ 4. Verticle 的部署与选项（DeploymentOptions）</h1><p>Verticle 部署时可以传递配置：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">DeploymentOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>()</span><br><span class="line">    .setInstances(<span class="number">4</span>)         <span class="comment">// 部署数量</span></span><br><span class="line">    .setWorker(<span class="literal">true</span>)         <span class="comment">// 是否 Worker Verticle</span></span><br><span class="line">    .setConfig(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;port&quot;</span>, <span class="number">8080</span>)); <span class="comment">// 配置</span></span><br><span class="line"></span><br><span class="line">vertx.deployVerticle(MyVerticle.class.getName(), options);</span><br></pre></td></tr></table></figure></div>
+<h1 id="🔄-5-Event-Bus-与-Future（组合异步逻辑）"><a href="#🔄-5-Event-Bus-与-Future（组合异步逻辑）" class="headerlink" title="🔄 5. Event Bus 与 Future（组合异步逻辑）"></a>🔄 5. Event Bus 与 Future（组合异步逻辑）</h1><p>Event Bus request 是异步的，可以与 Future 组合：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;String&gt; result = vertx.eventBus()</span><br><span class="line">  .&lt;String&gt;request(<span class="string">&quot;order.create&quot;</span>, orderJson);</span><br><span class="line"></span><br><span class="line">result</span><br><span class="line">  .compose(orderId -&gt; getOrderDetail(orderId))</span><br><span class="line">  .onSuccess(detail -&gt; System.out.println(<span class="string">&quot;Order: &quot;</span> + detail));</span><br></pre></td></tr></table></figure></div>
 
-<hr>
-<h1 id="🧩-5-多实例-Verticle：并发能力的核心"><a href="#🧩-5-多实例-Verticle：并发能力的核心" class="headerlink" title="🧩 5. 多实例 Verticle：并发能力的核心"></a>🧩 5. 多实例 Verticle：并发能力的核心</h1><p>默认情况下，一个 Verticle → 一个 Event Loop 线程。</p>
-<p>但如果你要提升处理能力，可以创建多个实例：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setInstances(<span class="number">4</span>)</span><br></pre></td></tr></table></figure></div>
+<p>这种链式写法非常适合业务流程编排。</p>
+<h1 id="📦-6-Event-Bus-模式下的应用分层架构"><a href="#📦-6-Event-Bus-模式下的应用分层架构" class="headerlink" title="📦 6. Event Bus 模式下的应用分层架构"></a>📦 6. Event Bus 模式下的应用分层架构</h1><p>典型的分层：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌────────────┐</span><br><span class="line">│ API Layer  │  -&gt; 接收 HTTP 请求，转发 Event Bus</span><br><span class="line">└────────────┘</span><br><span class="line">        ↓</span><br><span class="line">┌────────────┐</span><br><span class="line">│ Service    │  -&gt; 业务处理（多个 Service Verticle）</span><br><span class="line">└────────────┘</span><br><span class="line">        ↓</span><br><span class="line">┌────────────┐</span><br><span class="line">│ Persistence │ -&gt; DB / Redis 访问</span><br><span class="line">└────────────┘</span><br></pre></td></tr></table></figure></div>
 
-<p>这意味着：</p>
-<ul>
-<li>同一个 Verticle 会跑在 4 个 Event Loop 线程上</li>
-<li>同时处理更多并发请求</li>
-<li>更适合 CPU 较多的服务器</li>
-</ul>
-<p>Vert.x 默认 Event Loop 线程数 &#x3D; CPU 核数 × 2</p>
-<p>因此在多核机器上多实例非常有用。</p>
-<hr>
-<h1 id="🧠-6-Verticle-的线程模型"><a href="#🧠-6-Verticle-的线程模型" class="headerlink" title="🧠 6. Verticle 的线程模型"></a>🧠 6. Verticle 的线程模型</h1><p>Vert.x 的线程模型是异步高性能的基础。</p>
-<hr>
-<h2 id="🔸-Event-Loop-Thread（事件循环线程）"><a href="#🔸-Event-Loop-Thread（事件循环线程）" class="headerlink" title="🔸 Event Loop Thread（事件循环线程）"></a>🔸 Event Loop Thread（事件循环线程）</h2><ul>
-<li>用于处理所有非阻塞业务逻辑</li>
-<li>每个 Event Loop 线程必须“永不阻塞”</li>
-<li>如果阻塞会导致整个线程 stall（卡死）</li>
-</ul>
-<p>这是 Vert.x 性能强大的核心原因。</p>
-<hr>
-<h2 id="🔸-Worker-Thread（工作线程）"><a href="#🔸-Worker-Thread（工作线程）" class="headerlink" title="🔸 Worker Thread（工作线程）"></a>🔸 Worker Thread（工作线程）</h2><ul>
-<li>来自 Worker Pool（默认 20）</li>
-<li>允许阻塞逻辑</li>
-<li>不会影响 Event Loop</li>
-</ul>
-<hr>
-<h2 id="🔸-Context：Vert-x-的“线程上下文”"><a href="#🔸-Context：Vert-x-的“线程上下文”" class="headerlink" title="🔸 Context：Vert.x 的“线程上下文”"></a>🔸 Context：Vert.x 的“线程上下文”</h2><p>每个 Verticle 都运行在一个“Context”中。</p>
-<p>重要特性：</p>
-<ul>
-<li>同一个 Verticle 实例永远运行在同一个 Event Loop</li>
-<li>避免了传统多线程的同步问题（不需要 synchronized&#x2F;lock）</li>
-<li>构建 Actor-like 架构非常容易</li>
-</ul>
-<p>你可以通过：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertx.getOrCreateContext()</span><br></pre></td></tr></table></figure></div>
+<p>优点：</p>
+<h3 id="✔-各层完全解耦"><a href="#✔-各层完全解耦" class="headerlink" title="✔ 各层完全解耦"></a>✔ 各层完全解耦</h3><p>API 不关心业务服务是否在同 JVM、不同机器或是否重启过。</p>
+<h3 id="✔-负载均衡"><a href="#✔-负载均衡" class="headerlink" title="✔ 负载均衡"></a>✔ 负载均衡</h3><p>多个 Service Verticle 实例会被 EventBus 自动轮询调度。</p>
+<h3 id="✔-天然支持微服务化"><a href="#✔-天然支持微服务化" class="headerlink" title="✔ 天然支持微服务化"></a>✔ 天然支持微服务化</h3><p>后续加入 EventBus Cluster 后几乎无缝扩展到多节点。</p>
+<h1 id="🚀-7-Event-Bus-Cluster（分布式模式）介绍"><a href="#🚀-7-Event-Bus-Cluster（分布式模式）介绍" class="headerlink" title="🚀 7. Event Bus Cluster（分布式模式）介绍"></a>🚀 7. Event Bus Cluster（分布式模式）介绍</h1><p>如果你用：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertx run MyVerticle -cluster</span><br></pre></td></tr></table></figure></div>
 
-<p>获取当前上下文信息。</p>
-<hr>
-<h1 id="🔄-7-Verticle-与-EventBus：天然解耦"><a href="#🔄-7-Verticle-与-EventBus：天然解耦" class="headerlink" title="🔄 7. Verticle 与 EventBus：天然解耦"></a>🔄 7. Verticle 与 EventBus：天然解耦</h1><p>Verticle 之间不直接调用，而是通过 EventBus 发送消息：</p>
-<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">API Verticle  -----&gt;  Service Verticle  -----&gt; DB Verticle</span><br></pre></td></tr></table></figure></div>
+<p>则 Event Bus 自动进入集群模式（默认使用 Hazelcast）。</p>
+<p>这意味着消息可以被发送到<strong>另一台机器</strong>上的 Verticle。</p>
+<p>示例：</p>
+<p>机器 A：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">eventBus.consumer(<span class="string">&quot;stock.update&quot;</span>, msg -&gt; &#123;</span><br><span class="line">  System.out.println(<span class="string">&quot;Handle stock update on A&quot;</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
 
-<p>好处：</p>
-<ul>
-<li>Verticle 之间无强依赖（解耦）</li>
-<li>天然支持分布式部署</li>
-<li>容易做负载均衡（多个实例自动分发）</li>
-</ul>
-<p>这为后续的微服务架构打下基础。</p>
-<p>将在后续章节中专门讲 EventBus 深入机制。</p>
-<hr>
-<h1 id="🧪-8-示例：编写一个标准-Verticle"><a href="#🧪-8-示例：编写一个标准-Verticle" class="headerlink" title="🧪 8. 示例：编写一个标准 Verticle"></a>🧪 8. 示例：编写一个标准 Verticle</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    vertx.setPeriodic(<span class="number">2000</span>, id -&gt;</span><br><span class="line">      System.out.println(<span class="string">&quot;Hello from &quot;</span> + Thread.currentThread().getName())</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+<p>机器 B：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eventBus.publish(<span class="string">&quot;stock.update&quot;</span>, <span class="string">&quot;quantity=1&quot;</span>);</span><br></pre></td></tr></table></figure></div>
 
-<p>部署：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">HelloVerticle</span>());</span><br></pre></td></tr></table></figure></div>
-
-<p>你会看到输出来自：</p>
-<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vert.x-eventloop-thread-0</span><br></pre></td></tr></table></figure></div>
-
-<hr>
-<h1 id="🧪-9-示例：编写一个-Worker-Verticle"><a href="#🧪-9-示例：编写一个-Worker-Verticle" class="headerlink" title="🧪 9. 示例：编写一个 Worker Verticle"></a>🧪 9. 示例：编写一个 Worker Verticle</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">BlockingVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    vertx.executeBlocking(promise -&gt; &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        Thread.sleep(<span class="number">3000</span>); <span class="comment">// 阻塞操作</span></span><br><span class="line">        promise.complete(<span class="string">&quot;done&quot;</span>);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        promise.fail(e);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;, res -&gt; &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;Result: &quot;</span> + res.result());</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
-
-<p>部署为 Worker：</p>
-<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">BlockingVerticle</span>(),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setWorker(<span class="literal">true</span>)</span><br><span class="line">);</span><br><span class="line"></span><br></pre></td></tr></table></figure></div>
-
-<p>输出来自：</p>
-<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vert.x-worker-thread-0</span><br></pre></td></tr></table></figure></div>
-
-<p>不会阻塞 Event Loop。</p>
-<hr>
-<h1 id="🎯-10-实战建议（最佳实践）"><a href="#🎯-10-实战建议（最佳实践）" class="headerlink" title="🎯 10. 实战建议（最佳实践）"></a>🎯 10. 实战建议（最佳实践）</h1><h3 id="✔-保持-Event-Loop-上的代码“轻量”"><a href="#✔-保持-Event-Loop-上的代码“轻量”" class="headerlink" title="✔ 保持 Event Loop 上的代码“轻量”"></a>✔ 保持 Event Loop 上的代码“轻量”</h3><p>规则：</p>
+<p>A 会接收到消息。</p>
+<p>你可以轻松构建分布式服务。</p>
 <blockquote>
-<p>Event Loop 上的代码永不上锁、不睡眠、不做耗时操作。</p>
+<p>分布式 Event Bus 会在后续的进阶章节深入讲解，包括节点发现、负载均衡、一致性问题等。</p>
 </blockquote>
-<h3 id="✔-阻塞逻辑必须放到-Worker-Verticle-或-executeBlocking"><a href="#✔-阻塞逻辑必须放到-Worker-Verticle-或-executeBlocking" class="headerlink" title="✔ 阻塞逻辑必须放到 Worker Verticle 或 executeBlocking"></a>✔ 阻塞逻辑必须放到 Worker Verticle 或 executeBlocking</h3><h3 id="✔-每种类型的业务写成独立-Verticle"><a href="#✔-每种类型的业务写成独立-Verticle" class="headerlink" title="✔ 每种类型的业务写成独立 Verticle"></a>✔ 每种类型的业务写成独立 Verticle</h3><p>比如：</p>
-<ul>
-<li>API Verticle（HTTP 接口）</li>
-<li>Service Verticle（业务）</li>
-<li>DB Verticle（数据访问）</li>
-<li>Timer Verticle（定时任务）</li>
-</ul>
-<p>这样可扩展性、可维护性非常强。</p>
-<h3 id="✔-合理设置实例数量"><a href="#✔-合理设置实例数量" class="headerlink" title="✔ 合理设置实例数量"></a>✔ 合理设置实例数量</h3><ul>
-<li>API Verticle：多实例</li>
-<li>DB Verticle：按连接池大小决定</li>
-<li>Worker：根据 Worker Pool 数量</li>
-</ul>
+<h1 id="🛠-8-Event-Bus-的高级功能"><a href="#🛠-8-Event-Bus-的高级功能" class="headerlink" title="🛠 8. Event Bus 的高级功能"></a>🛠 8. Event Bus 的高级功能</h1><h2 id="✔-DeliveryOptions（设置超时-Headers）"><a href="#✔-DeliveryOptions（设置超时-Headers）" class="headerlink" title="✔ DeliveryOptions（设置超时 &#x2F; Headers）"></a>✔ DeliveryOptions（设置超时 &#x2F; Headers）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">DeliveryOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DeliveryOptions</span>()</span><br><span class="line">  .setSendTimeout(<span class="number">3000</span>)</span><br><span class="line">  .addHeader(<span class="string">&quot;traceId&quot;</span>, <span class="string">&quot;123&quot;</span>);</span><br><span class="line"></span><br><span class="line">eventBus.request(<span class="string">&quot;order.create&quot;</span>, orderJson, options);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="✔-事件头（Headers）"><a href="#✔-事件头（Headers）" class="headerlink" title="✔ 事件头（Headers）"></a>✔ 事件头（Headers）</h2><p>可以做链路追踪（traceId）、上下文传播，非常适合微服务。</p>
 <hr>
-<h1 id="📌-11-本章总结"><a href="#📌-11-本章总结" class="headerlink" title="📌 11. 本章总结"></a>📌 11. 本章总结</h1><p>本章我们深入掌握了 Vert.x 的核心概念：</p>
+<h1 id="🧠-9-Event-Bus-的线程安全原则"><a href="#🧠-9-Event-Bus-的线程安全原则" class="headerlink" title="🧠 9. Event Bus 的线程安全原则"></a>🧠 9. Event Bus 的线程安全原则</h1><p><strong>重点原则：每个 Verticle 总是在同一个 Event Loop 上运行。</strong></p>
+<p>因此：</p>
 <ul>
-<li>什么是 Verticle</li>
-<li>生命周期（start&#x2F;stop）</li>
-<li>标准 Verticle 与 Worker Verticle</li>
-<li>多实例与并发模型</li>
-<li>Event Loop vs Worker Thread</li>
-<li>部署选项 DeploymentOptions</li>
-<li>与 EventBus 的解耦关系</li>
+<li>不需要 synchronized</li>
+<li>不需要锁</li>
+<li>数据不需要额外保护</li>
+<li>类似 Actor 模型，自然线程安全</li>
 </ul>
-<p>Verticle 是 Vert.x 应用的基石，理解它的设计思想后，后续的 EventBus、Web、微服务架构都会变得容易。</p>
+<p>Event Bus + Verticle 构成了 Vert.x 的“无锁”架构核心。</p>
+<h1 id="🧪-10-完整示例：用-Event-Bus-构建一个订单服务"><a href="#🧪-10-完整示例：用-Event-Bus-构建一个订单服务" class="headerlink" title="🧪 10. 完整示例：用 Event Bus 构建一个订单服务"></a>🧪 10. 完整示例：用 Event Bus 构建一个订单服务</h1><h3 id="API-Verticle-接收-HTTP："><a href="#API-Verticle-接收-HTTP：" class="headerlink" title="API Verticle 接收 HTTP："></a>API Verticle 接收 HTTP：</h3><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">router.post(<span class="string">&quot;/order&quot;</span>).handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="type">JsonObject</span> <span class="variable">order</span> <span class="operator">=</span> ctx.body().asJsonObject();</span><br><span class="line"></span><br><span class="line">  vertx.eventBus().&lt;String&gt;request(<span class="string">&quot;order.create&quot;</span>, order)</span><br><span class="line">    .onSuccess(reply -&gt; ctx.response().end(reply.body()))</span><br><span class="line">    .onFailure(err -&gt; ctx.response().setStatusCode(<span class="number">500</span>).end(err.getMessage()));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="Service-Verticle-处理业务："><a href="#Service-Verticle-处理业务：" class="headerlink" title="Service Verticle 处理业务："></a>Service Verticle 处理业务：</h3><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">eventBus.consumer(<span class="string">&quot;order.create&quot;</span>, msg -&gt; &#123;</span><br><span class="line">  <span class="type">JsonObject</span> <span class="variable">order</span> <span class="operator">=</span> (JsonObject) msg.body();</span><br><span class="line">  <span class="comment">// 处理逻辑</span></span><br><span class="line">  msg.reply(<span class="string">&quot;Order Created: &quot;</span> + order.getString(<span class="string">&quot;id&quot;</span>));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🎯-11-Event-Bus-使用最佳实践"><a href="#🎯-11-Event-Bus-使用最佳实践" class="headerlink" title="🎯 11. Event Bus 使用最佳实践"></a>🎯 11. Event Bus 使用最佳实践</h1><table>
+<thead>
+<tr>
+<th>推荐做法</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用 request&#x2F;reply 处理业务逻辑</td>
+<td>更清晰的 API 调用风格</td>
+</tr>
+<tr>
+<td>事件头传递 traceId</td>
+<td>适合链路追踪</td>
+</tr>
+<tr>
+<td>Service Verticle 最好分组组织</td>
+<td>结构清晰，可扩容</td>
+</tr>
+<tr>
+<td>避免大对象消息</td>
+<td>Event Bus 适合小消息、快速传输</td>
+</tr>
+<tr>
+<td>分布式 Event Bus 不要传超大 payload</td>
+<td>节点间网络传输会变慢</td>
+</tr>
+</tbody></table>
+<h1 id="📌-12-本章总结"><a href="#📌-12-本章总结" class="headerlink" title="📌 12. 本章总结"></a>📌 12. 本章总结</h1><p>本章你已经学会：</p>
+<ul>
+<li>Event Bus 的三种模式：send &#x2F; publish &#x2F; request</li>
+<li>如何注册消费者</li>
+<li>如何发送消息</li>
+<li>如何结合 Future 做业务编排</li>
+<li>如何做多 Verticle 架构</li>
+<li>Event Bus 的集群通信基础</li>
+<li>实际使用时的最佳实践</li>
+</ul>
+<p>Event Bus 是 Vert.x 应用设计的基础，掌握它后，你可以构建：</p>
+<ul>
+<li>模块化服务</li>
+<li>松耦合系统</li>
+<li>分布式微服务</li>
+<li>实时事件推送系统</li>
+<li>IM &#x2F; IoT 平台</li>
+</ul>
 
 		</div>
 
@@ -709,18 +666,18 @@
 		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
 			<div class="article-copyright-info-container">
     <ul>
-        <li><strong>Title:</strong> Vert.x从入门到放弃第三弹：Verticle基础</li>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第四弹：Event Bus入门</li>
         <li><strong>Author:</strong> Elvis</li>
         <li><strong>Created at
-                :</strong> 2025-11-29 23:47:57</li>
+                :</strong> 2025-12-06 10:23:14</li>
         
             <li>
                 <strong>Updated at
-                    :</strong> 2025-11-29 23:50:03
+                    :</strong> 2025-12-06 10:26:00
             </li>
         
         <li>
-            <strong>Link:</strong> https://qianwj.github.io/2025/11/29/vertx-series-3/
+            <strong>Link:</strong> https://qianwj.github.io/2025/12/06/vertx-series-4/
         </li>
         <li>
             <strong>
@@ -769,23 +726,11 @@
 		
 		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
 			
-			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
-				<a class="prev" rel="prev" href="/2025/12/06/vertx-series-4/">
-					<span class="left arrow-icon flex justify-center items-center">
-						<i class="fa-solid fa-chevron-left"></i>
-					</span>
-					<span class="title flex justify-center items-center">
-						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第四弹：Event Bus入门</span>
-						<span class="post-nav-item">Prev posts</span>
-					</span>
-				</a>
-			</div>
-			
 			
 			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
-				<a class="next" rel="next" href="/2025/11/22/vertx-series-2/">
+				<a class="next" rel="next" href="/2025/11/29/vertx-series-3/">
 					<span class="title flex justify-center items-center">
-						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第二弹：搭建开发环境</span>
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第三弹：Verticle基础</span>
 						<span class="post-nav-item">Next posts</span>
 					</span>
 					<span class="right arrow-icon flex justify-center items-center">
@@ -806,8 +751,8 @@
 		<div class="post-toc-wrap">
 	<div class="post-toc">
 		<div class="toc-title">On this page</div>
-		<div class="page-title">Vert.x从入门到放弃第三弹：Verticle基础</div>
-		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%BB%80%E4%B9%88%E6%98%AF-Verticle%EF%BC%9F"><span class="nav-text">🌟 1. 什么是 Verticle？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%B1-2-Verticle-%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-text">🌱 2. Verticle 的生命周期</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%9C%94-1%EF%BC%89start"><span class="nav-text">✔ 1）start()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%9C%94-2%EF%BC%89stop"><span class="nav-text">✔ 2）stop()</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%A6%E5%BC%82%E6%AD%A5%E6%93%8D%E4%BD%9C%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-text">带异步操作的生命周期</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%B1-3-Verticle-%E7%9A%84%E5%88%86%E7%B1%BB"><span class="nav-text">🧱 3. Verticle 的分类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B9-1%EF%BC%89%E6%A0%87%E5%87%86-Verticle%EF%BC%88Event-Loop-Verticle%EF%BC%89"><span class="nav-text">🔹 1）标准 Verticle（Event Loop Verticle）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B9-2%EF%BC%89Worker-Verticle%EF%BC%88%E9%98%BB%E5%A1%9E-Verticle%EF%BC%89"><span class="nav-text">🔹 2）Worker Verticle（阻塞 Verticle）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%99-4-Verticle-%E7%9A%84%E9%83%A8%E7%BD%B2%E4%B8%8E%E9%80%89%E9%A1%B9%EF%BC%88DeploymentOptions%EF%BC%89"><span class="nav-text">⚙ 4. Verticle 的部署与选项（DeploymentOptions）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A9-5-%E5%A4%9A%E5%AE%9E%E4%BE%8B-Verticle%EF%BC%9A%E5%B9%B6%E5%8F%91%E8%83%BD%E5%8A%9B%E7%9A%84%E6%A0%B8%E5%BF%83"><span class="nav-text">🧩 5. 多实例 Verticle：并发能力的核心</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A0-6-Verticle-%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-text">🧠 6. Verticle 的线程模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B8-Event-Loop-Thread%EF%BC%88%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF%E7%BA%BF%E7%A8%8B%EF%BC%89"><span class="nav-text">🔸 Event Loop Thread（事件循环线程）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B8-Worker-Thread%EF%BC%88%E5%B7%A5%E4%BD%9C%E7%BA%BF%E7%A8%8B%EF%BC%89"><span class="nav-text">🔸 Worker Thread（工作线程）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%B8-Context%EF%BC%9AVert-x-%E7%9A%84%E2%80%9C%E7%BA%BF%E7%A8%8B%E4%B8%8A%E4%B8%8B%E6%96%87%E2%80%9D"><span class="nav-text">🔸 Context：Vert.x 的“线程上下文”</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%84-7-Verticle-%E4%B8%8E-EventBus%EF%BC%9A%E5%A4%A9%E7%84%B6%E8%A7%A3%E8%80%A6"><span class="nav-text">🔄 7. Verticle 与 EventBus：天然解耦</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-8-%E7%A4%BA%E4%BE%8B%EF%BC%9A%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA%E6%A0%87%E5%87%86-Verticle"><span class="nav-text">🧪 8. 示例：编写一个标准 Verticle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-9-%E7%A4%BA%E4%BE%8B%EF%BC%9A%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA-Worker-Verticle"><span class="nav-text">🧪 9. 示例：编写一个 Worker Verticle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-10-%E5%AE%9E%E6%88%98%E5%BB%BA%E8%AE%AE%EF%BC%88%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%EF%BC%89"><span class="nav-text">🎯 10. 实战建议（最佳实践）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E4%BF%9D%E6%8C%81-Event-Loop-%E4%B8%8A%E7%9A%84%E4%BB%A3%E7%A0%81%E2%80%9C%E8%BD%BB%E9%87%8F%E2%80%9D"><span class="nav-text">✔ 保持 Event Loop 上的代码“轻量”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E9%98%BB%E5%A1%9E%E9%80%BB%E8%BE%91%E5%BF%85%E9%A1%BB%E6%94%BE%E5%88%B0-Worker-Verticle-%E6%88%96-executeBlocking"><span class="nav-text">✔ 阻塞逻辑必须放到 Worker Verticle 或 executeBlocking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E6%AF%8F%E7%A7%8D%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%9A%E5%8A%A1%E5%86%99%E6%88%90%E7%8B%AC%E7%AB%8B-Verticle"><span class="nav-text">✔ 每种类型的业务写成独立 Verticle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E5%90%88%E7%90%86%E8%AE%BE%E7%BD%AE%E5%AE%9E%E4%BE%8B%E6%95%B0%E9%87%8F"><span class="nav-text">✔ 合理设置实例数量</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-11-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 11. 本章总结</span></a></li></ol>
+		<div class="page-title">Vert.x从入门到放弃第四弹：Event Bus入门</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%BB%80%E4%B9%88%E6%98%AF-Event-Bus%EF%BC%9F"><span class="nav-text">🌟 1. 什么是 Event Bus？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-2-Event-Bus-%E7%9A%84%E6%B6%88%E6%81%AF%E6%A8%A1%E5%BC%8F%EF%BC%88%E9%9D%9E%E5%B8%B8%E9%87%8D%E8%A6%81%EF%BC%89"><span class="nav-text">🎯 2. Event Bus 的消息模式（非常重要）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-Send%EF%BC%88%E7%82%B9%E5%AF%B9%E7%82%B9%EF%BC%8CRequest-Response-%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="nav-text">① Send（点对点，Request&#x2F;Response 模式）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-Publish%EF%BC%88%E5%8F%91%E5%B8%83-%E8%AE%A2%E9%98%85%EF%BC%89"><span class="nav-text">② Publish（发布&#x2F;订阅）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-Send-with-reply%EF%BC%88%E8%AF%B7%E6%B1%82%E2%80%93%E5%93%8D%E5%BA%94%EF%BC%89"><span class="nav-text">③ Send with reply（请求–响应）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A9-3-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B%EF%BC%9A%E5%88%9B%E5%BB%BA%E6%B6%88%E8%B4%B9%E8%80%85%E4%B8%8E%E5%8F%91%E9%80%81%E6%B6%88%E6%81%AF"><span class="nav-text">🧩 3. 基本使用示例：创建消费者与发送消息</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%B6%88%E8%B4%B9%E8%80%85%EF%BC%88Consumer%EF%BC%89"><span class="nav-text">创建一个消费者（Consumer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E9%80%81%E6%B6%88%E6%81%AF"><span class="nav-text">发送消息</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%99-4-%E6%B6%88%E6%81%AF%E7%B1%BB%E5%9E%8B%E4%B8%8E%E7%BC%96%E7%A0%81%EF%BC%88MessageCodec%EF%BC%89"><span class="nav-text">⚙ 4. 消息类型与编码（MessageCodec）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%84-5-Event-Bus-%E4%B8%8E-Future%EF%BC%88%E7%BB%84%E5%90%88%E5%BC%82%E6%AD%A5%E9%80%BB%E8%BE%91%EF%BC%89"><span class="nav-text">🔄 5. Event Bus 与 Future（组合异步逻辑）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%A6-6-Event-Bus-%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%BA%94%E7%94%A8%E5%88%86%E5%B1%82%E6%9E%B6%E6%9E%84"><span class="nav-text">📦 6. Event Bus 模式下的应用分层架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E5%90%84%E5%B1%82%E5%AE%8C%E5%85%A8%E8%A7%A3%E8%80%A6"><span class="nav-text">✔ 各层完全解耦</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="nav-text">✔ 负载均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%94-%E5%A4%A9%E7%84%B6%E6%94%AF%E6%8C%81%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%8C%96"><span class="nav-text">✔ 天然支持微服务化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%80-7-Event-Bus-Cluster%EF%BC%88%E5%88%86%E5%B8%83%E5%BC%8F%E6%A8%A1%E5%BC%8F%EF%BC%89%E4%BB%8B%E7%BB%8D"><span class="nav-text">🚀 7. Event Bus Cluster（分布式模式）介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9B%A0-8-Event-Bus-%E7%9A%84%E9%AB%98%E7%BA%A7%E5%8A%9F%E8%83%BD"><span class="nav-text">🛠 8. Event Bus 的高级功能</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%9C%94-DeliveryOptions%EF%BC%88%E8%AE%BE%E7%BD%AE%E8%B6%85%E6%97%B6-Headers%EF%BC%89"><span class="nav-text">✔ DeliveryOptions（设置超时 &#x2F; Headers）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%9C%94-%E4%BA%8B%E4%BB%B6%E5%A4%B4%EF%BC%88Headers%EF%BC%89"><span class="nav-text">✔ 事件头（Headers）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A0-9-Event-Bus-%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E5%8E%9F%E5%88%99"><span class="nav-text">🧠 9. Event Bus 的线程安全原则</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-10-%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%EF%BC%9A%E7%94%A8-Event-Bus-%E6%9E%84%E5%BB%BA%E4%B8%80%E4%B8%AA%E8%AE%A2%E5%8D%95%E6%9C%8D%E5%8A%A1"><span class="nav-text">🧪 10. 完整示例：用 Event Bus 构建一个订单服务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#API-Verticle-%E6%8E%A5%E6%94%B6-HTTP%EF%BC%9A"><span class="nav-text">API Verticle 接收 HTTP：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Service-Verticle-%E5%A4%84%E7%90%86%E4%B8%9A%E5%8A%A1%EF%BC%9A"><span class="nav-text">Service Verticle 处理业务：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-11-Event-Bus-%E4%BD%BF%E7%94%A8%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-text">🎯 11. Event Bus 使用最佳实践</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-12-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 12. 本章总结</span></a></li></ol>
 
 	</div>
 </div>
