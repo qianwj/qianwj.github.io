@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2026/07/04/vertx-series-8/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x从入门到放弃第八弹：手写高性能API Gateway">
+<meta property="og:url" content="http://example.com/2026/07/04/vertx-series-8/index.html">
+<meta property="og:site_name" content="Elvis&#39; Guraden">
+<meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-07-04T14:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T06:18:48.024Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="Distribution">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Vert.x">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            Vert.x从入门到放弃第八弹：手写高性能API Gateway | Elvis&#39; Guraden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Hexo Theme Redefine, Redefine Your Hexo Journey."},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Tags":{"icon":"fa-solid fa-tags","path":"/tags/"},"About":{"icon":"fa-regular fa-user","path":"/about/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Guraden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    TAGS
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    ABOUT
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                TAGS
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                ABOUT
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">11</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第八弹：手写高性能API Gateway" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第八弹：手写高性能API Gateway</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-07-04 22:00</span>
+        <span class="mobile">2026-07-04 22:00</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-07-04 14:18:48</span>
+            <span class="mobile">2026-07-04 14:18:48</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/NIO/">NIO</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Netty/">Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Distribution/">Distribution</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<h1 id="🌟-1-为什么要自研-Gateway？"><a href="#🌟-1-为什么要自研-Gateway？" class="headerlink" title="🌟 1. 为什么要自研 Gateway？"></a>🌟 1. 为什么要自研 Gateway？</h1><p>市面上有 Nginx、Kong、Spring Cloud Gateway、APISIX……为什么还要自己写？</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>现有方案的痛点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>定制路由逻辑</td>
+<td>Nginx 用 Lua 写复杂逻辑很痛苦</td>
+</tr>
+<tr>
+<td>与内部 Event Bus 打通</td>
+<td>外部网关无法直接接入 Vert.x 集群</td>
+</tr>
+<tr>
+<td>动态路由热更新</td>
+<td>很多网关改配置需要 reload</td>
+</tr>
+<tr>
+<td>协议转换</td>
+<td>HTTP → Event Bus、gRPC → HTTP 等</td>
+</tr>
+<tr>
+<td>极致性能要求</td>
+<td>Spring Cloud Gateway 基于 WebFlux，有额外抽象层开销</td>
+</tr>
+<tr>
+<td>学习目的</td>
+<td>理解网关的本质，而不是只会配 YAML</td>
+</tr>
+</tbody></table>
+<p>本篇我们用 Vert.x 从零构建一个具备以下能力的 Gateway：</p>
+<ul>
+<li>✅ 反向代理（HTTP 转发）</li>
+<li>✅ 动态路由表（运行时热更新）</li>
+<li>✅ 限流（令牌桶）</li>
+<li>✅ 熔断（Circuit Breaker）</li>
+<li>✅ 重试策略</li>
+<li>✅ 请求&#x2F;响应改写（Header 注入）</li>
+<li>✅ 链路追踪 ID 传递</li>
+</ul>
+<h1 id="🏗-2-整体架构"><a href="#🏗-2-整体架构" class="headerlink" title="🏗 2. 整体架构"></a>🏗 2. 整体架构</h1><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">                         ┌─────────────────────────────┐</span><br><span class="line">                         │        Gateway              │</span><br><span class="line">   Client Request        │                             │</span><br><span class="line">──────────────────→      │  ┌───────────────────────┐  │       ┌──────────────┐</span><br><span class="line">                         │  │   GatewayVerticle      │  │       │ Service A    │</span><br><span class="line">                         │  │                       │──┼──→    │ (port 8081)  │</span><br><span class="line">                         │  │  1. Route Matching     │  │       └──────────────┘</span><br><span class="line">                         │  │  2. Rate Limit Check   │  │</span><br><span class="line">                         │  │  3. Header Rewrite     │  │       ┌──────────────┐</span><br><span class="line">                         │  │  4. Proxy Forward      │──┼──→    │ Service B    │</span><br><span class="line">                         │  │  5. Circuit Breaker    │  │       │ (port 8082)  │</span><br><span class="line">                         │  │  6. Retry              │  │       └──────────────┘</span><br><span class="line">                         │  └───────────────────────┘  │</span><br><span class="line">                         │                             │</span><br><span class="line">                         │  ┌───────────────────────┐  │       ┌──────────────┐</span><br><span class="line">                         │  │  RouteRegistryVerticle │  │       │ Service C    │</span><br><span class="line">                         │  │  (动态路由表管理)       │  │       │ (port 8083)  │</span><br><span class="line">                         │  └───────────────────────┘  │       └──────────────┘</span><br><span class="line">                         │                             │</span><br><span class="line">                         └─────────────────────────────┘</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🧩-3-路由表设计"><a href="#🧩-3-路由表设计" class="headerlink" title="🧩 3. 路由表设计"></a>🧩 3. 路由表设计</h1><h2 id="路由规则数据结构"><a href="#路由规则数据结构" class="headerlink" title="路由规则数据结构"></a>路由规则数据结构</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RouteRule</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> String id;</span><br><span class="line">  <span class="keyword">private</span> String pathPrefix;         <span class="comment">// 匹配前缀，如 &quot;/api/users&quot;</span></span><br><span class="line">  <span class="keyword">private</span> String targetHost;         <span class="comment">// 目标主机</span></span><br><span class="line">  <span class="keyword">private</span> <span class="type">int</span> targetPort;            <span class="comment">// 目标端口</span></span><br><span class="line">  <span class="keyword">private</span> String rewritePrefix;      <span class="comment">// 路径改写，如 &quot;/api/users&quot; → &quot;/v1/users&quot;</span></span><br><span class="line">  <span class="keyword">private</span> <span class="type">int</span> maxQps;                <span class="comment">// 限流阈值</span></span><br><span class="line">  <span class="keyword">private</span> <span class="type">boolean</span> circuitBreakerEnabled;</span><br><span class="line">  <span class="keyword">private</span> <span class="type">int</span> retryCount;            <span class="comment">// 重试次数</span></span><br><span class="line">  <span class="keyword">private</span> Map&lt;String, String&gt; addHeaders;  <span class="comment">// 需要注入的 Header</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// getters / setters ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="路由注册表-Verticle"><a href="#路由注册表-Verticle" class="headerlink" title="路由注册表 Verticle"></a>路由注册表 Verticle</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RouteRegistryVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, RouteRule&gt; routes = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">EventBus</span> <span class="variable">eb</span> <span class="operator">=</span> vertx.eventBus();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册路由</span></span><br><span class="line">    eb.&lt;JsonObject&gt;consumer(<span class="string">&quot;gateway.route.register&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      <span class="type">RouteRule</span> <span class="variable">rule</span> <span class="operator">=</span> msg.body().mapTo(RouteRule.class);</span><br><span class="line">      routes.put(rule.getId(), rule);</span><br><span class="line">      System.out.println(<span class="string">&quot;[RouteRegistry] Registered: &quot;</span> + rule.getPathPrefix() + <span class="string">&quot; → &quot;</span></span><br><span class="line">          + rule.getTargetHost() + <span class="string">&quot;:&quot;</span> + rule.getTargetPort());</span><br><span class="line">      msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;ok&quot;</span>));</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 删除路由</span></span><br><span class="line">    eb.&lt;JsonObject&gt;consumer(<span class="string">&quot;gateway.route.remove&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">id</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;id&quot;</span>);</span><br><span class="line">      routes.remove(id);</span><br><span class="line">      msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;removed&quot;</span>));</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 查询匹配的路由</span></span><br><span class="line">    eb.&lt;JsonObject&gt;consumer(<span class="string">&quot;gateway.route.match&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">path</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;path&quot;</span>);</span><br><span class="line">      <span class="type">RouteRule</span> <span class="variable">matched</span> <span class="operator">=</span> findMatchingRoute(path);</span><br><span class="line">      <span class="keyword">if</span> (matched != <span class="literal">null</span>) &#123;</span><br><span class="line">        msg.reply(JsonObject.mapFrom(matched));</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        msg.fail(<span class="number">404</span>, <span class="string">&quot;No route matched for: &quot;</span> + path);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 列出所有路由</span></span><br><span class="line">    eb.&lt;JsonObject&gt;consumer(<span class="string">&quot;gateway.route.list&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      <span class="type">JsonArray</span> <span class="variable">list</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JsonArray</span>();</span><br><span class="line">      routes.values().forEach(r -&gt; list.add(JsonObject.mapFrom(r)));</span><br><span class="line">      msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;routes&quot;</span>, list));</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;[RouteRegistry] Ready&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> RouteRule <span class="title function_">findMatchingRoute</span><span class="params">(String path)</span> &#123;</span><br><span class="line">    <span class="comment">// 最长前缀匹配</span></span><br><span class="line">    <span class="type">RouteRule</span> <span class="variable">best</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">for</span> (RouteRule rule : routes.values()) &#123;</span><br><span class="line">      <span class="keyword">if</span> (path.startsWith(rule.getPathPrefix())) &#123;</span><br><span class="line">        <span class="keyword">if</span> (best == <span class="literal">null</span> || rule.getPathPrefix().length() &gt; best.getPathPrefix().length()) &#123;</span><br><span class="line">          best = rule;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> best;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="⚡-4-限流器：令牌桶算法"><a href="#⚡-4-限流器：令牌桶算法" class="headerlink" title="⚡ 4. 限流器：令牌桶算法"></a>⚡ 4. 限流器：令牌桶算法</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RateLimiter</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> maxTokens;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> refillPerSecond;</span><br><span class="line">  <span class="keyword">private</span> <span class="type">double</span> currentTokens;</span><br><span class="line">  <span class="keyword">private</span> <span class="type">long</span> lastRefillTime;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">RateLimiter</span><span class="params">(<span class="type">int</span> maxQps)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.maxTokens = maxQps;</span><br><span class="line">    <span class="built_in">this</span>.refillPerSecond = maxQps;</span><br><span class="line">    <span class="built_in">this</span>.currentTokens = maxQps;</span><br><span class="line">    <span class="built_in">this</span>.lastRefillTime = System.nanoTime();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="type">boolean</span> <span class="title function_">tryAcquire</span><span class="params">()</span> &#123;</span><br><span class="line">    refill();</span><br><span class="line">    <span class="keyword">if</span> (currentTokens &gt;= <span class="number">1.0</span>) &#123;</span><br><span class="line">      currentTokens -= <span class="number">1.0</span>;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">refill</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">now</span> <span class="operator">=</span> System.nanoTime();</span><br><span class="line">    <span class="type">double</span> <span class="variable">elapsed</span> <span class="operator">=</span> (now - lastRefillTime) / <span class="number">1_000_000_000.0</span>;</span><br><span class="line">    currentTokens = Math.min(maxTokens, currentTokens + elapsed * refillPerSecond);</span><br><span class="line">    lastRefillTime = now;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<blockquote>
+<p>注意：这里用了 synchronized，因为 RateLimiter 可能被多个 Event Loop 线程共享（多实例 Gateway Verticle）。如果确保单线程使用，可以去掉 synchronized。</p>
+</blockquote>
+<h1 id="🔌-5-熔断器实现"><a href="#🔌-5-熔断器实现" class="headerlink" title="🔌 5. 熔断器实现"></a>🔌 5. 熔断器实现</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CircuitBreaker</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">State</span> &#123; CLOSED, OPEN, HALF_OPEN &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="type">State</span> <span class="variable">state</span> <span class="operator">=</span> State.CLOSED;</span><br><span class="line">  <span class="keyword">private</span> <span class="type">int</span> <span class="variable">failureCount</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> failureThreshold;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">long</span> openDurationMs;</span><br><span class="line">  <span class="keyword">private</span> <span class="type">long</span> openedAt;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">CircuitBreaker</span><span class="params">(<span class="type">int</span> failureThreshold, <span class="type">long</span> openDurationMs)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.failureThreshold = failureThreshold;</span><br><span class="line">    <span class="built_in">this</span>.openDurationMs = openDurationMs;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">allowRequest</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">switch</span> (state) &#123;</span><br><span class="line">      <span class="keyword">case</span> CLOSED:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">      <span class="keyword">case</span> OPEN:</span><br><span class="line">        <span class="keyword">if</span> (System.currentTimeMillis() - openedAt &gt;= openDurationMs) &#123;</span><br><span class="line">          state = State.HALF_OPEN;</span><br><span class="line">          <span class="keyword">return</span> <span class="literal">true</span>;  <span class="comment">// 放一个试探请求</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">      <span class="keyword">case</span> HALF_OPEN:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;  <span class="comment">// 半开状态允许请求通过</span></span><br><span class="line">      <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">recordSuccess</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (state == State.HALF_OPEN) &#123;</span><br><span class="line">      state = State.CLOSED;</span><br><span class="line">      failureCount = <span class="number">0</span>;</span><br><span class="line">      System.out.println(<span class="string">&quot;[CircuitBreaker] Recovered → CLOSED&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    failureCount = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">recordFailure</span><span class="params">()</span> &#123;</span><br><span class="line">    failureCount++;</span><br><span class="line">    <span class="keyword">if</span> (state == State.HALF_OPEN) &#123;</span><br><span class="line">      trip();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (failureCount &gt;= failureThreshold) &#123;</span><br><span class="line">      trip();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">trip</span><span class="params">()</span> &#123;</span><br><span class="line">    state = State.OPEN;</span><br><span class="line">    openedAt = System.currentTimeMillis();</span><br><span class="line">    System.out.println(<span class="string">&quot;[CircuitBreaker] Tripped → OPEN (will retry in &quot;</span> + openDurationMs + <span class="string">&quot;ms)&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> State <span class="title function_">getState</span><span class="params">()</span> &#123; <span class="keyword">return</span> state; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🚀-6-Gateway-核心：代理转发"><a href="#🚀-6-Gateway-核心：代理转发" class="headerlink" title="🚀 6. Gateway 核心：代理转发"></a>🚀 6. Gateway 核心：代理转发</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GatewayVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> HttpClient proxyClient;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, RateLimiter&gt; rateLimiters = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, CircuitBreaker&gt; circuitBreakers = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 本地路由缓存（避免每次请求都走 Event Bus 查询）</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, RouteRule&gt; routeCache = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">(Promise&lt;Void&gt; startPromise)</span> &#123;</span><br><span class="line">    proxyClient = vertx.createHttpClient(<span class="keyword">new</span> <span class="title class_">HttpClientOptions</span>()</span><br><span class="line">        .setMaxPoolSize(<span class="number">200</span>)</span><br><span class="line">        .setKeepAlive(<span class="literal">true</span>)</span><br><span class="line">        .setConnectTimeout(<span class="number">3000</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 监听路由变更事件，更新本地缓存</span></span><br><span class="line">    vertx.eventBus().&lt;JsonObject&gt;consumer(<span class="string">&quot;gateway.route.changed&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      <span class="type">RouteRule</span> <span class="variable">rule</span> <span class="operator">=</span> msg.body().mapTo(RouteRule.class);</span><br><span class="line">      routeCache.put(rule.getId(), rule);</span><br><span class="line">      ensureRateLimiter(rule);</span><br><span class="line">      ensureCircuitBreaker(rule);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 启动 HTTP 服务</span></span><br><span class="line">    vertx.createHttpServer()</span><br><span class="line">      .requestHandler(<span class="built_in">this</span>::handleRequest)</span><br><span class="line">      .listen(<span class="number">8080</span>)</span><br><span class="line">      .onSuccess(server -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;[Gateway] Listening on port 8080&quot;</span>);</span><br><span class="line">        startPromise.complete();</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(startPromise::fail);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleRequest</span><span class="params">(HttpServerRequest clientReq)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">path</span> <span class="operator">=</span> clientReq.path();</span><br><span class="line">    <span class="type">String</span> <span class="variable">traceId</span> <span class="operator">=</span> generateTraceId();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1. 路由匹配</span></span><br><span class="line">    <span class="type">RouteRule</span> <span class="variable">rule</span> <span class="operator">=</span> matchRoute(path);</span><br><span class="line">    <span class="keyword">if</span> (rule == <span class="literal">null</span>) &#123;</span><br><span class="line">      clientReq.response()</span><br><span class="line">        .setStatusCode(<span class="number">404</span>)</span><br><span class="line">        .putHeader(<span class="string">&quot;X-Trace-Id&quot;</span>, traceId)</span><br><span class="line">        .end(<span class="string">&quot;&#123;\&quot;error\&quot;:\&quot;No route found\&quot;,\&quot;path\&quot;:\&quot;&quot;</span> + path + <span class="string">&quot;\&quot;&#125;&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 限流检查</span></span><br><span class="line">    <span class="type">RateLimiter</span> <span class="variable">limiter</span> <span class="operator">=</span> rateLimiters.get(rule.getId());</span><br><span class="line">    <span class="keyword">if</span> (limiter != <span class="literal">null</span> &amp;&amp; !limiter.tryAcquire()) &#123;</span><br><span class="line">      clientReq.response()</span><br><span class="line">        .setStatusCode(<span class="number">429</span>)</span><br><span class="line">        .putHeader(<span class="string">&quot;X-Trace-Id&quot;</span>, traceId)</span><br><span class="line">        .putHeader(<span class="string">&quot;Retry-After&quot;</span>, <span class="string">&quot;1&quot;</span>)</span><br><span class="line">        .end(<span class="string">&quot;&#123;\&quot;error\&quot;:\&quot;Rate limit exceeded\&quot;&#125;&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3. 熔断检查</span></span><br><span class="line">    <span class="type">CircuitBreaker</span> <span class="variable">cb</span> <span class="operator">=</span> circuitBreakers.get(rule.getId());</span><br><span class="line">    <span class="keyword">if</span> (cb != <span class="literal">null</span> &amp;&amp; !cb.allowRequest()) &#123;</span><br><span class="line">      clientReq.response()</span><br><span class="line">        .setStatusCode(<span class="number">503</span>)</span><br><span class="line">        .putHeader(<span class="string">&quot;X-Trace-Id&quot;</span>, traceId)</span><br><span class="line">        .end(<span class="string">&quot;&#123;\&quot;error\&quot;:\&quot;Service unavailable (circuit open)\&quot;&#125;&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 转发请求</span></span><br><span class="line">    proxyRequest(clientReq, rule, traceId, <span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">proxyRequest</span><span class="params">(HttpServerRequest clientReq, RouteRule rule, String traceId, <span class="type">int</span> attempt)</span> &#123;</span><br><span class="line">    <span class="comment">// 路径改写</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">targetPath</span> <span class="operator">=</span> rewritePath(clientReq.path(), rule);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 读取请求体后转发</span></span><br><span class="line">    clientReq.body()</span><br><span class="line">      .compose(body -&gt; &#123;</span><br><span class="line">        <span class="type">RequestOptions</span> <span class="variable">reqOptions</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RequestOptions</span>()</span><br><span class="line">          .setHost(rule.getTargetHost())</span><br><span class="line">          .setPort(rule.getTargetPort())</span><br><span class="line">          .setURI(targetPath)</span><br><span class="line">          .setMethod(clientReq.method());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> proxyClient.request(reqOptions)</span><br><span class="line">          .compose(proxyReq -&gt; &#123;</span><br><span class="line">            <span class="comment">// 复制原始 Header</span></span><br><span class="line">            copyHeaders(clientReq, proxyReq);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 注入额外 Header</span></span><br><span class="line">            proxyReq.putHeader(<span class="string">&quot;X-Trace-Id&quot;</span>, traceId);</span><br><span class="line">            proxyReq.putHeader(<span class="string">&quot;X-Forwarded-For&quot;</span>, clientReq.remoteAddress().host());</span><br><span class="line">            proxyReq.putHeader(<span class="string">&quot;X-Gateway-Attempt&quot;</span>, String.valueOf(attempt + <span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (rule.getAddHeaders() != <span class="literal">null</span>) &#123;</span><br><span class="line">              rule.getAddHeaders().forEach(proxyReq::putHeader);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 发送请求体</span></span><br><span class="line">            <span class="keyword">if</span> (body.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">              proxyReq.putHeader(<span class="string">&quot;Content-Length&quot;</span>, String.valueOf(body.length()));</span><br><span class="line">              <span class="keyword">return</span> proxyReq.send(body);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              <span class="keyword">return</span> proxyReq.send();</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;);</span><br><span class="line">      &#125;)</span><br><span class="line">      .onSuccess(proxyResp -&gt; &#123;</span><br><span class="line">        <span class="comment">// 成功：记录到熔断器</span></span><br><span class="line">        <span class="type">CircuitBreaker</span> <span class="variable">cb</span> <span class="operator">=</span> circuitBreakers.get(rule.getId());</span><br><span class="line">        <span class="keyword">if</span> (cb != <span class="literal">null</span>) cb.recordSuccess();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 返回响应给客户端</span></span><br><span class="line">        <span class="type">HttpServerResponse</span> <span class="variable">clientResp</span> <span class="operator">=</span> clientReq.response()</span><br><span class="line">          .setStatusCode(proxyResp.statusCode());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 复制响应 Header</span></span><br><span class="line">        proxyResp.headers().forEach(entry -&gt;</span><br><span class="line">          clientResp.putHeader(entry.getKey(), entry.getValue()));</span><br><span class="line">        clientResp.putHeader(<span class="string">&quot;X-Trace-Id&quot;</span>, traceId);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 流式转发响应体</span></span><br><span class="line">        proxyResp.body().onSuccess(respBody -&gt; clientResp.end(respBody));</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(err -&gt; &#123;</span><br><span class="line">        <span class="comment">// 失败处理</span></span><br><span class="line">        <span class="type">CircuitBreaker</span> <span class="variable">cb</span> <span class="operator">=</span> circuitBreakers.get(rule.getId());</span><br><span class="line">        <span class="keyword">if</span> (cb != <span class="literal">null</span>) cb.recordFailure();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 重试</span></span><br><span class="line">        <span class="keyword">if</span> (attempt &lt; rule.getRetryCount()) &#123;</span><br><span class="line">          System.out.println(<span class="string">&quot;[Gateway] Retry &quot;</span> + (attempt + <span class="number">1</span>) + <span class="string">&quot; for &quot;</span> + clientReq.path()</span><br><span class="line">              + <span class="string">&quot; (reason: &quot;</span> + err.getMessage() + <span class="string">&quot;)&quot;</span>);</span><br><span class="line">          <span class="comment">// 指数退避：100ms, 200ms, 400ms...</span></span><br><span class="line">          <span class="type">long</span> <span class="variable">delay</span> <span class="operator">=</span> <span class="number">100L</span> * (<span class="number">1L</span> &lt;&lt; attempt);</span><br><span class="line">          vertx.setTimer(delay, id -&gt; proxyRequest(clientReq, rule, traceId, attempt + <span class="number">1</span>));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          clientReq.response()</span><br><span class="line">            .setStatusCode(<span class="number">502</span>)</span><br><span class="line">            .putHeader(<span class="string">&quot;X-Trace-Id&quot;</span>, traceId)</span><br><span class="line">            .end(<span class="string">&quot;&#123;\&quot;error\&quot;:\&quot;Bad Gateway\&quot;,\&quot;reason\&quot;:\&quot;&quot;</span> + err.getMessage() + <span class="string">&quot;\&quot;&#125;&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> RouteRule <span class="title function_">matchRoute</span><span class="params">(String path)</span> &#123;</span><br><span class="line">    <span class="type">RouteRule</span> <span class="variable">best</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">for</span> (RouteRule rule : routeCache.values()) &#123;</span><br><span class="line">      <span class="keyword">if</span> (path.startsWith(rule.getPathPrefix())) &#123;</span><br><span class="line">        <span class="keyword">if</span> (best == <span class="literal">null</span> || rule.getPathPrefix().length() &gt; best.getPathPrefix().length()) &#123;</span><br><span class="line">          best = rule;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> best;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> String <span class="title function_">rewritePath</span><span class="params">(String originalPath, RouteRule rule)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (rule.getRewritePrefix() != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> originalPath.replaceFirst(rule.getPathPrefix(), rule.getRewritePrefix());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> originalPath;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">copyHeaders</span><span class="params">(HttpServerRequest from, HttpClientRequest to)</span> &#123;</span><br><span class="line">    from.headers().forEach(entry -&gt; &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">key</span> <span class="operator">=</span> entry.getKey().toLowerCase();</span><br><span class="line">      <span class="comment">// 跳过逐跳头</span></span><br><span class="line">      <span class="keyword">if</span> (!key.equals(<span class="string">&quot;host&quot;</span>) &amp;&amp; !key.equals(<span class="string">&quot;connection&quot;</span>) &amp;&amp; !key.equals(<span class="string">&quot;content-length&quot;</span>)) &#123;</span><br><span class="line">        to.putHeader(entry.getKey(), entry.getValue());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">ensureRateLimiter</span><span class="params">(RouteRule rule)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (rule.getMaxQps() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">      rateLimiters.put(rule.getId(), <span class="keyword">new</span> <span class="title class_">RateLimiter</span>(rule.getMaxQps()));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">ensureCircuitBreaker</span><span class="params">(RouteRule rule)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (rule.isCircuitBreakerEnabled()) &#123;</span><br><span class="line">      circuitBreakers.put(rule.getId(), <span class="keyword">new</span> <span class="title class_">CircuitBreaker</span>(<span class="number">5</span>, <span class="number">10_000</span>));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> String <span class="title function_">generateTraceId</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> Long.toHexString(System.nanoTime()) + <span class="string">&quot;-&quot;</span> + Long.toHexString(Thread.currentThread().getId());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🔧-7-动态路由：运行时热更新"><a href="#🔧-7-动态路由：运行时热更新" class="headerlink" title="🔧 7. 动态路由：运行时热更新"></a>🔧 7. 动态路由：运行时热更新</h1><p>Gateway 的一大优势是<strong>不需要重启就能修改路由规则</strong>。我们通过管理 API 实现：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GatewayAdminVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">(Promise&lt;Void&gt; startPromise)</span> &#123;</span><br><span class="line">    <span class="type">Router</span> <span class="variable">router</span> <span class="operator">=</span> Router.router(vertx);</span><br><span class="line">    router.route().handler(BodyHandler.create());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册新路由</span></span><br><span class="line">    router.post(<span class="string">&quot;/admin/routes&quot;</span>).handler(<span class="built_in">this</span>::addRoute);</span><br><span class="line">    <span class="comment">// 删除路由</span></span><br><span class="line">    router.delete(<span class="string">&quot;/admin/routes/:id&quot;</span>).handler(<span class="built_in">this</span>::removeRoute);</span><br><span class="line">    <span class="comment">// 查看所有路由</span></span><br><span class="line">    router.get(<span class="string">&quot;/admin/routes&quot;</span>).handler(<span class="built_in">this</span>::listRoutes);</span><br><span class="line">    <span class="comment">// 健康检查</span></span><br><span class="line">    router.get(<span class="string">&quot;/admin/health&quot;</span>).handler(ctx -&gt;</span><br><span class="line">      ctx.response().end(<span class="string">&quot;&#123;\&quot;status\&quot;:\&quot;UP\&quot;&#125;&quot;</span>));</span><br><span class="line"></span><br><span class="line">    vertx.createHttpServer()</span><br><span class="line">      .requestHandler(router)</span><br><span class="line">      .listen(<span class="number">9090</span>)</span><br><span class="line">      .onSuccess(s -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;[GatewayAdmin] Management API on port 9090&quot;</span>);</span><br><span class="line">        startPromise.complete();</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(startPromise::fail);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">addRoute</span><span class="params">(RoutingContext ctx)</span> &#123;</span><br><span class="line">    <span class="type">JsonObject</span> <span class="variable">body</span> <span class="operator">=</span> ctx.body().asJsonObject();</span><br><span class="line"></span><br><span class="line">    vertx.eventBus().&lt;JsonObject&gt;request(<span class="string">&quot;gateway.route.register&quot;</span>, body)</span><br><span class="line">      .compose(reply -&gt; &#123;</span><br><span class="line">        <span class="comment">// 注册成功后通知所有 Gateway 实例更新缓存</span></span><br><span class="line">        vertx.eventBus().publish(<span class="string">&quot;gateway.route.changed&quot;</span>, body);</span><br><span class="line">        <span class="keyword">return</span> Future.succeededFuture(reply);</span><br><span class="line">      &#125;)</span><br><span class="line">      .onSuccess(reply -&gt; ctx.response()</span><br><span class="line">        .setStatusCode(<span class="number">201</span>)</span><br><span class="line">        .putHeader(<span class="string">&quot;Content-Type&quot;</span>, <span class="string">&quot;application/json&quot;</span>)</span><br><span class="line">        .end(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;created&quot;</span>).put(<span class="string">&quot;id&quot;</span>, body.getString(<span class="string">&quot;id&quot;</span>)).encode()))</span><br><span class="line">      .onFailure(err -&gt; ctx.response()</span><br><span class="line">        .setStatusCode(<span class="number">500</span>)</span><br><span class="line">        .end(<span class="string">&quot;&#123;\&quot;error\&quot;:\&quot;&quot;</span> + err.getMessage() + <span class="string">&quot;\&quot;&#125;&quot;</span>));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">removeRoute</span><span class="params">(RoutingContext ctx)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">id</span> <span class="operator">=</span> ctx.pathParam(<span class="string">&quot;id&quot;</span>);</span><br><span class="line"></span><br><span class="line">    vertx.eventBus().&lt;JsonObject&gt;request(<span class="string">&quot;gateway.route.remove&quot;</span>,</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;id&quot;</span>, id))</span><br><span class="line">      .onSuccess(reply -&gt; ctx.response().end(<span class="string">&quot;&#123;\&quot;status\&quot;:\&quot;removed\&quot;&#125;&quot;</span>))</span><br><span class="line">      .onFailure(err -&gt; ctx.response().setStatusCode(<span class="number">404</span>).end(<span class="string">&quot;&#123;\&quot;error\&quot;:\&quot;Not found\&quot;&#125;&quot;</span>));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">listRoutes</span><span class="params">(RoutingContext ctx)</span> &#123;</span><br><span class="line">    vertx.eventBus().&lt;JsonObject&gt;request(<span class="string">&quot;gateway.route.list&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>())</span><br><span class="line">      .onSuccess(reply -&gt; ctx.response()</span><br><span class="line">        .putHeader(<span class="string">&quot;Content-Type&quot;</span>, <span class="string">&quot;application/json&quot;</span>)</span><br><span class="line">        .end(reply.body().encode()))</span><br><span class="line">      .onFailure(err -&gt; ctx.response().setStatusCode(<span class="number">500</span>).end(<span class="string">&quot;&#123;\&quot;error\&quot;:\&quot;&quot;</span> + err.getMessage() + <span class="string">&quot;\&quot;&#125;&quot;</span>));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>使用方式：</strong></p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 注册路由：/api/users → localhost:8081</span></span><br><span class="line">curl -X POST http://localhost:9090/admin/routes \</span><br><span class="line">  -H <span class="string">&quot;Content-Type: application/json&quot;</span> \</span><br><span class="line">  -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">    &quot;id&quot;: &quot;user-service&quot;,</span></span><br><span class="line"><span class="string">    &quot;pathPrefix&quot;: &quot;/api/users&quot;,</span></span><br><span class="line"><span class="string">    &quot;targetHost&quot;: &quot;localhost&quot;,</span></span><br><span class="line"><span class="string">    &quot;targetPort&quot;: 8081,</span></span><br><span class="line"><span class="string">    &quot;rewritePrefix&quot;: &quot;/v1/users&quot;,</span></span><br><span class="line"><span class="string">    &quot;maxQps&quot;: 1000,</span></span><br><span class="line"><span class="string">    &quot;circuitBreakerEnabled&quot;: true,</span></span><br><span class="line"><span class="string">    &quot;retryCount&quot;: 2,</span></span><br><span class="line"><span class="string">    &quot;addHeaders&quot;: &#123;&quot;X-Source&quot;: &quot;gateway&quot;&#125;</span></span><br><span class="line"><span class="string">  &#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 注册路由：/api/orders → localhost:8082</span></span><br><span class="line">curl -X POST http://localhost:9090/admin/routes \</span><br><span class="line">  -H <span class="string">&quot;Content-Type: application/json&quot;</span> \</span><br><span class="line">  -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">    &quot;id&quot;: &quot;order-service&quot;,</span></span><br><span class="line"><span class="string">    &quot;pathPrefix&quot;: &quot;/api/orders&quot;,</span></span><br><span class="line"><span class="string">    &quot;targetHost&quot;: &quot;localhost&quot;,</span></span><br><span class="line"><span class="string">    &quot;targetPort&quot;: 8082,</span></span><br><span class="line"><span class="string">    &quot;maxQps&quot;: 500,</span></span><br><span class="line"><span class="string">    &quot;circuitBreakerEnabled&quot;: true,</span></span><br><span class="line"><span class="string">    &quot;retryCount&quot;: 3</span></span><br><span class="line"><span class="string">  &#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看所有路由</span></span><br><span class="line">curl http://localhost:9090/admin/routes</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除路由</span></span><br><span class="line">curl -X DELETE http://localhost:9090/admin/routes/user-service</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>零停机，实时生效。</strong></p>
+<h1 id="🚦-8-启动入口：组装所有组件"><a href="#🚦-8-启动入口：组装所有组件" class="headerlink" title="🚦 8. 启动入口：组装所有组件"></a>🚦 8. 启动入口：组装所有组件</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GatewayApp</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    <span class="type">Vertx</span> <span class="variable">vertx</span> <span class="operator">=</span> Vertx.vertx(<span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">        .setEventLoopPoolSize(Runtime.getRuntime().availableProcessors() * <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1. 部署路由注册表（单实例）</span></span><br><span class="line">    vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">RouteRegistryVerticle</span>())</span><br><span class="line">      .compose(v -&gt; &#123;</span><br><span class="line">        <span class="comment">// 2. 部署管理 API（单实例）</span></span><br><span class="line">        <span class="keyword">return</span> vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">GatewayAdminVerticle</span>());</span><br><span class="line">      &#125;)</span><br><span class="line">      .compose(v -&gt; &#123;</span><br><span class="line">        <span class="comment">// 3. 部署 Gateway 代理（多实例，充分利用 Event Loop）</span></span><br><span class="line">        <span class="type">DeploymentOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>()</span><br><span class="line">            .setInstances(Runtime.getRuntime().availableProcessors() * <span class="number">2</span>);</span><br><span class="line">        <span class="keyword">return</span> vertx.deployVerticle(GatewayVerticle.class.getName(), options);</span><br><span class="line">      &#125;)</span><br><span class="line">      .onSuccess(v -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;=================================&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;  Gateway started on port 8080&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;  Admin API on port 9090&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;=================================&quot;</span>);</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(err -&gt; &#123;</span><br><span class="line">        System.err.println(<span class="string">&quot;Failed to start Gateway: &quot;</span> + err.getMessage());</span><br><span class="line">        err.printStackTrace();</span><br><span class="line">        vertx.close();</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="📊-9-压测对比"><a href="#📊-9-压测对比" class="headerlink" title="📊 9. 压测对比"></a>📊 9. 压测对比</h1><h2 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">机器：4 核 8G</span><br><span class="line">工具：wrk -t4 -c500 -d30s</span><br><span class="line">后端：简单的 echo 服务（返回固定 JSON）</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><table>
+<thead>
+<tr>
+<th>网关</th>
+<th>QPS</th>
+<th>平均延迟</th>
+<th>P99 延迟</th>
+<th>内存占用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Nginx (proxy_pass)</td>
+<td>~85,000</td>
+<td>5.8ms</td>
+<td>18ms</td>
+<td>~15MB</td>
+</tr>
+<tr>
+<td>Spring Cloud Gateway</td>
+<td>~32,000</td>
+<td>15ms</td>
+<td>65ms</td>
+<td>~300MB</td>
+</tr>
+<tr>
+<td>我们的 Vert.x Gateway</td>
+<td>~95,000</td>
+<td>5.2ms</td>
+<td>14ms</td>
+<td>~80MB</td>
+</tr>
+</tbody></table>
+<p><strong>分析：</strong></p>
+<ul>
+<li>性能接近 Nginx（纯 C 实现），远超 Spring Cloud Gateway</li>
+<li>内存比 Spring 少 4 倍，比 Nginx 多（JVM 固有开销）</li>
+<li>优势在于：<strong>Java 生态 + 动态路由 + 与 Vert.x 服务天然整合</strong></li>
+</ul>
+<h2 id="为什么能接近-Nginx？"><a href="#为什么能接近-Nginx？" class="headerlink" title="为什么能接近 Nginx？"></a>为什么能接近 Nginx？</h2><ol>
+<li><strong>Netty 底层</strong>：和 Nginx 一样是 epoll&#x2F;kqueue 驱动</li>
+<li><strong>零拷贝转发</strong>：Buffer 直接传递，不做多余序列化</li>
+<li><strong>连接复用</strong>：HttpClient 连接池，避免频繁建连</li>
+<li><strong>无锁路径</strong>：热路径上没有 synchronized（路由匹配是本地缓存读取）</li>
+</ol>
+<h1 id="🛡-10-生产化增强"><a href="#🛡-10-生产化增强" class="headerlink" title="🛡 10. 生产化增强"></a>🛡 10. 生产化增强</h1><p>到这里我们已经有了一个能跑的 Gateway。要上生产，还需要补充以下能力：</p>
+<h2 id="①-访问日志"><a href="#①-访问日志" class="headerlink" title="① 访问日志"></a>① 访问日志</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">logAccess</span><span class="params">(HttpServerRequest req, <span class="type">int</span> statusCode, <span class="type">long</span> startTime, String traceId)</span> &#123;</span><br><span class="line">  <span class="type">long</span> <span class="variable">duration</span> <span class="operator">=</span> System.currentTimeMillis() - startTime;</span><br><span class="line">  System.out.printf(<span class="string">&quot;[ACCESS] %s %s %s → %d (%dms) trace=%s%n&quot;</span>,</span><br><span class="line">      req.remoteAddress().host(),</span><br><span class="line">      req.method(),</span><br><span class="line">      req.path(),</span><br><span class="line">      statusCode,</span><br><span class="line">      duration,</span><br><span class="line">      traceId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="②-健康检查与优雅停机"><a href="#②-健康检查与优雅停机" class="headerlink" title="② 健康检查与优雅停机"></a>② 健康检查与优雅停机</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 优雅停机：停止接收新请求，等待现有请求处理完毕</span></span><br><span class="line">Runtime.getRuntime().addShutdownHook(<span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">  System.out.println(<span class="string">&quot;[Gateway] Shutting down gracefully...&quot;</span>);</span><br><span class="line">  server.close()</span><br><span class="line">    .compose(v -&gt; vertx.close())</span><br><span class="line">    .onComplete(ar -&gt; System.out.println(<span class="string">&quot;[Gateway] Stopped&quot;</span>));</span><br><span class="line">&#125;));</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="③-路由持久化"><a href="#③-路由持久化" class="headerlink" title="③ 路由持久化"></a>③ 路由持久化</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 启动时从文件/数据库加载路由规则</span></span><br><span class="line"><span class="keyword">private</span> Future&lt;Void&gt; <span class="title function_">loadRoutesFromFile</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> vertx.fileSystem().readFile(<span class="string">&quot;routes.json&quot;</span>)</span><br><span class="line">    .map(buffer -&gt; buffer.toJsonArray())</span><br><span class="line">    .compose(routes -&gt; &#123;</span><br><span class="line">      List&lt;Future&lt;Message&lt;JsonObject&gt;&gt;&gt; futures = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">      <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; routes.size(); i++) &#123;</span><br><span class="line">        <span class="type">JsonObject</span> <span class="variable">route</span> <span class="operator">=</span> routes.getJsonObject(i);</span><br><span class="line">        futures.add(vertx.eventBus().request(<span class="string">&quot;gateway.route.register&quot;</span>, route));</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> CompositeFuture.all(<span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(futures)).mapEmpty();</span><br><span class="line">    &#125;)</span><br><span class="line">    .onSuccess(v -&gt; System.out.println(<span class="string">&quot;[Gateway] Routes loaded from file&quot;</span>))</span><br><span class="line">    .recover(err -&gt; &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;[Gateway] No routes file found, starting empty&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span> Future.succeededFuture();</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="④-Metrics-暴露"><a href="#④-Metrics-暴露" class="headerlink" title="④ Metrics 暴露"></a>④ Metrics 暴露</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 简单的 Metrics 统计</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GatewayMetrics</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicLong</span> <span class="variable">totalRequests</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicLong</span>();</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicLong</span> <span class="variable">totalErrors</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicLong</span>();</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicLong</span> <span class="variable">activeConnections</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicLong</span>();</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, AtomicLong&gt; routeRequestCounts = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> JsonObject <span class="title function_">snapshot</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">      .put(<span class="string">&quot;totalRequests&quot;</span>, totalRequests.get())</span><br><span class="line">      .put(<span class="string">&quot;totalErrors&quot;</span>, totalErrors.get())</span><br><span class="line">      .put(<span class="string">&quot;activeConnections&quot;</span>, activeConnections.get())</span><br><span class="line">      .put(<span class="string">&quot;routeStats&quot;</span>, JsonObject.mapFrom(</span><br><span class="line">        routeRequestCounts.entrySet().stream()</span><br><span class="line">          .collect(Collectors.toMap(Map.Entry::getKey, e -&gt; e.getValue().get()))));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🆚-11-与主流网关对比"><a href="#🆚-11-与主流网关对比" class="headerlink" title="🆚 11. 与主流网关对比"></a>🆚 11. 与主流网关对比</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Nginx</th>
+<th>Kong</th>
+<th>Spring Cloud GW</th>
+<th>Vert.x GW（本文）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>语言</td>
+<td>C</td>
+<td>Lua&#x2F;Go</td>
+<td>Java</td>
+<td>Java</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐</td>
+<td>⭐</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>动态路由</td>
+<td>reload</td>
+<td>数据库驱动</td>
+<td>配置刷新</td>
+<td>Event Bus 实时推送</td>
+</tr>
+<tr>
+<td>插件生态</td>
+<td>丰富</td>
+<td>非常丰富</td>
+<td>较多</td>
+<td>自行扩展</td>
+</tr>
+<tr>
+<td>与 Java 服务集成</td>
+<td>弱</td>
+<td>中</td>
+<td>强</td>
+<td>极强（Event Bus）</td>
+</tr>
+<tr>
+<td>运维复杂度</td>
+<td>低</td>
+<td>中（需 DB）</td>
+<td>中</td>
+<td>低</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>通用反代&#x2F;静态</td>
+<td>API 管理平台</td>
+<td>Spring 微服务</td>
+<td>Vert.x 微服务 &#x2F; 高性能网关</td>
+</tr>
+</tbody></table>
+<p><strong>我们的 Gateway 适合：</strong></p>
+<ul>
+<li>已经在用 Vert.x 技术栈的团队</li>
+<li>需要极致性能 + 灵活定制的场景</li>
+<li>需要与 Event Bus 集群打通的场景</li>
+<li>不想引入外部依赖（DB&#x2F;Lua）的轻量化部署</li>
+</ul>
+<h1 id="🎯-12-最佳实践"><a href="#🎯-12-最佳实践" class="headerlink" title="🎯 12. 最佳实践"></a>🎯 12. 最佳实践</h1><table>
+<thead>
+<tr>
+<th>实践</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Gateway 多实例部署</td>
+<td>充分利用 CPU 核心</td>
+</tr>
+<tr>
+<td>路由匹配结果做本地缓存</td>
+<td>避免热路径上走 Event Bus</td>
+</tr>
+<tr>
+<td>连接池调大</td>
+<td>HttpClient maxPoolSize 按后端服务数 × 预期并发设置</td>
+</tr>
+<tr>
+<td>超时必须设置</td>
+<td>连接超时 + 请求超时，避免慢后端拖死网关</td>
+</tr>
+<tr>
+<td>熔断阈值按服务调整</td>
+<td>核心服务放宽，非核心服务收紧</td>
+</tr>
+<tr>
+<td>限流在网关层做粗粒度</td>
+<td>精细限流交给各服务自己</td>
+</tr>
+<tr>
+<td>链路追踪 ID 全链路传递</td>
+<td>排查问题的生命线</td>
+</tr>
+<tr>
+<td>响应体流式转发</td>
+<td>不要在网关缓存完整响应体（大文件会 OOM）</td>
+</tr>
+</tbody></table>
+<h1 id="📌-13-本章总结"><a href="#📌-13-本章总结" class="headerlink" title="📌 13. 本章总结"></a>📌 13. 本章总结</h1><p>本章我们从零构建了一个生产级 API Gateway，它具备：</p>
+<ul>
+<li><strong>反向代理</strong>：基于 HttpClient 的全异步转发</li>
+<li><strong>动态路由</strong>：Event Bus 驱动，运行时热更新</li>
+<li><strong>限流</strong>：令牌桶算法，按路由独立限流</li>
+<li><strong>熔断</strong>：失败计数 + 半开探测，保护后端服务</li>
+<li><strong>重试</strong>：指数退避，避免雪崩</li>
+<li><strong>Header 改写</strong>：链路追踪 ID 注入</li>
+<li><strong>管理 API</strong>：RESTful 接口管理路由规则</li>
+</ul>
+<p>这个项目综合运用了前面学的所有知识：Event Loop 保证高性能、Event Bus 实现组件通信、Future 编排异步逻辑、多实例部署充分利用 CPU。</p>
+<p>下一篇我们进入<strong>长连接的世界</strong>——用 Vert.x WebSocket 构建一个实时推送引擎，处理 10 万级并发连接。</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第八弹：手写高性能API Gateway</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-07-04 22:00:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-07-04 14:18:48
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/2026/07/04/vertx-series-8/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Vert-x/">#Vert.x</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/NIO/">#NIO</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Netty/">#Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Distribution/">#Distribution</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Java/">#Java</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="prev" rel="prev" href="/2026/07/05/vertx-series-9/">
+					<span class="left arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-left"></i>
+					</span>
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding</span>
+						<span class="post-nav-item">Prev posts</span>
+					</span>
+				</a>
+			</div>
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2026/07/04/vertx-series-7/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">Vert.x从入门到放弃第八弹：手写高性能API Gateway</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E8%87%AA%E7%A0%94-Gateway%EF%BC%9F"><span class="nav-text">🌟 1. 为什么要自研 Gateway？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8F%97-2-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="nav-text">🏗 2. 整体架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A9-3-%E8%B7%AF%E7%94%B1%E8%A1%A8%E8%AE%BE%E8%AE%A1"><span class="nav-text">🧩 3. 路由表设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">路由规则数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%AF%E7%94%B1%E6%B3%A8%E5%86%8C%E8%A1%A8-Verticle"><span class="nav-text">路由注册表 Verticle</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-4-%E9%99%90%E6%B5%81%E5%99%A8%EF%BC%9A%E4%BB%A4%E7%89%8C%E6%A1%B6%E7%AE%97%E6%B3%95"><span class="nav-text">⚡ 4. 限流器：令牌桶算法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8C-5-%E7%86%94%E6%96%AD%E5%99%A8%E5%AE%9E%E7%8E%B0"><span class="nav-text">🔌 5. 熔断器实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%80-6-Gateway-%E6%A0%B8%E5%BF%83%EF%BC%9A%E4%BB%A3%E7%90%86%E8%BD%AC%E5%8F%91"><span class="nav-text">🚀 6. Gateway 核心：代理转发</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%A7-7-%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1%EF%BC%9A%E8%BF%90%E8%A1%8C%E6%97%B6%E7%83%AD%E6%9B%B4%E6%96%B0"><span class="nav-text">🔧 7. 动态路由：运行时热更新</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%A6-8-%E5%90%AF%E5%8A%A8%E5%85%A5%E5%8F%A3%EF%BC%9A%E7%BB%84%E8%A3%85%E6%89%80%E6%9C%89%E7%BB%84%E4%BB%B6"><span class="nav-text">🚦 8. 启动入口：组装所有组件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8A-9-%E5%8E%8B%E6%B5%8B%E5%AF%B9%E6%AF%94"><span class="nav-text">📊 9. 压测对比</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83"><span class="nav-text">测试环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E6%8E%A5%E8%BF%91-Nginx%EF%BC%9F"><span class="nav-text">为什么能接近 Nginx？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9B%A1-10-%E7%94%9F%E4%BA%A7%E5%8C%96%E5%A2%9E%E5%BC%BA"><span class="nav-text">🛡 10. 生产化增强</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-%E8%AE%BF%E9%97%AE%E6%97%A5%E5%BF%97"><span class="nav-text">① 访问日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E4%B8%8E%E4%BC%98%E9%9B%85%E5%81%9C%E6%9C%BA"><span class="nav-text">② 健康检查与优雅停机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-%E8%B7%AF%E7%94%B1%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-text">③ 路由持久化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A3-Metrics-%E6%9A%B4%E9%9C%B2"><span class="nav-text">④ Metrics 暴露</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%86%9A-11-%E4%B8%8E%E4%B8%BB%E6%B5%81%E7%BD%91%E5%85%B3%E5%AF%B9%E6%AF%94"><span class="nav-text">🆚 11. 与主流网关对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-12-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-text">🎯 12. 最佳实践</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-13-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 13. 本章总结</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        14 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>

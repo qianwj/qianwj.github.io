@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2026/07/05/vertx-series-10/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x从入门到放弃第十弹：WebSocket实时推送引擎">
+<meta property="og:url" content="http://example.com/2026/07/05/vertx-series-10/index.html">
+<meta property="og:site_name" content="Elvis&#39; Guraden">
+<meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-07-05T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T06:51:41.828Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="Distribution">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Vert.x">
+<meta property="article:tag" content="WebSocket">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            Vert.x从入门到放弃第十弹：WebSocket实时推送引擎 | Elvis&#39; Guraden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Hexo Theme Redefine, Redefine Your Hexo Journey."},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Tags":{"icon":"fa-solid fa-tags","path":"/tags/"},"About":{"icon":"fa-regular fa-user","path":"/about/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Guraden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    TAGS
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    ABOUT
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                TAGS
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                ABOUT
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">11</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第十弹：WebSocket实时推送引擎" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第十弹：WebSocket实时推送引擎</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-07-05 14:00</span>
+        <span class="mobile">2026-07-05 14:00</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-07-04 14:51:41</span>
+            <span class="mobile">2026-07-04 14:51:41</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/NIO/">NIO</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Netty/">Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Distribution/">Distribution</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/WebSocket/">WebSocket</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<h1 id="🌟-1-从请求-响应到实时推送"><a href="#🌟-1-从请求-响应到实时推送" class="headerlink" title="🌟 1. 从请求-响应到实时推送"></a>🌟 1. 从请求-响应到实时推送</h1><p>前几篇我们处理的都是”客户端发请求、服务端回响应”的模式——无论是 HTTP 还是 gRPC 一元调用。但有些场景天然不适合这个模型：</p>
+<ul>
+<li>股票行情：服务端要<strong>主动推送</strong>价格变化</li>
+<li>聊天消息：消息到达时<strong>立即送达</strong>，不能靠客户端轮询</li>
+<li>协同编辑：多个用户的操作要<strong>实时同步</strong>给所有人</li>
+<li>游戏状态：帧同步数据需要<strong>低延迟双向通信</strong></li>
+<li>IoT 设备：设备持续上报数据，服务端随时下发指令</li>
+</ul>
+<p>这些场景的共同特点：<strong>连接长期保持，双向实时通信。</strong></p>
+<p>WebSocket 就是为此而生的协议。而 Vert.x 基于 Netty 的实现，能轻松处理 <strong>10 万+并发连接</strong>。</p>
+<h1 id="🎯-2-WebSocket-协议基础"><a href="#🎯-2-WebSocket-协议基础" class="headerlink" title="🎯 2. WebSocket 协议基础"></a>🎯 2. WebSocket 协议基础</h1><h2 id="与-HTTP-的关系"><a href="#与-HTTP-的关系" class="headerlink" title="与 HTTP 的关系"></a>与 HTTP 的关系</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">客户端                                     服务端</span><br><span class="line">  │                                          │</span><br><span class="line">  │─── HTTP GET /chat (Upgrade: websocket) ──→│  握手阶段（HTTP）</span><br><span class="line">  │←── HTTP 101 Switching Protocols ─────────│</span><br><span class="line">  │                                          │</span><br><span class="line">  │◄═══════════ WebSocket Frame ═══════════►│  数据阶段（全双工）</span><br><span class="line">  │◄═══════════ WebSocket Frame ═══════════►│</span><br><span class="line">  │◄═══════════ WebSocket Frame ═══════════►│</span><br><span class="line">  │                                          │</span><br><span class="line">  │─── Close Frame ─────────────────────────→│  关闭</span><br><span class="line">  │←── Close Frame ─────────────────────────│</span><br></pre></td></tr></table></figure></div>
+
+<p>关键特性：</p>
+<ul>
+<li><strong>全双工</strong>：客户端和服务端可以同时发送数据</li>
+<li><strong>低开销</strong>：握手后每帧头只有 2-10 字节（对比 HTTP 头几百字节）</li>
+<li><strong>持久连接</strong>：一次握手，持续通信</li>
+<li><strong>基于 TCP</strong>：可靠传输，有序到达</li>
+</ul>
+<h2 id="对比其他实时方案"><a href="#对比其他实时方案" class="headerlink" title="对比其他实时方案"></a>对比其他实时方案</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>延迟</th>
+<th>服务端推送</th>
+<th>双向</th>
+<th>浏览器支持</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>短轮询</td>
+<td>高（秒级）</td>
+<td>模拟</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>长轮询</td>
+<td>中</td>
+<td>模拟</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>SSE</td>
+<td>低</td>
+<td>✅</td>
+<td>❌（单向）</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>极低</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>gRPC Stream</td>
+<td>极低</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌（需代理）</td>
+</tr>
+</tbody></table>
+<h1 id="🏗-3-Vert-x-WebSocket-Server-基础"><a href="#🏗-3-Vert-x-WebSocket-Server-基础" class="headerlink" title="🏗 3. Vert.x WebSocket Server 基础"></a>🏗 3. Vert.x WebSocket Server 基础</h1><h2 id="最简-WebSocket-服务"><a href="#最简-WebSocket-服务" class="headerlink" title="最简 WebSocket 服务"></a>最简 WebSocket 服务</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">WebSocketServerVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">(Promise&lt;Void&gt; startPromise)</span> &#123;</span><br><span class="line">    vertx.createHttpServer()</span><br><span class="line">      .webSocketHandler(ws -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;New connection: &quot;</span> + ws.remoteAddress());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 接收客户端消息</span></span><br><span class="line">        ws.textMessageHandler(msg -&gt; &#123;</span><br><span class="line">          System.out.println(<span class="string">&quot;Received: &quot;</span> + msg);</span><br><span class="line">          <span class="comment">// 回复</span></span><br><span class="line">          ws.writeTextMessage(<span class="string">&quot;Echo: &quot;</span> + msg);</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 连接关闭</span></span><br><span class="line">        ws.closeHandler(v -&gt; &#123;</span><br><span class="line">          System.out.println(<span class="string">&quot;Connection closed: &quot;</span> + ws.remoteAddress());</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 异常处理</span></span><br><span class="line">        ws.exceptionHandler(err -&gt; &#123;</span><br><span class="line">          System.err.println(<span class="string">&quot;WebSocket error: &quot;</span> + err.getMessage());</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;)</span><br><span class="line">      .listen(<span class="number">8080</span>)</span><br><span class="line">      .onSuccess(s -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;[WS] Server started on port 8080&quot;</span>);</span><br><span class="line">        startPromise.complete();</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(startPromise::fail);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="WebSocket-HTTP-共存"><a href="#WebSocket-HTTP-共存" class="headerlink" title="WebSocket + HTTP 共存"></a>WebSocket + HTTP 共存</h2><p>通常需要同时提供 HTTP API 和 WebSocket：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">HttpServer</span> <span class="variable">server</span> <span class="operator">=</span> vertx.createHttpServer();</span><br><span class="line"><span class="type">Router</span> <span class="variable">router</span> <span class="operator">=</span> Router.router(vertx);</span><br><span class="line"></span><br><span class="line"><span class="comment">// HTTP 路由</span></span><br><span class="line">router.get(<span class="string">&quot;/api/health&quot;</span>).handler(ctx -&gt; ctx.response().end(<span class="string">&quot;OK&quot;</span>));</span><br><span class="line">router.get(<span class="string">&quot;/api/status&quot;</span>).handler(ctx -&gt; ctx.response().end(getStatus()));</span><br><span class="line"></span><br><span class="line"><span class="comment">// WebSocket 在 HTTP Server 上</span></span><br><span class="line">server.webSocketHandler(ws -&gt; &#123;</span><br><span class="line">  <span class="comment">// 可以根据路径区分不同用途</span></span><br><span class="line">  <span class="keyword">switch</span> (ws.path()) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;/ws/chat&quot;</span> -&gt; handleChat(ws);</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;/ws/market&quot;</span> -&gt; handleMarketData(ws);</span><br><span class="line">    <span class="keyword">default</span> -&gt; ws.reject(<span class="number">404</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">server.requestHandler(router).listen(<span class="number">8080</span>);</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🚀-4-实战：构建实时推送引擎"><a href="#🚀-4-实战：构建实时推送引擎" class="headerlink" title="🚀 4. 实战：构建实时推送引擎"></a>🚀 4. 实战：构建实时推送引擎</h1><p>我们要构建一个通用的推送引擎，具备以下能力：</p>
+<ul>
+<li>连接管理（认证、心跳、断线检测）</li>
+<li>频道订阅（用户选择订阅哪些数据）</li>
+<li>精准推送（推送给特定用户）</li>
+<li>广播推送（推送给频道内所有人）</li>
+<li>水平扩展（多节点协作）</li>
+</ul>
+<h2 id="4-1-连接管理器"><a href="#4-1-连接管理器" class="headerlink" title="4.1 连接管理器"></a>4.1 连接管理器</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConnectionManager</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// userId -&gt; WebSocket 连接</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, ServerWebSocket&gt; connections = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line">  <span class="comment">// userId -&gt; 订阅的频道集合</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Set&lt;String&gt;&gt; subscriptions = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line">  <span class="comment">// channel -&gt; 订阅该频道的用户集合</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Set&lt;String&gt;&gt; channelMembers = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 注册新连接</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addConnection</span><span class="params">(String userId, ServerWebSocket ws)</span> &#123;</span><br><span class="line">    <span class="comment">// 踢掉旧连接（同一用户只允许一个连接）</span></span><br><span class="line">    <span class="type">ServerWebSocket</span> <span class="variable">old</span> <span class="operator">=</span> connections.put(userId, ws);</span><br><span class="line">    <span class="keyword">if</span> (old != <span class="literal">null</span> &amp;&amp; !old.isClosed()) &#123;</span><br><span class="line">      old.writeTextMessage(<span class="string">&quot;&#123;\&quot;type\&quot;:\&quot;kicked\&quot;,\&quot;reason\&quot;:\&quot;login_elsewhere\&quot;&#125;&quot;</span>);</span><br><span class="line">      old.close();</span><br><span class="line">    &#125;</span><br><span class="line">    subscriptions.putIfAbsent(userId, ConcurrentHashMap.newKeySet());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 移除连接</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">removeConnection</span><span class="params">(String userId)</span> &#123;</span><br><span class="line">    connections.remove(userId);</span><br><span class="line">    Set&lt;String&gt; channels = subscriptions.remove(userId);</span><br><span class="line">    <span class="keyword">if</span> (channels != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">for</span> (String channel : channels) &#123;</span><br><span class="line">        Set&lt;String&gt; members = channelMembers.get(channel);</span><br><span class="line">        <span class="keyword">if</span> (members != <span class="literal">null</span>) &#123;</span><br><span class="line">          members.remove(userId);</span><br><span class="line">          <span class="keyword">if</span> (members.isEmpty()) &#123;</span><br><span class="line">            channelMembers.remove(channel);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 订阅频道</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">subscribe</span><span class="params">(String userId, String channel)</span> &#123;</span><br><span class="line">    subscriptions.computeIfAbsent(userId, k -&gt; ConcurrentHashMap.newKeySet()).add(channel);</span><br><span class="line">    channelMembers.computeIfAbsent(channel, k -&gt; ConcurrentHashMap.newKeySet()).add(userId);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 取消订阅</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">unsubscribe</span><span class="params">(String userId, String channel)</span> &#123;</span><br><span class="line">    Set&lt;String&gt; userChannels = subscriptions.get(userId);</span><br><span class="line">    <span class="keyword">if</span> (userChannels != <span class="literal">null</span>) userChannels.remove(channel);</span><br><span class="line">    Set&lt;String&gt; members = channelMembers.get(channel);</span><br><span class="line">    <span class="keyword">if</span> (members != <span class="literal">null</span>) members.remove(userId);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 推送给单个用户</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">sendToUser</span><span class="params">(String userId, String message)</span> &#123;</span><br><span class="line">    <span class="type">ServerWebSocket</span> <span class="variable">ws</span> <span class="operator">=</span> connections.get(userId);</span><br><span class="line">    <span class="keyword">if</span> (ws != <span class="literal">null</span> &amp;&amp; !ws.isClosed()) &#123;</span><br><span class="line">      ws.writeTextMessage(message);</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 广播给频道所有成员</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">broadcastToChannel</span><span class="params">(String channel, String message)</span> &#123;</span><br><span class="line">    Set&lt;String&gt; members = channelMembers.get(channel);</span><br><span class="line">    <span class="keyword">if</span> (members == <span class="literal">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="variable">sent</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (String userId : members) &#123;</span><br><span class="line">      <span class="keyword">if</span> (sendToUser(userId, message)) &#123;</span><br><span class="line">        sent++;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sent;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 广播给所有连接</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">broadcastAll</span><span class="params">(String message)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">sent</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;String, ServerWebSocket&gt; entry : connections.entrySet()) &#123;</span><br><span class="line">      <span class="type">ServerWebSocket</span> <span class="variable">ws</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">      <span class="keyword">if</span> (!ws.isClosed()) &#123;</span><br><span class="line">        ws.writeTextMessage(message);</span><br><span class="line">        sent++;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sent;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getConnectionCount</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> connections.size();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getChannelCount</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> channelMembers.size();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="4-2-心跳检测与断线清理"><a href="#4-2-心跳检测与断线清理" class="headerlink" title="4.2 心跳检测与断线清理"></a>4.2 心跳检测与断线清理</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HeartbeatManager</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Vertx vertx;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> ConnectionManager connectionManager;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Long&gt; lastHeartbeat = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">HEARTBEAT_TIMEOUT_MS</span> <span class="operator">=</span> <span class="number">30_000</span>;  <span class="comment">// 30 秒无心跳判定为断线</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">CHECK_INTERVAL_MS</span> <span class="operator">=</span> <span class="number">10_000</span>;     <span class="comment">// 每 10 秒检查一次</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">HeartbeatManager</span><span class="params">(Vertx vertx, ConnectionManager connectionManager)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.vertx = vertx;</span><br><span class="line">    <span class="built_in">this</span>.connectionManager = connectionManager;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 定期检查超时连接</span></span><br><span class="line">    vertx.setPeriodic(CHECK_INTERVAL_MS, id -&gt; checkTimeouts());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">recordHeartbeat</span><span class="params">(String userId)</span> &#123;</span><br><span class="line">    lastHeartbeat.put(userId, System.currentTimeMillis());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">removeUser</span><span class="params">(String userId)</span> &#123;</span><br><span class="line">    lastHeartbeat.remove(userId);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">checkTimeouts</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">now</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">    List&lt;String&gt; timeoutUsers = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    lastHeartbeat.forEach((userId, lastTime) -&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (now - lastTime &gt; HEARTBEAT_TIMEOUT_MS) &#123;</span><br><span class="line">        timeoutUsers.add(userId);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (String userId : timeoutUsers) &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;[Heartbeat] User timeout: &quot;</span> + userId);</span><br><span class="line">      lastHeartbeat.remove(userId);</span><br><span class="line">      connectionManager.removeConnection(userId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!timeoutUsers.isEmpty()) &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;[Heartbeat] Cleaned &quot;</span> + timeoutUsers.size()</span><br><span class="line">          + <span class="string">&quot; dead connections. Active: &quot;</span> + connectionManager.getConnectionCount());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="4-3-推送引擎主-Verticle"><a href="#4-3-推送引擎主-Verticle" class="headerlink" title="4.3 推送引擎主 Verticle"></a>4.3 推送引擎主 Verticle</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PushEngineVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> ConnectionManager connectionManager;</span><br><span class="line">  <span class="keyword">private</span> HeartbeatManager heartbeatManager;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">(Promise&lt;Void&gt; startPromise)</span> &#123;</span><br><span class="line">    connectionManager = <span class="keyword">new</span> <span class="title class_">ConnectionManager</span>();</span><br><span class="line">    heartbeatManager = <span class="keyword">new</span> <span class="title class_">HeartbeatManager</span>(vertx, connectionManager);</span><br><span class="line">    heartbeatManager.start();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册 Event Bus 消费者（接收来自业务系统的推送请求）</span></span><br><span class="line">    registerEventBusConsumers();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 启动 WebSocket Server</span></span><br><span class="line">    vertx.createHttpServer(<span class="keyword">new</span> <span class="title class_">HttpServerOptions</span>()</span><br><span class="line">        .setMaxWebSocketFrameSize(<span class="number">65536</span>)</span><br><span class="line">        .setPerFrameWebSocketCompressionSupported(<span class="literal">true</span>)   <span class="comment">// 启用压缩</span></span><br><span class="line">        .setPerMessageWebSocketCompressionSupported(<span class="literal">true</span>))</span><br><span class="line">      .webSocketHandler(<span class="built_in">this</span>::handleWebSocket)</span><br><span class="line">      .listen(<span class="number">8080</span>)</span><br><span class="line">      .onSuccess(s -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;[PushEngine] WebSocket server on port 8080&quot;</span>);</span><br><span class="line">        startPromise.complete();</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(startPromise::fail);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 定期打印统计</span></span><br><span class="line">    vertx.setPeriodic(<span class="number">30_000</span>, id -&gt; &#123;</span><br><span class="line">      System.out.printf(<span class="string">&quot;[PushEngine] Connections: %d, Channels: %d%n&quot;</span>,</span><br><span class="line">          connectionManager.getConnectionCount(),</span><br><span class="line">          connectionManager.getChannelCount());</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleWebSocket</span><span class="params">(ServerWebSocket ws)</span> &#123;</span><br><span class="line">    <span class="comment">// 1. 认证（从 query 参数或 header 获取 token）</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> ws.query() != <span class="literal">null</span> ? parseToken(ws.query()) : <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (token == <span class="literal">null</span>) &#123;</span><br><span class="line">      ws.reject(<span class="number">401</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 验证 token（异步）</span></span><br><span class="line">    authenticate(token)</span><br><span class="line">      .onSuccess(userId -&gt; &#123;</span><br><span class="line">        <span class="comment">// 认证成功，注册连接</span></span><br><span class="line">        connectionManager.addConnection(userId, ws);</span><br><span class="line">        heartbeatManager.recordHeartbeat(userId);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;[PushEngine] User connected: &quot;</span> + userId);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 发送欢迎消息</span></span><br><span class="line">        ws.writeTextMessage(<span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">            .put(<span class="string">&quot;type&quot;</span>, <span class="string">&quot;connected&quot;</span>)</span><br><span class="line">            .put(<span class="string">&quot;userId&quot;</span>, userId)</span><br><span class="line">            .put(<span class="string">&quot;serverTime&quot;</span>, System.currentTimeMillis())</span><br><span class="line">            .encode());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 处理客户端消息</span></span><br><span class="line">        ws.textMessageHandler(msg -&gt; handleClientMessage(userId, msg));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 连接关闭</span></span><br><span class="line">        ws.closeHandler(v -&gt; &#123;</span><br><span class="line">          connectionManager.removeConnection(userId);</span><br><span class="line">          heartbeatManager.removeUser(userId);</span><br><span class="line">          System.out.println(<span class="string">&quot;[PushEngine] User disconnected: &quot;</span> + userId);</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        ws.exceptionHandler(err -&gt; &#123;</span><br><span class="line">          System.err.println(<span class="string">&quot;[PushEngine] Error for &quot;</span> + userId + <span class="string">&quot;: &quot;</span> + err.getMessage());</span><br><span class="line">          connectionManager.removeConnection(userId);</span><br><span class="line">          heartbeatManager.removeUser(userId);</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(err -&gt; &#123;</span><br><span class="line">        ws.writeTextMessage(<span class="string">&quot;&#123;\&quot;type\&quot;:\&quot;auth_failed\&quot;,\&quot;reason\&quot;:\&quot;&quot;</span> + err.getMessage() + <span class="string">&quot;\&quot;&#125;&quot;</span>);</span><br><span class="line">        ws.close();</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleClientMessage</span><span class="params">(String userId, String rawMessage)</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="type">JsonObject</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>(rawMessage);</span><br><span class="line">      <span class="type">String</span> <span class="variable">type</span> <span class="operator">=</span> msg.getString(<span class="string">&quot;type&quot;</span>);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">switch</span> (type) &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;ping&quot;</span> -&gt; &#123;</span><br><span class="line">          heartbeatManager.recordHeartbeat(userId);</span><br><span class="line">          connectionManager.sendToUser(userId, <span class="string">&quot;&#123;\&quot;type\&quot;:\&quot;pong\&quot;&#125;&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;subscribe&quot;</span> -&gt; &#123;</span><br><span class="line">          <span class="type">String</span> <span class="variable">channel</span> <span class="operator">=</span> msg.getString(<span class="string">&quot;channel&quot;</span>);</span><br><span class="line">          connectionManager.subscribe(userId, channel);</span><br><span class="line">          connectionManager.sendToUser(userId,</span><br><span class="line">              <span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;type&quot;</span>, <span class="string">&quot;subscribed&quot;</span>).put(<span class="string">&quot;channel&quot;</span>, channel).encode());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;unsubscribe&quot;</span> -&gt; &#123;</span><br><span class="line">          <span class="type">String</span> <span class="variable">channel</span> <span class="operator">=</span> msg.getString(<span class="string">&quot;channel&quot;</span>);</span><br><span class="line">          connectionManager.unsubscribe(userId, channel);</span><br><span class="line">          connectionManager.sendToUser(userId,</span><br><span class="line">              <span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;type&quot;</span>, <span class="string">&quot;unsubscribed&quot;</span>).put(<span class="string">&quot;channel&quot;</span>, channel).encode());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">default</span> -&gt; &#123;</span><br><span class="line">          connectionManager.sendToUser(userId,</span><br><span class="line">              <span class="string">&quot;&#123;\&quot;type\&quot;:\&quot;error\&quot;,\&quot;message\&quot;:\&quot;Unknown message type: &quot;</span> + type + <span class="string">&quot;\&quot;&#125;&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">      connectionManager.sendToUser(userId,</span><br><span class="line">          <span class="string">&quot;&#123;\&quot;type\&quot;:\&quot;error\&quot;,\&quot;message\&quot;:\&quot;Invalid JSON\&quot;&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">registerEventBusConsumers</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">EventBus</span> <span class="variable">eb</span> <span class="operator">=</span> vertx.eventBus();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 推送给单个用户</span></span><br><span class="line">    eb.&lt;JsonObject&gt;consumer(<span class="string">&quot;push.user&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">userId</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;userId&quot;</span>);</span><br><span class="line">      <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span> msg.body().getJsonObject(<span class="string">&quot;data&quot;</span>).encode();</span><br><span class="line">      <span class="type">boolean</span> <span class="variable">sent</span> <span class="operator">=</span> connectionManager.sendToUser(userId, payload);</span><br><span class="line">      msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;sent&quot;</span>, sent));</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 推送给频道</span></span><br><span class="line">    eb.&lt;JsonObject&gt;consumer(<span class="string">&quot;push.channel&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">channel</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;channel&quot;</span>);</span><br><span class="line">      <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span> msg.body().getJsonObject(<span class="string">&quot;data&quot;</span>).encode();</span><br><span class="line">      <span class="type">int</span> <span class="variable">count</span> <span class="operator">=</span> connectionManager.broadcastToChannel(channel, payload);</span><br><span class="line">      msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;sent&quot;</span>, count));</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 全局广播</span></span><br><span class="line">    eb.&lt;JsonObject&gt;consumer(<span class="string">&quot;push.broadcast&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span> msg.body().getJsonObject(<span class="string">&quot;data&quot;</span>).encode();</span><br><span class="line">      <span class="type">int</span> <span class="variable">count</span> <span class="operator">=</span> connectionManager.broadcastAll(payload);</span><br><span class="line">      msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;sent&quot;</span>, count));</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> Future&lt;String&gt; <span class="title function_">authenticate</span><span class="params">(String token)</span> &#123;</span><br><span class="line">    <span class="comment">// 实际项目中验证 JWT / 查 Redis</span></span><br><span class="line">    <span class="comment">// 这里简化：token 就是 userId</span></span><br><span class="line">    <span class="keyword">if</span> (token == <span class="literal">null</span> || token.isEmpty()) &#123;</span><br><span class="line">      <span class="keyword">return</span> Future.failedFuture(<span class="string">&quot;Empty token&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> Future.succeededFuture(token);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> String <span class="title function_">parseToken</span><span class="params">(String query)</span> &#123;</span><br><span class="line">    <span class="comment">// 解析 ?token=xxx</span></span><br><span class="line">    <span class="keyword">for</span> (String param : query.split(<span class="string">&quot;&amp;&quot;</span>)) &#123;</span><br><span class="line">      String[] kv = param.split(<span class="string">&quot;=&quot;</span>);</span><br><span class="line">      <span class="keyword">if</span> (kv.length == <span class="number">2</span> &amp;&amp; <span class="string">&quot;token&quot;</span>.equals(kv[<span class="number">0</span>])) &#123;</span><br><span class="line">        <span class="keyword">return</span> kv[<span class="number">1</span>];</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="4-4-业务系统推送接口"><a href="#4-4-业务系统推送接口" class="headerlink" title="4.4 业务系统推送接口"></a>4.4 业务系统推送接口</h2><p>业务服务通过 Event Bus 触发推送：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 推送给指定用户</span></span><br><span class="line">vertx.eventBus().request(<span class="string">&quot;push.user&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">    .put(<span class="string">&quot;userId&quot;</span>, <span class="string">&quot;user_alice&quot;</span>)</span><br><span class="line">    .put(<span class="string">&quot;data&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;type&quot;</span>, <span class="string">&quot;notification&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;title&quot;</span>, <span class="string">&quot;订单已发货&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;content&quot;</span>, <span class="string">&quot;您的订单 #12345 已发出&quot;</span>)));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 推送给频道（如股票行情）</span></span><br><span class="line">vertx.eventBus().request(<span class="string">&quot;push.channel&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">    .put(<span class="string">&quot;channel&quot;</span>, <span class="string">&quot;stock:AAPL&quot;</span>)</span><br><span class="line">    .put(<span class="string">&quot;data&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;type&quot;</span>, <span class="string">&quot;price_update&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;symbol&quot;</span>, <span class="string">&quot;AAPL&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;price&quot;</span>, <span class="number">178.52</span>)</span><br><span class="line">        .put(<span class="string">&quot;change&quot;</span>, +<span class="number">2.3</span>)</span><br><span class="line">        .put(<span class="string">&quot;timestamp&quot;</span>, System.currentTimeMillis())));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 全局广播（如系统维护通知）</span></span><br><span class="line">vertx.eventBus().request(<span class="string">&quot;push.broadcast&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">    .put(<span class="string">&quot;data&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;type&quot;</span>, <span class="string">&quot;system_notice&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;系统将于 22:00 进行维护&quot;</span>)));</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="💓-5-客户端心跳与断线重连"><a href="#💓-5-客户端心跳与断线重连" class="headerlink" title="💓 5. 客户端心跳与断线重连"></a>💓 5. 客户端心跳与断线重连</h1><h2 id="客户端实现（JavaScript）"><a href="#客户端实现（JavaScript）" class="headerlink" title="客户端实现（JavaScript）"></a>客户端实现（JavaScript）</h2><div class="code-container" data-rel="Javascript"><figure class="iseeu highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PushClient</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">url, token</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">url</span> = <span class="string">`<span class="subst">$&#123;url&#125;</span>?token=<span class="subst">$&#123;token&#125;</span>`</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">heartbeatInterval</span> = <span class="literal">null</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">reconnectAttempts</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">maxReconnectAttempts</span> = <span class="number">10</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">handlers</span> = <span class="keyword">new</span> <span class="title class_">Map</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">connect</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span> = <span class="keyword">new</span> <span class="title class_">WebSocket</span>(<span class="variable language_">this</span>.<span class="property">url</span>);</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">onopen</span> = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;[Push] Connected&#x27;</span>);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">reconnectAttempts</span> = <span class="number">0</span>;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">startHeartbeat</span>();</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">onmessage</span> = <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> msg = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(event.<span class="property">data</span>);</span><br><span class="line">      <span class="keyword">const</span> handler = <span class="variable language_">this</span>.<span class="property">handlers</span>.<span class="title function_">get</span>(msg.<span class="property">type</span>);</span><br><span class="line">      <span class="keyword">if</span> (handler) <span class="title function_">handler</span>(msg);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">onclose</span> = <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;[Push] Disconnected:&#x27;</span>, event.<span class="property">code</span>, event.<span class="property">reason</span>);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">stopHeartbeat</span>();</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">scheduleReconnect</span>();</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">onerror</span> = <span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;[Push] Error:&#x27;</span>, error);</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">startHeartbeat</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">heartbeatInterval</span> = <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">readyState</span> === <span class="title class_">WebSocket</span>.<span class="property">OPEN</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="title function_">send</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;ping&#x27;</span> &#125;));</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;, <span class="number">15000</span>); <span class="comment">// 每 15 秒发一次心跳</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">stopHeartbeat</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">heartbeatInterval</span>) &#123;</span><br><span class="line">      <span class="built_in">clearInterval</span>(<span class="variable language_">this</span>.<span class="property">heartbeatInterval</span>);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">heartbeatInterval</span> = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">scheduleReconnect</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">reconnectAttempts</span> &gt;= <span class="variable language_">this</span>.<span class="property">maxReconnectAttempts</span>) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;[Push] Max reconnect attempts reached&#x27;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 指数退避：1s, 2s, 4s, 8s... 最大 30s</span></span><br><span class="line">    <span class="keyword">const</span> delay = <span class="title class_">Math</span>.<span class="title function_">min</span>(<span class="number">1000</span> * <span class="title class_">Math</span>.<span class="title function_">pow</span>(<span class="number">2</span>, <span class="variable language_">this</span>.<span class="property">reconnectAttempts</span>), <span class="number">30000</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">reconnectAttempts</span>++;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`[Push] Reconnecting in <span class="subst">$&#123;delay&#125;</span>ms (attempt <span class="subst">$&#123;<span class="variable language_">this</span>.reconnectAttempts&#125;</span>)`</span>);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="title function_">connect</span>(), delay);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">subscribe</span>(<span class="params">channel</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">send</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;subscribe&#x27;</span>, channel &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">unsubscribe</span>(<span class="params">channel</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">send</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;unsubscribe&#x27;</span>, channel &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">on</span>(<span class="params">type, handler</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">handlers</span>.<span class="title function_">set</span>(type, handler);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">send</span>(<span class="params">data</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">ws</span> &amp;&amp; <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">readyState</span> === <span class="title class_">WebSocket</span>.<span class="property">OPEN</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="title function_">send</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(data));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="keyword">const</span> client = <span class="keyword">new</span> <span class="title class_">PushClient</span>(<span class="string">&#x27;ws://localhost:8080/ws&#x27;</span>, <span class="string">&#x27;user_alice&#x27;</span>);</span><br><span class="line">client.<span class="title function_">connect</span>();</span><br><span class="line"></span><br><span class="line">client.<span class="title function_">on</span>(<span class="string">&#x27;connected&#x27;</span>, <span class="function">(<span class="params">msg</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Connected as:&#x27;</span>, msg.<span class="property">userId</span>);</span><br><span class="line">  client.<span class="title function_">subscribe</span>(<span class="string">&#x27;stock:AAPL&#x27;</span>);</span><br><span class="line">  client.<span class="title function_">subscribe</span>(<span class="string">&#x27;stock:GOOGL&#x27;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">client.<span class="title function_">on</span>(<span class="string">&#x27;price_update&#x27;</span>, <span class="function">(<span class="params">msg</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`<span class="subst">$&#123;msg.symbol&#125;</span>: $<span class="subst">$&#123;msg.price&#125;</span> (<span class="subst">$&#123;msg.change &gt; <span class="number">0</span> ? <span class="string">&#x27;+&#x27;</span> : <span class="string">&#x27;&#x27;</span>&#125;</span><span class="subst">$&#123;msg.change&#125;</span>%)`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">client.<span class="title function_">on</span>(<span class="string">&#x27;notification&#x27;</span>, <span class="function">(<span class="params">msg</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">alert</span>(msg.<span class="property">title</span> + <span class="string">&#x27;: &#x27;</span> + msg.<span class="property">content</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="📊-6-10-万连接：性能优化"><a href="#📊-6-10-万连接：性能优化" class="headerlink" title="📊 6. 10 万连接：性能优化"></a>📊 6. 10 万连接：性能优化</h1><h2 id="内存估算"><a href="#内存估算" class="headerlink" title="内存估算"></a>内存估算</h2><p>单个 WebSocket 连接占用：</p>
+<ul>
+<li>TCP Socket Buffer：~8KB（读+写）</li>
+<li>Netty Channel 对象：~2KB</li>
+<li>业务层状态（userId, subscriptions）：~1KB</li>
+<li><strong>合计：~11KB &#x2F; 连接</strong></li>
+</ul>
+<p>10 万连接 ≈ <strong>1.1GB</strong>。一台 4GB 堆内存的 JVM 可以轻松承载。</p>
+<h2 id="关键优化点"><a href="#关键优化点" class="headerlink" title="关键优化点"></a>关键优化点</h2><h3 id="①-调大系统文件描述符限制"><a href="#①-调大系统文件描述符限制" class="headerlink" title="① 调大系统文件描述符限制"></a>① 调大系统文件描述符限制</h3><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Linux：单进程文件描述符上限</span></span><br><span class="line"><span class="built_in">ulimit</span> -n 200000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或永久修改 /etc/security/limits.conf</span></span><br><span class="line">* soft nofile 200000</span><br><span class="line">* hard nofile 200000</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="②-Vert-x-Server-参数调优"><a href="#②-Vert-x-Server-参数调优" class="headerlink" title="② Vert.x Server 参数调优"></a>② Vert.x Server 参数调优</h3><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">HttpServerOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HttpServerOptions</span>()</span><br><span class="line">  .setPort(<span class="number">8080</span>)</span><br><span class="line">  .setAcceptBacklog(<span class="number">10000</span>)                        <span class="comment">// 连接队列长度</span></span><br><span class="line">  .setTcpKeepAlive(<span class="literal">true</span>)                          <span class="comment">// TCP KeepAlive</span></span><br><span class="line">  .setTcpNoDelay(<span class="literal">true</span>)                            <span class="comment">// 禁用 Nagle（降低延迟）</span></span><br><span class="line">  .setPerMessageWebSocketCompressionSupported(<span class="literal">true</span>) <span class="comment">// 消息压缩（省带宽）</span></span><br><span class="line">  .setMaxWebSocketFrameSize(<span class="number">65536</span>)                <span class="comment">// 单帧最大 64KB</span></span><br><span class="line">  .setMaxWebSocketMessageSize(<span class="number">262144</span>);            <span class="comment">// 单消息最大 256KB</span></span><br></pre></td></tr></table></figure></div>
+
+<h3 id="③-写缓冲区背压控制"><a href="#③-写缓冲区背压控制" class="headerlink" title="③ 写缓冲区背压控制"></a>③ 写缓冲区背压控制</h3><p>当客户端网络慢、消息积压时，必须处理背压：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">safeSend</span><span class="params">(ServerWebSocket ws, String message)</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (ws.isClosed()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 检查写队列是否满</span></span><br><span class="line">  <span class="keyword">if</span> (ws.writeQueueFull()) &#123;</span><br><span class="line">    <span class="comment">// 队列满了，丢弃消息或存入离线队列</span></span><br><span class="line">    System.out.println(<span class="string">&quot;[PushEngine] Write queue full for &quot;</span> + ws.remoteAddress());</span><br><span class="line">    <span class="comment">// 可以选择关闭慢连接</span></span><br><span class="line">    ws.close((<span class="type">short</span>) <span class="number">1008</span>, <span class="string">&quot;Slow consumer&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ws.writeTextMessage(message);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或者使用 drain handler 等待恢复</span></span><br><span class="line">ws.drainHandler(v -&gt; &#123;</span><br><span class="line">  <span class="comment">// 写队列空间恢复，可以继续发送</span></span><br><span class="line">  flushPendingMessages(ws);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="④-分组广播（避免大循环阻塞-Event-Loop）"><a href="#④-分组广播（避免大循环阻塞-Event-Loop）" class="headerlink" title="④ 分组广播（避免大循环阻塞 Event Loop）"></a>④ 分组广播（避免大循环阻塞 Event Loop）</h3><p>10 万连接广播时，不能在一个事件循环里全部写完：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">broadcastInBatches</span><span class="params">(String channel, String message, <span class="type">int</span> batchSize)</span> &#123;</span><br><span class="line">  Set&lt;String&gt; members = channelMembers.get(channel);</span><br><span class="line">  <span class="keyword">if</span> (members == <span class="literal">null</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">  List&lt;String&gt; memberList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(members);</span><br><span class="line">  <span class="type">int</span> <span class="variable">total</span> <span class="operator">=</span> memberList.size();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 分批发送，每批之间让出 Event Loop</span></span><br><span class="line">  broadcastBatch(memberList, message, <span class="number">0</span>, batchSize, total);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">broadcastBatch</span><span class="params">(List&lt;String&gt; members, String message,</span></span><br><span class="line"><span class="params">                            <span class="type">int</span> offset, <span class="type">int</span> batchSize, <span class="type">int</span> total)</span> &#123;</span><br><span class="line">  <span class="type">int</span> <span class="variable">end</span> <span class="operator">=</span> Math.min(offset + batchSize, total);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> offset; i &lt; end; i++) &#123;</span><br><span class="line">    sendToUser(members.get(i), message);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (end &lt; total) &#123;</span><br><span class="line">    <span class="comment">// 下一批放到下一个事件循环 tick</span></span><br><span class="line">    vertx.runOnContext(v -&gt; broadcastBatch(members, message, end, batchSize, total));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="⑤-多实例部署"><a href="#⑤-多实例部署" class="headerlink" title="⑤ 多实例部署"></a>⑤ 多实例部署</h3><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 部署多个 PushEngine 实例，均摊连接</span></span><br><span class="line">vertx.deployVerticle(PushEngineVerticle.class.getName(),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setInstances(Runtime.getRuntime().availableProcessors()));</span><br></pre></td></tr></table></figure></div>
+
+<p>每个 Event Loop 线程独立处理一批连接，互不干扰。</p>
+<h1 id="🌐-7-Event-Bus-Bridge：后端事件直推浏览器"><a href="#🌐-7-Event-Bus-Bridge：后端事件直推浏览器" class="headerlink" title="🌐 7. Event Bus Bridge：后端事件直推浏览器"></a>🌐 7. Event Bus Bridge：后端事件直推浏览器</h1><p>Vert.x 提供了一个更高层的方案——<strong>SockJS Event Bus Bridge</strong>，让浏览器直接成为 Event Bus 的一个节点：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Router</span> <span class="variable">router</span> <span class="operator">=</span> Router.router(vertx);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 配置 Bridge 允许的地址</span></span><br><span class="line"><span class="type">SockJSBridgeOptions</span> <span class="variable">bridgeOptions</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SockJSBridgeOptions</span>()</span><br><span class="line">  .addInboundPermitted(<span class="keyword">new</span> <span class="title class_">PermittedOptions</span>().setAddress(<span class="string">&quot;chat.message&quot;</span>))</span><br><span class="line">  .addOutboundPermitted(<span class="keyword">new</span> <span class="title class_">PermittedOptions</span>().setAddressRegex(<span class="string">&quot;stock\\..*&quot;</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 挂载 SockJS 处理器</span></span><br><span class="line"><span class="type">SockJSHandler</span> <span class="variable">sockJSHandler</span> <span class="operator">=</span> SockJSHandler.create(vertx);</span><br><span class="line">router.route(<span class="string">&quot;/eventbus/*&quot;</span>).subRouter(sockJSHandler.bridge(bridgeOptions));</span><br><span class="line"></span><br><span class="line">vertx.createHttpServer().requestHandler(router).listen(<span class="number">8080</span>);</span><br></pre></td></tr></table></figure></div>
+
+<p>浏览器端：</p>
+<div class="code-container" data-rel="Html"><figure class="iseeu highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;https://cdn.jsdelivr.net/npm/vertx3-eventbus-client/vertx-eventbus.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">  <span class="keyword">const</span> eb = <span class="keyword">new</span> <span class="title class_">EventBus</span>(<span class="string">&#x27;http://localhost:8080/eventbus&#x27;</span>);</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">  eb.<span class="property">onopen</span> = <span class="function">() =&gt;</span> &#123;</span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// 订阅股票行情</span></span></span><br><span class="line"><span class="language-javascript">    eb.<span class="title function_">registerHandler</span>(<span class="string">&#x27;stock.AAPL&#x27;</span>, <span class="function">(<span class="params">err, msg</span>) =&gt;</span> &#123;</span></span><br><span class="line"><span class="language-javascript">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;AAPL price:&#x27;</span>, msg.<span class="property">body</span>.<span class="property">price</span>);</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// 发送聊天消息</span></span></span><br><span class="line"><span class="language-javascript">    eb.<span class="title function_">send</span>(<span class="string">&#x27;chat.message&#x27;</span>, &#123; <span class="attr">text</span>: <span class="string">&#x27;Hello!&#x27;</span>, <span class="attr">user</span>: <span class="string">&#x27;Alice&#x27;</span> &#125;);</span></span><br><span class="line"><span class="language-javascript">  &#125;;</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure></div>
+
+<p><strong>优点：</strong> 零自定义协议，前后端直接共享 Event Bus 地址空间。</p>
+<p><strong>缺点：</strong> 灵活性不如原生 WebSocket，安全控制粒度较粗。</p>
+<h2 id="适用场景对比"><a href="#适用场景对比" class="headerlink" title="适用场景对比"></a>适用场景对比</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>适合</th>
+<th>不适合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>原生 WebSocket</td>
+<td>自定义协议、高性能、精细控制</td>
+<td>快速原型</td>
+</tr>
+<tr>
+<td>SockJS Bridge</td>
+<td>快速开发、内部工具、管理后台</td>
+<td>高并发生产环境</td>
+</tr>
+</tbody></table>
+<h1 id="🔄-8-多节点推送：跨实例消息路由"><a href="#🔄-8-多节点推送：跨实例消息路由" class="headerlink" title="🔄 8. 多节点推送：跨实例消息路由"></a>🔄 8. 多节点推送：跨实例消息路由</h1><p>单机 10 万连接已经很强了。但当连接数超过单机容量，或者需要高可用时，就需要多节点部署。</p>
+<p>问题来了：<strong>用户 A 连接在节点 1，推送请求到了节点 2，怎么办？</strong></p>
+<h2 id="方案一：Event-Bus-Cluster"><a href="#方案一：Event-Bus-Cluster" class="headerlink" title="方案一：Event Bus Cluster"></a>方案一：Event Bus Cluster</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Node-1 (PushEngine)                Node-2 (PushEngine)</span><br><span class="line">┌──────────────────┐              ┌──────────────────┐</span><br><span class="line">│ User-A, User-B   │              │ User-C, User-D   │</span><br><span class="line">│                  │◄────────────►│                  │</span><br><span class="line">│ EventBus Cluster │   Hazelcast  │ EventBus Cluster │</span><br><span class="line">└──────────────────┘              └──────────────────┘</span><br></pre></td></tr></table></figure></div>
+
+<p>业务系统发送 <code>push.user</code> 消息到 Event Bus，集群模式下会自动路由到正确的节点。</p>
+<p><strong>优点：</strong> 代码不用改，Event Bus 自动处理。<br><strong>缺点：</strong> 集群管理器（Hazelcast）有一定开销，节点数多时效率下降。</p>
+<h2 id="方案二：Redis-Pub-Sub-做跨节点广播"><a href="#方案二：Redis-Pub-Sub-做跨节点广播" class="headerlink" title="方案二：Redis Pub&#x2F;Sub 做跨节点广播"></a>方案二：Redis Pub&#x2F;Sub 做跨节点广播</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RedisPushBridge</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> RedisAPI redis;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">Redis</span> <span class="variable">client</span> <span class="operator">=</span> Redis.createClient(vertx, <span class="string">&quot;redis://localhost:6379&quot;</span>);</span><br><span class="line">    redis = RedisAPI.api(client);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 订阅 Redis 频道</span></span><br><span class="line">    client.connect().onSuccess(conn -&gt; &#123;</span><br><span class="line">      conn.handler(message -&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;message&quot;</span>.equals(message.get(<span class="number">0</span>).toString())) &#123;</span><br><span class="line">          <span class="type">String</span> <span class="variable">channel</span> <span class="operator">=</span> message.get(<span class="number">1</span>).toString();</span><br><span class="line">          <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span> message.get(<span class="number">2</span>).toString();</span><br><span class="line">          handleRedisMessage(channel, payload);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">      conn.send(Request.cmd(Command.SUBSCRIBE).arg(<span class="string">&quot;push:user&quot;</span>).arg(<span class="string">&quot;push:channel&quot;</span>));</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 本地 Event Bus 消息转发到 Redis</span></span><br><span class="line">    vertx.eventBus().&lt;JsonObject&gt;consumer(<span class="string">&quot;push.user&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      redis.publish(<span class="string">&quot;push:user&quot;</span>, msg.body().encode());</span><br><span class="line">      msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;forwarded&quot;</span>));</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleRedisMessage</span><span class="params">(String channel, String payload)</span> &#123;</span><br><span class="line">    <span class="type">JsonObject</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>(payload);</span><br><span class="line">    <span class="keyword">if</span> (<span class="string">&quot;push:user&quot;</span>.equals(channel)) &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">userId</span> <span class="operator">=</span> msg.getString(<span class="string">&quot;userId&quot;</span>);</span><br><span class="line">      <span class="comment">// 尝试本地推送（如果用户不在本节点，直接忽略）</span></span><br><span class="line">      connectionManager.sendToUser(userId, msg.getJsonObject(<span class="string">&quot;data&quot;</span>).encode());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>优点：</strong> 简单可靠，Redis 吞吐高。<br><strong>缺点：</strong> 所有节点都收到所有消息（浪费带宽），需要自行过滤。</p>
+<h2 id="方案三：一致性哈希路由"><a href="#方案三：一致性哈希路由" class="headerlink" title="方案三：一致性哈希路由"></a>方案三：一致性哈希路由</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">用户连接时：hash(userId) % nodeCount → 分配到固定节点</span><br><span class="line">推送时：hash(userId) → 直接发到目标节点（不广播）</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>优点：</strong> 精准路由，无浪费。<br><strong>缺点：</strong> 节点变化时需要迁移连接。</p>
+<h2 id="推荐选择"><a href="#推荐选择" class="headerlink" title="推荐选择"></a>推荐选择</h2><table>
+<thead>
+<tr>
+<th>集群规模</th>
+<th>推荐方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2-5 节点</td>
+<td>Event Bus Cluster（最简单）</td>
+</tr>
+<tr>
+<td>5-20 节点</td>
+<td>Redis Pub&#x2F;Sub（稳定可靠）</td>
+</tr>
+<tr>
+<td>20+ 节点</td>
+<td>一致性哈希 + 直连（性能最优）</td>
+</tr>
+</tbody></table>
+<h1 id="🧪-9-压测与调优"><a href="#🧪-9-压测与调优" class="headerlink" title="🧪 9. 压测与调优"></a>🧪 9. 压测与调优</h1><h2 id="压测工具"><a href="#压测工具" class="headerlink" title="压测工具"></a>压测工具</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用 wscat 手动测试</span></span><br><span class="line">npx wscat -c <span class="string">&quot;ws://localhost:8080?token=test_user&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 artillery 做批量压测</span></span><br><span class="line">artillery quick --count 10000 -n 1 ws://localhost:8080?token=user_&#123;&#123;<span class="variable">$randomNumber</span>()&#125;&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="关键指标"><a href="#关键指标" class="headerlink" title="关键指标"></a>关键指标</h2><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>健康值</th>
+<th>告警值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>连接建立延迟</td>
+<td>&lt;50ms</td>
+<td>&gt;200ms</td>
+</tr>
+<tr>
+<td>消息投递延迟</td>
+<td>&lt;5ms</td>
+<td>&gt;50ms</td>
+</tr>
+<tr>
+<td>内存使用</td>
+<td>&lt;70% 堆</td>
+<td>&gt;85%</td>
+</tr>
+<tr>
+<td>Event Loop 利用率</td>
+<td>&lt;60%</td>
+<td>&gt;80%</td>
+</tr>
+<tr>
+<td>消息丢弃率</td>
+<td>0</td>
+<td>&gt;0.1%</td>
+</tr>
+</tbody></table>
+<h2 id="压测结果参考"><a href="#压测结果参考" class="headerlink" title="压测结果参考"></a>压测结果参考</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">环境：4 核 8G，JDK 21，Vert.x 5.0</span><br><span class="line">连接数：100,000</span><br><span class="line">消息频率：每连接每秒 1 条推送</span><br></pre></td></tr></table></figure></div>
+
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>稳定连接数</td>
+<td>100,000</td>
+</tr>
+<tr>
+<td>推送 QPS</td>
+<td>~100,000 msg&#x2F;s</td>
+</tr>
+<tr>
+<td>平均延迟</td>
+<td>3.2ms</td>
+</tr>
+<tr>
+<td>P99 延迟</td>
+<td>12ms</td>
+</tr>
+<tr>
+<td>CPU 使用率</td>
+<td>~45%</td>
+</tr>
+<tr>
+<td>堆内存</td>
+<td>~1.8GB</td>
+</tr>
+<tr>
+<td>GC 停顿（G1）</td>
+<td>&lt;10ms</td>
+</tr>
+</tbody></table>
+<h1 id="🎯-10-最佳实践"><a href="#🎯-10-最佳实践" class="headerlink" title="🎯 10. 最佳实践"></a>🎯 10. 最佳实践</h1><table>
+<thead>
+<tr>
+<th>实践</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>连接时立即认证</td>
+<td>不要接受匿名连接，防止资源耗尽攻击</td>
+</tr>
+<tr>
+<td>心跳双向确认</td>
+<td>服务端和客户端都要检测对方存活</td>
+</tr>
+<tr>
+<td>消息格式统一</td>
+<td>约定 <code>{type, data, timestamp}</code> 结构</td>
+</tr>
+<tr>
+<td>背压处理</td>
+<td>writeQueueFull 时丢弃或断开慢消费者</td>
+</tr>
+<tr>
+<td>离线消息存储</td>
+<td>用户断线期间的重要消息存 Redis&#x2F;DB，重连后补推</td>
+</tr>
+<tr>
+<td>批量广播分批次</td>
+<td>避免单次循环阻塞 Event Loop</td>
+</tr>
+<tr>
+<td>压缩大消息</td>
+<td>启用 Per-Message Compression</td>
+</tr>
+<tr>
+<td>监控连接数</td>
+<td>实时监控，设置容量告警</td>
+</tr>
+<tr>
+<td>优雅断开</td>
+<td>发 Close Frame + 原因码，便于客户端区分</td>
+</tr>
+</tbody></table>
+<h1 id="📌-11-本章总结"><a href="#📌-11-本章总结" class="headerlink" title="📌 11. 本章总结"></a>📌 11. 本章总结</h1><p>本章你掌握了：</p>
+<ul>
+<li><strong>WebSocket 协议基础</strong>：全双工、低开销、持久连接</li>
+<li><strong>Vert.x WebSocket Server</strong>：基于 Netty，与 HTTP 共存</li>
+<li><strong>推送引擎架构</strong>：连接管理、频道订阅、心跳检测</li>
+<li><strong>10 万连接优化</strong>：文件描述符、背压控制、分批广播</li>
+<li><strong>Event Bus Bridge</strong>：浏览器直连 Event Bus 的快捷方案</li>
+<li><strong>多节点推送</strong>：Event Bus Cluster &#x2F; Redis Pub&#x2F;Sub &#x2F; 一致性哈希</li>
+<li><strong>压测数据</strong>：单机 10 万连接、10 万 msg&#x2F;s、P99 12ms</li>
+</ul>
+<p>现在你已经能构建高性能的实时推送系统了。但随着节点增多，<strong>如何让多个 Vert.x 实例组成集群、共享状态、自动发现彼此？</strong> 下一篇我们深入 Vert.x 集群模式，搞懂分布式 Event Bus 的底层原理。</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第十弹：WebSocket实时推送引擎</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-07-05 14:00:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-07-04 14:51:41
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/2026/07/05/vertx-series-10/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Vert-x/">#Vert.x</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/NIO/">#NIO</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Netty/">#Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Distribution/">#Distribution</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Java/">#Java</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/WebSocket/">#WebSocket</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="prev" rel="prev" href="/2026/07/05/vertx-series-11/">
+					<span class="left arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-left"></i>
+					</span>
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息</span>
+						<span class="post-nav-item">Prev posts</span>
+					</span>
+				</a>
+			</div>
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2026/07/05/vertx-series-9/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">Vert.x从入门到放弃第十弹：WebSocket实时推送引擎</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%BB%8E%E8%AF%B7%E6%B1%82-%E5%93%8D%E5%BA%94%E5%88%B0%E5%AE%9E%E6%97%B6%E6%8E%A8%E9%80%81"><span class="nav-text">🌟 1. 从请求-响应到实时推送</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-2-WebSocket-%E5%8D%8F%E8%AE%AE%E5%9F%BA%E7%A1%80"><span class="nav-text">🎯 2. WebSocket 协议基础</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8E-HTTP-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">与 HTTP 的关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E5%85%B6%E4%BB%96%E5%AE%9E%E6%97%B6%E6%96%B9%E6%A1%88"><span class="nav-text">对比其他实时方案</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8F%97-3-Vert-x-WebSocket-Server-%E5%9F%BA%E7%A1%80"><span class="nav-text">🏗 3. Vert.x WebSocket Server 基础</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E7%AE%80-WebSocket-%E6%9C%8D%E5%8A%A1"><span class="nav-text">最简 WebSocket 服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WebSocket-HTTP-%E5%85%B1%E5%AD%98"><span class="nav-text">WebSocket + HTTP 共存</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%80-4-%E5%AE%9E%E6%88%98%EF%BC%9A%E6%9E%84%E5%BB%BA%E5%AE%9E%E6%97%B6%E6%8E%A8%E9%80%81%E5%BC%95%E6%93%8E"><span class="nav-text">🚀 4. 实战：构建实时推送引擎</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E5%99%A8"><span class="nav-text">4.1 连接管理器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E5%BF%83%E8%B7%B3%E6%A3%80%E6%B5%8B%E4%B8%8E%E6%96%AD%E7%BA%BF%E6%B8%85%E7%90%86"><span class="nav-text">4.2 心跳检测与断线清理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E6%8E%A8%E9%80%81%E5%BC%95%E6%93%8E%E4%B8%BB-Verticle"><span class="nav-text">4.3 推送引擎主 Verticle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-%E4%B8%9A%E5%8A%A1%E7%B3%BB%E7%BB%9F%E6%8E%A8%E9%80%81%E6%8E%A5%E5%8F%A3"><span class="nav-text">4.4 业务系统推送接口</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%92%93-5-%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%BF%83%E8%B7%B3%E4%B8%8E%E6%96%AD%E7%BA%BF%E9%87%8D%E8%BF%9E"><span class="nav-text">💓 5. 客户端心跳与断线重连</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B0%EF%BC%88JavaScript%EF%BC%89"><span class="nav-text">客户端实现（JavaScript）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8A-6-10-%E4%B8%87%E8%BF%9E%E6%8E%A5%EF%BC%9A%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="nav-text">📊 6. 10 万连接：性能优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E4%BC%B0%E7%AE%97"><span class="nav-text">内存估算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E4%BC%98%E5%8C%96%E7%82%B9"><span class="nav-text">关键优化点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%91%A0-%E8%B0%83%E5%A4%A7%E7%B3%BB%E7%BB%9F%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6%E9%99%90%E5%88%B6"><span class="nav-text">① 调大系统文件描述符限制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%91%A1-Vert-x-Server-%E5%8F%82%E6%95%B0%E8%B0%83%E4%BC%98"><span class="nav-text">② Vert.x Server 参数调优</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%91%A2-%E5%86%99%E7%BC%93%E5%86%B2%E5%8C%BA%E8%83%8C%E5%8E%8B%E6%8E%A7%E5%88%B6"><span class="nav-text">③ 写缓冲区背压控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%91%A3-%E5%88%86%E7%BB%84%E5%B9%BF%E6%92%AD%EF%BC%88%E9%81%BF%E5%85%8D%E5%A4%A7%E5%BE%AA%E7%8E%AF%E9%98%BB%E5%A1%9E-Event-Loop%EF%BC%89"><span class="nav-text">④ 分组广播（避免大循环阻塞 Event Loop）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%91%A4-%E5%A4%9A%E5%AE%9E%E4%BE%8B%E9%83%A8%E7%BD%B2"><span class="nav-text">⑤ 多实例部署</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%90-7-Event-Bus-Bridge%EF%BC%9A%E5%90%8E%E7%AB%AF%E4%BA%8B%E4%BB%B6%E7%9B%B4%E6%8E%A8%E6%B5%8F%E8%A7%88%E5%99%A8"><span class="nav-text">🌐 7. Event Bus Bridge：后端事件直推浏览器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF%E5%AF%B9%E6%AF%94"><span class="nav-text">适用场景对比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%84-8-%E5%A4%9A%E8%8A%82%E7%82%B9%E6%8E%A8%E9%80%81%EF%BC%9A%E8%B7%A8%E5%AE%9E%E4%BE%8B%E6%B6%88%E6%81%AF%E8%B7%AF%E7%94%B1"><span class="nav-text">🔄 8. 多节点推送：跨实例消息路由</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9AEvent-Bus-Cluster"><span class="nav-text">方案一：Event Bus Cluster</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9ARedis-Pub-Sub-%E5%81%9A%E8%B7%A8%E8%8A%82%E7%82%B9%E5%B9%BF%E6%92%AD"><span class="nav-text">方案二：Redis Pub&#x2F;Sub 做跨节点广播</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E8%B7%AF%E7%94%B1"><span class="nav-text">方案三：一致性哈希路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A8%E8%8D%90%E9%80%89%E6%8B%A9"><span class="nav-text">推荐选择</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-9-%E5%8E%8B%E6%B5%8B%E4%B8%8E%E8%B0%83%E4%BC%98"><span class="nav-text">🧪 9. 压测与调优</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%8B%E6%B5%8B%E5%B7%A5%E5%85%B7"><span class="nav-text">压测工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E6%8C%87%E6%A0%87"><span class="nav-text">关键指标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%8B%E6%B5%8B%E7%BB%93%E6%9E%9C%E5%8F%82%E8%80%83"><span class="nav-text">压测结果参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-10-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-text">🎯 10. 最佳实践</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-11-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 11. 本章总结</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        14 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>

@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2026/07/05/vertx-series-9/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding">
+<meta property="og:url" content="http://example.com/2026/07/05/vertx-series-9/index.html">
+<meta property="og:site_name" content="Elvis&#39; Guraden">
+<meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-07-05T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T06:45:31.927Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="Distribution">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Vert.x">
+<meta property="article:tag" content="gRPC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding | Elvis&#39; Guraden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Hexo Theme Redefine, Redefine Your Hexo Journey."},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Tags":{"icon":"fa-solid fa-tags","path":"/tags/"},"About":{"icon":"fa-regular fa-user","path":"/about/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Guraden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    TAGS
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    ABOUT
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                TAGS
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                ABOUT
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">11</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-07-05 10:00</span>
+        <span class="mobile">2026-07-05 10:00</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-07-04 14:45:31</span>
+            <span class="mobile">2026-07-04 14:45:31</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/NIO/">NIO</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Netty/">Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Distribution/">Distribution</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/gRPC/">gRPC</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<h1 id="🌟-1-为什么在-Vert-x-里用-gRPC？"><a href="#🌟-1-为什么在-Vert-x-里用-gRPC？" class="headerlink" title="🌟 1. 为什么在 Vert.x 里用 gRPC？"></a>🌟 1. 为什么在 Vert.x 里用 gRPC？</h1><p>上一篇我们构建了一个 HTTP Gateway。但在内部微服务通信中，HTTP&#x2F;JSON 有明显的短板：</p>
+<table>
+<thead>
+<tr>
+<th>痛点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>序列化开销大</td>
+<td>JSON 文本解析比二进制慢 5-10 倍</td>
+</tr>
+<tr>
+<td>没有强类型契约</td>
+<td>接口变更容易出错，靠文档约束</td>
+</tr>
+<tr>
+<td>不支持流式通信</td>
+<td>HTTP&#x2F;1.1 天生请求-响应，双向流很难</td>
+</tr>
+<tr>
+<td>代码生成弱</td>
+<td>OpenAPI 生成的代码质量参差不齐</td>
+</tr>
+</tbody></table>
+<p>gRPC 正好解决了这些问题：</p>
+<ul>
+<li><strong>Protobuf 序列化</strong>：体积小、速度快</li>
+<li><strong>强类型 IDL</strong>：<code>.proto</code> 文件即接口契约，编译期校验</li>
+<li><strong>HTTP&#x2F;2 传输</strong>：多路复用、双向流</li>
+<li><strong>原生代码生成</strong>：一份 proto 生成多语言客户端&#x2F;服务端</li>
+</ul>
+<p>而 Vert.x 5.0 提供了<strong>自己的 gRPC 实现</strong>（vertx-grpc-server &#x2F; vertx-grpc-client），不依赖 grpc-java 的 Netty 传输层，直接复用 Vert.x 的 HTTP&#x2F;2 服务器。同时内置了 gRPC Transcoding 和 gRPC-Web 支持，无需中间代理。</p>
+<h1 id="🎯-2-Vert-x-gRPC-vs-grpc-java：为什么要”重新造轮子”？"><a href="#🎯-2-Vert-x-gRPC-vs-grpc-java：为什么要”重新造轮子”？" class="headerlink" title="🎯 2. Vert.x gRPC vs grpc-java：为什么要”重新造轮子”？"></a>🎯 2. Vert.x gRPC vs grpc-java：为什么要”重新造轮子”？</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>grpc-java (grpc-netty)</th>
+<th>Vert.x gRPC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>传输层</td>
+<td>自带 Netty（与 Vert.x 的 Netty 冲突）</td>
+<td>复用 Vert.x HTTP&#x2F;2 Server</td>
+</tr>
+<tr>
+<td>线程模型</td>
+<td>自己的线程池，与 Event Loop 割裂</td>
+<td>原生 Event Loop 集成</td>
+</tr>
+<tr>
+<td>编程风格</td>
+<td>StreamObserver 回调</td>
+<td>Future + ReadStream&#x2F;WriteStream</td>
+</tr>
+<tr>
+<td>依赖大小</td>
+<td>~20MB（grpc-netty-shaded）</td>
+<td>~2MB（仅 vertx-grpc）</td>
+</tr>
+<tr>
+<td>Transcoding</td>
+<td>需要 Envoy 或 grpc-gateway</td>
+<td>内置支持，零代理</td>
+</tr>
+<tr>
+<td>与 Event Bus 集成</td>
+<td>手动桥接</td>
+<td>天然互通</td>
+</tr>
+<tr>
+<td>GraalVM Native</td>
+<td>困难（大量反射）</td>
+<td>友好</td>
+</tr>
+</tbody></table>
+<p><strong>核心优势：</strong> Vert.x gRPC 不是 grpc-java 的包装，而是一个<strong>独立实现</strong>——直接在 Vert.x HTTP&#x2F;2 上实现 gRPC 协议，保证与 Event Loop 的完美契合。</p>
+<h1 id="🏗-3-项目搭建"><a href="#🏗-3-项目搭建" class="headerlink" title="🏗 3. 项目搭建"></a>🏗 3. 项目搭建</h1><h2 id="Maven-依赖"><a href="#Maven-依赖" class="headerlink" title="Maven 依赖"></a>Maven 依赖</h2><div class="code-container" data-rel="Xml"><figure class="iseeu highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">vertx.version</span>&gt;</span>5.0.11<span class="tag">&lt;/<span class="name">vertx.version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Vert.x gRPC Server --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.vertx<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>vertx-grpc-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;vertx.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Vert.x gRPC Client --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.vertx<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>vertx-grpc-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;vertx.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Vert.x gRPC Transcoding（HTTP/JSON → gRPC 自动转换） --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.vertx<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>vertx-grpc-transcoding<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;vertx.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">extensions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">extension</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>kr.motd.maven<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>os-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.7.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">extension</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">extensions</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.xolstice.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>protobuf-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.6.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">protocArtifact</span>&gt;</span>com.google.protobuf:protoc:3.25.1:exe:$&#123;os.detected.classifier&#125;<span class="tag">&lt;/<span class="name">protocArtifact</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">pluginId</span>&gt;</span>vertx-grpc-protoc-plugin<span class="tag">&lt;/<span class="name">pluginId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">pluginArtifact</span>&gt;</span>io.vertx:vertx-grpc-protoc-plugin:5.0.11:exe:$&#123;os.detected.classifier&#125;<span class="tag">&lt;/<span class="name">pluginArtifact</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>compile<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>compile-custom<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure></div>
+
+<h2 id="Gradle-build-gradle-kts"><a href="#Gradle-build-gradle-kts" class="headerlink" title="Gradle (build.gradle.kts)"></a>Gradle (build.gradle.kts)</h2><div class="code-container" data-rel="Kotlin"><figure class="iseeu highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.google.protobuf.gradle.*</span><br><span class="line"></span><br><span class="line">plugins &#123;</span><br><span class="line">  java</span><br><span class="line">  id(<span class="string">&quot;com.google.protobuf&quot;</span>) version <span class="string">&quot;0.9.4&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> vertxVersion = <span class="string">&quot;5.0.11&quot;</span></span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">  implementation(<span class="string">&quot;io.vertx:vertx-grpc-server:<span class="variable">$vertxVersion</span>&quot;</span>)</span><br><span class="line">  implementation(<span class="string">&quot;io.vertx:vertx-grpc-client:<span class="variable">$vertxVersion</span>&quot;</span>)</span><br><span class="line">  implementation(<span class="string">&quot;io.vertx:vertx-grpc-transcoding:<span class="variable">$vertxVersion</span>&quot;</span>)</span><br><span class="line">  implementation(<span class="string">&quot;com.google.protobuf:protobuf-java:3.25.1&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protobuf &#123;</span><br><span class="line">  protoc &#123;</span><br><span class="line">    artifact = <span class="string">&quot;com.google.protobuf:protoc:3.25.1&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">  plugins &#123;</span><br><span class="line">    create(<span class="string">&quot;vertx-grpc&quot;</span>) &#123;</span><br><span class="line">      artifact = <span class="string">&quot;io.vertx:vertx-grpc-protoc-plugin:<span class="variable">$vertxVersion</span>:all@jar&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  generateProtoTasks &#123;</span><br><span class="line">    all().forEach &#123; task -&gt;</span><br><span class="line">      task.plugins &#123;</span><br><span class="line">        create(<span class="string">&quot;vertx-grpc&quot;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将生成的代码加入源码路径</span></span><br><span class="line">sourceSets &#123;</span><br><span class="line">  main &#123;</span><br><span class="line">    java &#123;</span><br><span class="line">      srcDirs(</span><br><span class="line">        <span class="string">&quot;build/generated/source/proto/main/java&quot;</span>,</span><br><span class="line">        <span class="string">&quot;build/generated/source/proto/main/vertx-grpc&quot;</span></span><br><span class="line">      )</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<blockquote>
+<p><strong>注意</strong>：proto 文件放在 <code>src/main/proto/</code> 目录下。Transcoding 所需的 <code>google/api/annotations.proto</code> 和 <code>google/api/http.proto</code> 由 <code>vertx-grpc-transcoding</code> 依赖自动提供，无需手动下载。</p>
+</blockquote>
+<h2 id="定义-Proto-文件"><a href="#定义-Proto-文件" class="headerlink" title="定义 Proto 文件"></a>定义 Proto 文件</h2><div class="code-container" data-rel="Protobuf"><figure class="iseeu highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">&quot;proto3&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> example;</span><br><span class="line"></span><br><span class="line"><span class="keyword">option</span> java_package = <span class="string">&quot;com.example.grpc&quot;</span>;</span><br><span class="line"><span class="keyword">option</span> java_multiple_files = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;google/api/annotations.proto&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用户服务</span></span><br><span class="line"><span class="keyword">service </span><span class="title class_">UserService</span> &#123;</span><br><span class="line">  <span class="comment">// 获取用户信息</span></span><br><span class="line">  <span class="function"><span class="keyword">rpc</span> GetUser(GetUserRequest) <span class="keyword">returns</span> (GetUserResponse) </span>&#123;</span><br><span class="line">    <span class="keyword">option</span> (google.api.http) = &#123;</span><br><span class="line">      get: <span class="string">&quot;/v1/users/&#123;user_id&#125;&quot;</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建用户</span></span><br><span class="line">  <span class="function"><span class="keyword">rpc</span> CreateUser(CreateUserRequest) <span class="keyword">returns</span> (CreateUserResponse) </span>&#123;</span><br><span class="line">    <span class="keyword">option</span> (google.api.http) = &#123;</span><br><span class="line">      post: <span class="string">&quot;/v1/users&quot;</span></span><br><span class="line">      body: <span class="string">&quot;*&quot;</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 列出用户（服务端流式）</span></span><br><span class="line">  <span class="function"><span class="keyword">rpc</span> ListUsers(ListUsersRequest) <span class="keyword">returns</span> (stream UserInfo) </span>&#123;</span><br><span class="line">    <span class="keyword">option</span> (google.api.http) = &#123;</span><br><span class="line">      get: <span class="string">&quot;/v1/users&quot;</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 批量导入用户（客户端流式）</span></span><br><span class="line">  <span class="function"><span class="keyword">rpc</span> ImportUsers(stream CreateUserRequest) <span class="keyword">returns</span> (ImportUsersResponse)</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 实时同步（双向流式）</span></span><br><span class="line">  <span class="function"><span class="keyword">rpc</span> SyncUsers(stream SyncRequest) <span class="keyword">returns</span> (stream SyncResponse)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">GetUserRequest</span> &#123;</span><br><span class="line">  <span class="type">string</span> user_id = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">GetUserResponse</span> &#123;</span><br><span class="line">  UserInfo user = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">UserInfo</span> &#123;</span><br><span class="line">  <span class="type">string</span> id = <span class="number">1</span>;</span><br><span class="line">  <span class="type">string</span> name = <span class="number">2</span>;</span><br><span class="line">  <span class="type">string</span> email = <span class="number">3</span>;</span><br><span class="line">  <span class="type">int32</span> age = <span class="number">4</span>;</span><br><span class="line">  <span class="type">string</span> role = <span class="number">5</span>;</span><br><span class="line">  <span class="type">int64</span> created_at = <span class="number">6</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">CreateUserRequest</span> &#123;</span><br><span class="line">  <span class="type">string</span> name = <span class="number">1</span>;</span><br><span class="line">  <span class="type">string</span> email = <span class="number">2</span>;</span><br><span class="line">  <span class="type">int32</span> age = <span class="number">3</span>;</span><br><span class="line">  <span class="type">string</span> role = <span class="number">4</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">CreateUserResponse</span> &#123;</span><br><span class="line">  <span class="type">string</span> id = <span class="number">1</span>;</span><br><span class="line">  UserInfo user = <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">ListUsersRequest</span> &#123;</span><br><span class="line">  <span class="type">int32</span> page_size = <span class="number">1</span>;</span><br><span class="line">  <span class="type">string</span> page_token = <span class="number">2</span>;</span><br><span class="line">  <span class="type">string</span> filter = <span class="number">3</span>;  <span class="comment">// e.g. &quot;role=admin&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">ImportUsersResponse</span> &#123;</span><br><span class="line">  <span class="type">int32</span> imported_count = <span class="number">1</span>;</span><br><span class="line">  <span class="type">int32</span> failed_count = <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">SyncRequest</span> &#123;</span><br><span class="line">  <span class="type">string</span> action = <span class="number">1</span>;  <span class="comment">// &quot;subscribe&quot; | &quot;update&quot;</span></span><br><span class="line">  UserInfo user = <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">message </span><span class="title class_">SyncResponse</span> &#123;</span><br><span class="line">  <span class="type">string</span> event = <span class="number">1</span>;   <span class="comment">// &quot;user_created&quot; | &quot;user_updated&quot; | &quot;user_deleted&quot;</span></span><br><span class="line">  UserInfo user = <span class="number">2</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>注意 <code>google.api.http</code> 注解——这就是 Transcoding 的关键，它告诉 Vert.x 如何把 HTTP 请求映射到 gRPC 方法。</p>
+<h1 id="🔧-4-实现-gRPC-服务"><a href="#🔧-4-实现-gRPC-服务" class="headerlink" title="🔧 4. 实现 gRPC 服务"></a>🔧 4. 实现 gRPC 服务</h1><p>Vert.x gRPC protoc 插件会生成一个 <code>UserServiceGrpcServer</code> 接口，我们只需要实现它：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">UserServiceGrpcServer</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, UserInfo&gt; users = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">  <span class="keyword">private</span> <span class="type">int</span> <span class="variable">idCounter</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> Future&lt;GetUserResponse&gt; <span class="title function_">getUser</span><span class="params">(GetUserRequest request)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">userId</span> <span class="operator">=</span> request.getUserId();</span><br><span class="line">    <span class="type">UserInfo</span> <span class="variable">user</span> <span class="operator">=</span> users.get(userId);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (user == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> Future.failedFuture(GrpcStatus.status(GrpcStatus.NOT_FOUND)</span><br><span class="line">          .withDescription(<span class="string">&quot;User not found: &quot;</span> + userId));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Future.succeededFuture(</span><br><span class="line">      GetUserResponse.newBuilder().setUser(user).build()</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> Future&lt;CreateUserResponse&gt; <span class="title function_">createUser</span><span class="params">(CreateUserRequest request)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">id</span> <span class="operator">=</span> <span class="string">&quot;user_&quot;</span> + (++idCounter);</span><br><span class="line"></span><br><span class="line">    <span class="type">UserInfo</span> <span class="variable">user</span> <span class="operator">=</span> UserInfo.newBuilder()</span><br><span class="line">      .setId(id)</span><br><span class="line">      .setName(request.getName())</span><br><span class="line">      .setEmail(request.getEmail())</span><br><span class="line">      .setAge(request.getAge())</span><br><span class="line">      .setRole(request.getRole())</span><br><span class="line">      .setCreatedAt(System.currentTimeMillis())</span><br><span class="line">      .build();</span><br><span class="line"></span><br><span class="line">    users.put(id, user);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Future.succeededFuture(</span><br><span class="line">      CreateUserResponse.newBuilder()</span><br><span class="line">        .setId(id)</span><br><span class="line">        .setUser(user)</span><br><span class="line">        .build()</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> ReadStream&lt;UserInfo&gt; <span class="title function_">listUsers</span><span class="params">(ListUsersRequest request)</span> &#123;</span><br><span class="line">    <span class="comment">// 服务端流式：逐条返回用户</span></span><br><span class="line">    List&lt;UserInfo&gt; userList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(users.values());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 应用过滤</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">filter</span> <span class="operator">=</span> request.getFilter();</span><br><span class="line">    <span class="keyword">if</span> (!filter.isEmpty()) &#123;</span><br><span class="line">      String[] parts = filter.split(<span class="string">&quot;=&quot;</span>);</span><br><span class="line">      <span class="keyword">if</span> (parts[<span class="number">0</span>].equals(<span class="string">&quot;role&quot;</span>)) &#123;</span><br><span class="line">        userList = userList.stream()</span><br><span class="line">          .filter(u -&gt; u.getRole().equals(parts[<span class="number">1</span>]))</span><br><span class="line">          .collect(Collectors.toList());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 返回一个 ReadStream</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ListStream</span>&lt;&gt;(userList);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> Future&lt;ImportUsersResponse&gt; <span class="title function_">importUsers</span><span class="params">(ReadStream&lt;CreateUserRequest&gt; stream)</span> &#123;</span><br><span class="line">    <span class="comment">// 客户端流式：接收批量数据</span></span><br><span class="line">    Promise&lt;ImportUsersResponse&gt; promise = Promise.promise();</span><br><span class="line">    <span class="type">AtomicInteger</span> <span class="variable">imported</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>();</span><br><span class="line">    <span class="type">AtomicInteger</span> <span class="variable">failed</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>();</span><br><span class="line"></span><br><span class="line">    stream.handler(request -&gt; &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">id</span> <span class="operator">=</span> <span class="string">&quot;user_&quot;</span> + (++idCounter);</span><br><span class="line">        <span class="type">UserInfo</span> <span class="variable">user</span> <span class="operator">=</span> UserInfo.newBuilder()</span><br><span class="line">          .setId(id)</span><br><span class="line">          .setName(request.getName())</span><br><span class="line">          .setEmail(request.getEmail())</span><br><span class="line">          .setAge(request.getAge())</span><br><span class="line">          .setRole(request.getRole())</span><br><span class="line">          .setCreatedAt(System.currentTimeMillis())</span><br><span class="line">          .build();</span><br><span class="line">        users.put(id, user);</span><br><span class="line">        imported.incrementAndGet();</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        failed.incrementAndGet();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    stream.endHandler(v -&gt; &#123;</span><br><span class="line">      promise.complete(ImportUsersResponse.newBuilder()</span><br><span class="line">        .setImportedCount(imported.get())</span><br><span class="line">        .setFailedCount(failed.get())</span><br><span class="line">        .build());</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    stream.exceptionHandler(err -&gt; promise.fail(err));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> promise.future();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> ReadStream&lt;SyncResponse&gt; <span class="title function_">syncUsers</span><span class="params">(ReadStream&lt;SyncRequest&gt; requestStream)</span> &#123;</span><br><span class="line">    <span class="comment">// 双向流式：实时同步</span></span><br><span class="line">    WriteStream&lt;SyncResponse&gt; responseStream = <span class="comment">/* ... */</span>;</span><br><span class="line"></span><br><span class="line">    requestStream.handler(req -&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="string">&quot;update&quot;</span>.equals(req.getAction())) &#123;</span><br><span class="line">        <span class="type">UserInfo</span> <span class="variable">user</span> <span class="operator">=</span> req.getUser();</span><br><span class="line">        users.put(user.getId(), user);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 向客户端推送更新事件</span></span><br><span class="line">        responseStream.write(SyncResponse.newBuilder()</span><br><span class="line">          .setEvent(<span class="string">&quot;user_updated&quot;</span>)</span><br><span class="line">          .setUser(user)</span><br><span class="line">          .build());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> responseStream;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>关键区别</strong>：对比 grpc-java 的 <code>StreamObserver</code> 模式，Vert.x 用 <code>Future</code> 处理一元调用，用 <code>ReadStream/WriteStream</code> 处理流式调用——完全是 Vert.x 风格。</p>
+<h1 id="🚀-5-启动-gRPC-Server"><a href="#🚀-5-启动-gRPC-Server" class="headerlink" title="🚀 5. 启动 gRPC Server"></a>🚀 5. 启动 gRPC Server</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GrpcServerVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">(Promise&lt;Void&gt; startPromise)</span> &#123;</span><br><span class="line">    <span class="comment">// 创建 gRPC Server</span></span><br><span class="line">    <span class="type">GrpcServer</span> <span class="variable">grpcServer</span> <span class="operator">=</span> GrpcServer.server(vertx);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册服务</span></span><br><span class="line">    <span class="type">UserServiceImpl</span> <span class="variable">userService</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UserServiceImpl</span>();</span><br><span class="line">    grpcServer.addService(userService);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用 Vert.x HTTP Server 承载（支持 HTTP/2）</span></span><br><span class="line">    vertx.createHttpServer(<span class="keyword">new</span> <span class="title class_">HttpServerOptions</span>()</span><br><span class="line">        .setPort(<span class="number">9090</span>)</span><br><span class="line">        .setHttp2ClearText(<span class="literal">true</span>))  <span class="comment">// h2c，开发环境不用 TLS</span></span><br><span class="line">      .requestHandler(grpcServer)</span><br><span class="line">      .listen()</span><br><span class="line">      .onSuccess(server -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;[gRPC] Server started on port 9090&quot;</span>);</span><br><span class="line">        startPromise.complete();</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(startPromise::fail);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>就这么简单——gRPC Server 直接挂在 Vert.x 的 HTTP Server 上，共享 Event Loop。</p>
+<h1 id="🌐-6-Transcoding：gRPC-变身-REST-API"><a href="#🌐-6-Transcoding：gRPC-变身-REST-API" class="headerlink" title="🌐 6. Transcoding：gRPC 变身 REST API"></a>🌐 6. Transcoding：gRPC 变身 REST API</h1><p>这是 Vert.x gRPC 最强大的特性之一——<strong>无需 Envoy、无需 grpc-gateway，内置 HTTP&#x2F;JSON → gRPC 的自动转换。</strong></p>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────┐         ┌──────────────────────────────┐</span><br><span class="line">│  Browser /  │  HTTP   │  Vert.x HTTP Server           │</span><br><span class="line">│  curl /     │────────→│                              │</span><br><span class="line">│  前端应用    │  JSON   │  ┌──────────────────────┐    │</span><br><span class="line">└─────────────┘         │  │  Transcoding Layer   │    │</span><br><span class="line">                        │  │                      │    │</span><br><span class="line">                        │  │  HTTP GET /v1/users/1 │    │</span><br><span class="line">                        │  │       ↓ 转换为        │    │</span><br><span class="line">                        │  │  GetUser(&#123;user_id:1&#125;) │    │</span><br><span class="line">                        │  └──────────────────────┘    │</span><br><span class="line">                        │           ↓                   │</span><br><span class="line">                        │  ┌──────────────────────┐    │</span><br><span class="line">                        │  │  gRPC Service Impl   │    │</span><br><span class="line">                        │  └──────────────────────┘    │</span><br><span class="line">                        └──────────────────────────────┘</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="映射规则（由-proto-中的-HttpRule-定义）"><a href="#映射规则（由-proto-中的-HttpRule-定义）" class="headerlink" title="映射规则（由 proto 中的 HttpRule 定义）"></a>映射规则（由 proto 中的 HttpRule 定义）</h2><div class="code-container" data-rel="Protobuf"><figure class="iseeu highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GET /v1/users/&#123;user_id&#125;  →  GetUser(GetUserRequest&#123;user_id: &quot;...&quot;&#125;)</span></span><br><span class="line"><span class="function"><span class="keyword">rpc</span> GetUser(GetUserRequest) <span class="keyword">returns</span> (GetUserResponse) </span>&#123;</span><br><span class="line">  <span class="keyword">option</span> (google.api.http) = &#123;</span><br><span class="line">    get: <span class="string">&quot;/v1/users/&#123;user_id&#125;&quot;</span></span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// POST /v1/users + JSON body  →  CreateUser(CreateUserRequest&#123;...&#125;)</span></span><br><span class="line"><span class="function"><span class="keyword">rpc</span> CreateUser(CreateUserRequest) <span class="keyword">returns</span> (CreateUserResponse) </span>&#123;</span><br><span class="line">  <span class="keyword">option</span> (google.api.http) = &#123;</span><br><span class="line">    post: <span class="string">&quot;/v1/users&quot;</span></span><br><span class="line">    body: <span class="string">&quot;*&quot;</span></span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="启用-Transcoding"><a href="#启用-Transcoding" class="headerlink" title="启用 Transcoding"></a>启用 Transcoding</h2><p>Vert.x gRPC Server 默认支持 Transcoding。当你用 Vert.x protoc 插件生成代码并注册服务后，HTTP&#x2F;JSON 请求会被自动识别并转换：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">GrpcServer</span> <span class="variable">grpcServer</span> <span class="operator">=</span> GrpcServer.server(vertx);</span><br><span class="line">grpcServer.addService(<span class="keyword">new</span> <span class="title class_">UserServiceImpl</span>());</span><br><span class="line"></span><br><span class="line"><span class="comment">// 同一个端口同时支持 gRPC 和 HTTP/JSON！</span></span><br><span class="line">vertx.createHttpServer()</span><br><span class="line">  .requestHandler(grpcServer)</span><br><span class="line">  .listen(<span class="number">9090</span>);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># gRPC 客户端调用（二进制 Protobuf）</span></span><br><span class="line">grpcurl -plaintext -d <span class="string">&#x27;&#123;&quot;user_id&quot;:&quot;user_1&quot;&#125;&#x27;</span> localhost:9090 example.UserService/GetUser</span><br><span class="line"></span><br><span class="line"><span class="comment"># HTTP/JSON 调用（Transcoding 自动转换）</span></span><br><span class="line">curl http://localhost:9090/v1/users/user_1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建用户（POST + JSON）</span></span><br><span class="line">curl -X POST http://localhost:9090/v1/users \</span><br><span class="line">  -H <span class="string">&quot;Content-Type: application/json&quot;</span> \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;name&quot;:&quot;Alice&quot;,&quot;email&quot;:&quot;alice@example.com&quot;,&quot;age&quot;:28,&quot;role&quot;:&quot;admin&quot;&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出用户（服务端流会被转为 JSON 数组）</span></span><br><span class="line">curl http://localhost:9090/v1/users?filter=role%3Dadmin</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>同一个端口、同一个服务实现，同时服务 gRPC 客户端和 HTTP 客户端。</strong></p>
+<h2 id="为什么这很重要？"><a href="#为什么这很重要？" class="headerlink" title="为什么这很重要？"></a>为什么这很重要？</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>好处</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前端调用</td>
+<td>浏览器不支持 gRPC，但可以直接发 HTTP&#x2F;JSON</td>
+</tr>
+<tr>
+<td>渐进式迁移</td>
+<td>老系统用 HTTP 调，新系统用 gRPC 调，同一服务</td>
+</tr>
+<tr>
+<td>调试方便</td>
+<td>curl 就能测试，不需要装 grpcurl</td>
+</tr>
+<tr>
+<td>API Gateway</td>
+<td>上一篇的 Gateway 可以直接代理 Transcoding 端口</td>
+</tr>
+<tr>
+<td>文档</td>
+<td>HTTP API 更容易生成 Swagger 文档</td>
+</tr>
+</tbody></table>
+<h1 id="📡-7-gRPC-客户端"><a href="#📡-7-gRPC-客户端" class="headerlink" title="📡 7. gRPC 客户端"></a>📡 7. gRPC 客户端</h1><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserGrpcClient</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> GrpcClient client;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> SocketAddress serverAddress;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">UserGrpcClient</span><span class="params">(Vertx vertx, String host, <span class="type">int</span> port)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.client = GrpcClient.client(vertx);</span><br><span class="line">    <span class="built_in">this</span>.serverAddress = SocketAddress.inetSocketAddress(port, host);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 一元调用</span></span><br><span class="line">  <span class="keyword">public</span> Future&lt;GetUserResponse&gt; <span class="title function_">getUser</span><span class="params">(String userId)</span> &#123;</span><br><span class="line">    <span class="type">GetUserRequest</span> <span class="variable">request</span> <span class="operator">=</span> GetUserRequest.newBuilder()</span><br><span class="line">      .setUserId(userId)</span><br><span class="line">      .build();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> client.request(serverAddress, UserServiceGrpc.getGetUserMethod())</span><br><span class="line">      .compose(grpcRequest -&gt; grpcRequest.send(request))</span><br><span class="line">      .compose(grpcResponse -&gt; grpcResponse.last());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 服务端流式</span></span><br><span class="line">  <span class="keyword">public</span> ReadStream&lt;UserInfo&gt; <span class="title function_">listUsers</span><span class="params">(String filter)</span> &#123;</span><br><span class="line">    <span class="type">ListUsersRequest</span> <span class="variable">request</span> <span class="operator">=</span> ListUsersRequest.newBuilder()</span><br><span class="line">      .setFilter(filter)</span><br><span class="line">      .build();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 返回流式响应</span></span><br><span class="line">    <span class="keyword">return</span> client.request(serverAddress, UserServiceGrpc.getListUsersMethod())</span><br><span class="line">      .compose(grpcRequest -&gt; grpcRequest.send(request))</span><br><span class="line">      .result();  <span class="comment">// ReadStream&lt;UserInfo&gt;</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 客户端流式</span></span><br><span class="line">  <span class="keyword">public</span> Future&lt;ImportUsersResponse&gt; <span class="title function_">importUsers</span><span class="params">(List&lt;CreateUserRequest&gt; users)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> client.request(serverAddress, UserServiceGrpc.getImportUsersMethod())</span><br><span class="line">      .compose(grpcRequest -&gt; &#123;</span><br><span class="line">        <span class="keyword">for</span> (CreateUserRequest user : users) &#123;</span><br><span class="line">          grpcRequest.write(user);</span><br><span class="line">        &#125;</span><br><span class="line">        grpcRequest.end();</span><br><span class="line">        <span class="keyword">return</span> grpcRequest.response()</span><br><span class="line">          .compose(GrpcClientResponse::last);</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🔄-8-gRPC-Event-Bus：打通内部通信"><a href="#🔄-8-gRPC-Event-Bus：打通内部通信" class="headerlink" title="🔄 8. gRPC + Event Bus：打通内部通信"></a>🔄 8. gRPC + Event Bus：打通内部通信</h1><p>一个常见的架构：<strong>外部用 gRPC&#x2F;HTTP 接入，内部用 Event Bus 通信。</strong></p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserGrpcVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">(Promise&lt;Void&gt; startPromise)</span> &#123;</span><br><span class="line">    <span class="type">GrpcServer</span> <span class="variable">grpcServer</span> <span class="operator">=</span> GrpcServer.server(vertx);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// gRPC 服务作为门面，实际业务通过 Event Bus 转发</span></span><br><span class="line">    grpcServer.addService(<span class="keyword">new</span> <span class="title class_">UserServiceGrpcServer</span>() &#123;</span><br><span class="line"></span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="keyword">public</span> Future&lt;GetUserResponse&gt; <span class="title function_">getUser</span><span class="params">(GetUserRequest request)</span> &#123;</span><br><span class="line">        <span class="comment">// gRPC 请求 → Event Bus → 内部 Service Verticle</span></span><br><span class="line">        <span class="keyword">return</span> vertx.eventBus().&lt;JsonObject&gt;request(<span class="string">&quot;user.service.get&quot;</span>,</span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;userId&quot;</span>, request.getUserId()))</span><br><span class="line">          .map(reply -&gt; &#123;</span><br><span class="line">            <span class="type">JsonObject</span> <span class="variable">json</span> <span class="operator">=</span> reply.body();</span><br><span class="line">            <span class="keyword">return</span> GetUserResponse.newBuilder()</span><br><span class="line">              .setUser(UserInfo.newBuilder()</span><br><span class="line">                .setId(json.getString(<span class="string">&quot;id&quot;</span>))</span><br><span class="line">                .setName(json.getString(<span class="string">&quot;name&quot;</span>))</span><br><span class="line">                .setEmail(json.getString(<span class="string">&quot;email&quot;</span>))</span><br><span class="line">                .build())</span><br><span class="line">              .build();</span><br><span class="line">          &#125;);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="keyword">public</span> Future&lt;CreateUserResponse&gt; <span class="title function_">createUser</span><span class="params">(CreateUserRequest request)</span> &#123;</span><br><span class="line">        <span class="type">JsonObject</span> <span class="variable">payload</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">          .put(<span class="string">&quot;name&quot;</span>, request.getName())</span><br><span class="line">          .put(<span class="string">&quot;email&quot;</span>, request.getEmail())</span><br><span class="line">          .put(<span class="string">&quot;age&quot;</span>, request.getAge())</span><br><span class="line">          .put(<span class="string">&quot;role&quot;</span>, request.getRole());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> vertx.eventBus().&lt;JsonObject&gt;request(<span class="string">&quot;user.service.create&quot;</span>, payload)</span><br><span class="line">          .map(reply -&gt; &#123;</span><br><span class="line">            <span class="type">JsonObject</span> <span class="variable">json</span> <span class="operator">=</span> reply.body();</span><br><span class="line">            <span class="keyword">return</span> CreateUserResponse.newBuilder()</span><br><span class="line">              .setId(json.getString(<span class="string">&quot;id&quot;</span>))</span><br><span class="line">              .build();</span><br><span class="line">          &#125;);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    vertx.createHttpServer(<span class="keyword">new</span> <span class="title class_">HttpServerOptions</span>().setHttp2ClearText(<span class="literal">true</span>))</span><br><span class="line">      .requestHandler(grpcServer)</span><br><span class="line">      .listen(<span class="number">9090</span>)</span><br><span class="line">      .onSuccess(s -&gt; startPromise.complete())</span><br><span class="line">      .onFailure(startPromise::fail);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>架构图：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">外部客户端                         Vert.x 应用内部</span><br><span class="line">─────────────────────────────────────────────────────────────</span><br><span class="line">  gRPC Client ──→ ┌──────────────┐     ┌─────────────────┐</span><br><span class="line">                  │ gRPC Verticle │──→  │ UserService      │</span><br><span class="line">  HTTP/JSON   ──→ │ (Transcoding)│ EB  │ Verticle         │</span><br><span class="line">                  └──────────────┘     └─────────────────┘</span><br><span class="line">                                            │</span><br><span class="line">                                            ↓ EB</span><br><span class="line">                                       ┌─────────────────┐</span><br><span class="line">                                       │ Persistence     │</span><br><span class="line">                                       │ Verticle (DB)   │</span><br><span class="line">                                       └─────────────────┘</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="⚡-9-流式通信实战：实时数据推送"><a href="#⚡-9-流式通信实战：实时数据推送" class="headerlink" title="⚡ 9. 流式通信实战：实时数据推送"></a>⚡ 9. 流式通信实战：实时数据推送</h1><p>gRPC 的双向流是 WebSocket 的强类型替代方案：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 服务端：用户变更实时推送</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserSyncService</span> <span class="keyword">implements</span> <span class="title class_">UserServiceGrpcServer</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Set&lt;WriteStream&lt;SyncResponse&gt;&gt; subscribers = ConcurrentHashMap.newKeySet();</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> ReadStream&lt;SyncResponse&gt; <span class="title function_">syncUsers</span><span class="params">(ReadStream&lt;SyncRequest&gt; requestStream)</span> &#123;</span><br><span class="line">    <span class="comment">// 创建响应流</span></span><br><span class="line">    GrpcWriteStream&lt;SyncResponse&gt; responseStream = GrpcWriteStream.create();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册订阅者</span></span><br><span class="line">    subscribers.add(responseStream);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理客户端发来的消息</span></span><br><span class="line">    requestStream.handler(req -&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="string">&quot;subscribe&quot;</span>.equals(req.getAction())) &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;New subscriber connected&quot;</span>);</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;update&quot;</span>.equals(req.getAction())) &#123;</span><br><span class="line">        <span class="comment">// 客户端推送了更新，广播给所有订阅者</span></span><br><span class="line">        <span class="type">SyncResponse</span> <span class="variable">notification</span> <span class="operator">=</span> SyncResponse.newBuilder()</span><br><span class="line">          .setEvent(<span class="string">&quot;user_updated&quot;</span>)</span><br><span class="line">          .setUser(req.getUser())</span><br><span class="line">          .build();</span><br><span class="line">        broadcast(notification);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 客户端断开时移除</span></span><br><span class="line">    requestStream.endHandler(v -&gt; &#123;</span><br><span class="line">      subscribers.remove(responseStream);</span><br><span class="line">      responseStream.end();</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> responseStream;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">broadcast</span><span class="params">(SyncResponse response)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (WriteStream&lt;SyncResponse&gt; subscriber : subscribers) &#123;</span><br><span class="line">      subscriber.write(response);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="对比-WebSocket"><a href="#对比-WebSocket" class="headerlink" title="对比 WebSocket"></a>对比 WebSocket</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>gRPC 双向流</th>
+<th>WebSocket</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型安全</td>
+<td>✅ Protobuf 编译期检查</td>
+<td>❌ 自行约定格式</td>
+</tr>
+<tr>
+<td>序列化效率</td>
+<td>⭐⭐⭐ 二进制</td>
+<td>⭐ JSON 文本</td>
+</tr>
+<tr>
+<td>浏览器支持</td>
+<td>❌ 需要 gRPC-Web 代理</td>
+<td>✅ 原生支持</td>
+</tr>
+<tr>
+<td>中间件支持</td>
+<td>拦截器、截止时间、元数据</td>
+<td>需自行实现</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>服务间实时通信</td>
+<td>浏览器实时通信</td>
+</tr>
+</tbody></table>
+<p><strong>经验法则：</strong> 服务间通信用 gRPC 流，客户端&#x2F;浏览器通信用 WebSocket。</p>
+<h1 id="🛡-10-拦截器（Interceptor）"><a href="#🛡-10-拦截器（Interceptor）" class="headerlink" title="🛡 10. 拦截器（Interceptor）"></a>🛡 10. 拦截器（Interceptor）</h1><p>gRPC 拦截器类似 HTTP 中间件，用于认证、日志、链路追踪等：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AuthInterceptor</span> <span class="keyword">implements</span> <span class="title class_">GrpcServerInterceptor</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> &lt;Req, Resp&gt; Future&lt;GrpcServerResponse&lt;Req, Resp&gt;&gt; <span class="title function_">intercept</span><span class="params">(</span></span><br><span class="line"><span class="params">      GrpcServerRequest&lt;Req, Resp&gt; request,</span></span><br><span class="line"><span class="params">      GrpcServerInterceptorChain&lt;Req, Resp&gt; chain)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 从 metadata 中获取 token</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> request.headers().get(<span class="string">&quot;authorization&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (token == <span class="literal">null</span> || !token.startsWith(<span class="string">&quot;Bearer &quot;</span>)) &#123;</span><br><span class="line">      <span class="keyword">return</span> Future.failedFuture(GrpcStatus.status(GrpcStatus.UNAUTHENTICATED)</span><br><span class="line">          .withDescription(<span class="string">&quot;Missing or invalid authorization token&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 验证 token</span></span><br><span class="line">    <span class="keyword">return</span> validateToken(token.substring(<span class="number">7</span>))</span><br><span class="line">      .compose(userId -&gt; &#123;</span><br><span class="line">        <span class="comment">// 将 userId 放入 metadata，下游服务可以读取</span></span><br><span class="line">        request.headers().set(<span class="string">&quot;x-user-id&quot;</span>, userId);</span><br><span class="line">        <span class="comment">// 继续执行链</span></span><br><span class="line">        <span class="keyword">return</span> chain.next(request);</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> Future&lt;String&gt; <span class="title function_">validateToken</span><span class="params">(String token)</span> &#123;</span><br><span class="line">    <span class="comment">// JWT 验证逻辑...</span></span><br><span class="line">    <span class="keyword">return</span> Future.succeededFuture(<span class="string">&quot;user_123&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册拦截器</span></span><br><span class="line"><span class="type">GrpcServer</span> <span class="variable">grpcServer</span> <span class="operator">=</span> GrpcServer.server(vertx);</span><br><span class="line">grpcServer.addInterceptor(<span class="keyword">new</span> <span class="title class_">AuthInterceptor</span>());</span><br><span class="line">grpcServer.addInterceptor(<span class="keyword">new</span> <span class="title class_">LoggingInterceptor</span>());</span><br><span class="line">grpcServer.addInterceptor(<span class="keyword">new</span> <span class="title class_">MetricsInterceptor</span>());</span><br><span class="line">grpcServer.addService(<span class="keyword">new</span> <span class="title class_">UserServiceImpl</span>());</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="日志拦截器示例"><a href="#日志拦截器示例" class="headerlink" title="日志拦截器示例"></a>日志拦截器示例</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LoggingInterceptor</span> <span class="keyword">implements</span> <span class="title class_">GrpcServerInterceptor</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> &lt;Req, Resp&gt; Future&lt;GrpcServerResponse&lt;Req, Resp&gt;&gt; <span class="title function_">intercept</span><span class="params">(</span></span><br><span class="line"><span class="params">      GrpcServerRequest&lt;Req, Resp&gt; request,</span></span><br><span class="line"><span class="params">      GrpcServerInterceptorChain&lt;Req, Resp&gt; chain)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">long</span> <span class="variable">startTime</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">    <span class="type">String</span> <span class="variable">method</span> <span class="operator">=</span> request.fullMethodName();</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;[gRPC] → &quot;</span> + method);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> chain.next(request)</span><br><span class="line">      .onComplete(ar -&gt; &#123;</span><br><span class="line">        <span class="type">long</span> <span class="variable">duration</span> <span class="operator">=</span> System.currentTimeMillis() - startTime;</span><br><span class="line">        <span class="keyword">if</span> (ar.succeeded()) &#123;</span><br><span class="line">          System.out.printf(<span class="string">&quot;[gRPC] ← %s OK (%dms)%n&quot;</span>, method, duration);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          System.out.printf(<span class="string">&quot;[gRPC] ← %s ERROR: %s (%dms)%n&quot;</span>,</span><br><span class="line">              method, ar.cause().getMessage(), duration);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="📊-11-性能对比"><a href="#📊-11-性能对比" class="headerlink" title="📊 11. 性能对比"></a>📊 11. 性能对比</h1><h2 id="测试场景"><a href="#测试场景" class="headerlink" title="测试场景"></a>测试场景</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">一元调用：GetUser（查询单个用户）</span><br><span class="line">工具：ghz (gRPC 压测工具)</span><br><span class="line">并发：200 connections</span><br><span class="line">持续：30 seconds</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>QPS</th>
+<th>P50 延迟</th>
+<th>P99 延迟</th>
+<th>内存</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>grpc-java (Netty)</td>
+<td>~85,000</td>
+<td>2.1ms</td>
+<td>8ms</td>
+<td>~250MB</td>
+</tr>
+<tr>
+<td>Vert.x gRPC</td>
+<td>~92,000</td>
+<td>1.9ms</td>
+<td>7ms</td>
+<td>~120MB</td>
+</tr>
+<tr>
+<td>Vert.x Transcoding (HTTP&#x2F;JSON)</td>
+<td>~65,000</td>
+<td>2.8ms</td>
+<td>12ms</td>
+<td>~120MB</td>
+</tr>
+<tr>
+<td>纯 HTTP&#x2F;JSON (Vert.x Web)</td>
+<td>~95,000</td>
+<td>1.8ms</td>
+<td>6ms</td>
+<td>~80MB</td>
+</tr>
+</tbody></table>
+<p><strong>分析：</strong></p>
+<ul>
+<li>Vert.x gRPC 性能略优于 grpc-java，因为少了一层线程切换</li>
+<li>Transcoding 有 ~30% 的开销（JSON 序列化&#x2F;反序列化），但换来了兼容性</li>
+<li>纯 HTTP&#x2F;JSON 最快（没有 Protobuf 编解码），但没有类型安全</li>
+</ul>
+<h1 id="🎯-12-最佳实践"><a href="#🎯-12-最佳实践" class="headerlink" title="🎯 12. 最佳实践"></a>🎯 12. 最佳实践</h1><table>
+<thead>
+<tr>
+<th>实践</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Proto 文件单独仓库管理</td>
+<td>多团队共享契约，版本控制</td>
+</tr>
+<tr>
+<td>所有 RPC 加 HttpRule</td>
+<td>即使暂时不用 Transcoding，也方便后续开放</td>
+</tr>
+<tr>
+<td>错误码用 gRPC Status</td>
+<td>NOT_FOUND &#x2F; INVALID_ARGUMENT 等标准码</td>
+</tr>
+<tr>
+<td>大数据用流式</td>
+<td>列表查询用 server streaming，别一次返回 10 万条</td>
+</tr>
+<tr>
+<td>截止时间（Deadline）必须设</td>
+<td>防止慢调用堆积，客户端设 5s 超时</td>
+</tr>
+<tr>
+<td>Protobuf 向后兼容</td>
+<td>只新增字段，不删除&#x2F;修改已有字段编号</td>
+</tr>
+<tr>
+<td>Transcoding 仅对外暴露</td>
+<td>内部服务间走纯 gRPC（性能更好）</td>
+</tr>
+</tbody></table>
+<h1 id="🆚-13-微服务通信选型：HTTP-vs-gRPC-vs-Service-Proxy"><a href="#🆚-13-微服务通信选型：HTTP-vs-gRPC-vs-Service-Proxy" class="headerlink" title="🆚 13. 微服务通信选型：HTTP vs gRPC vs Service Proxy"></a>🆚 13. 微服务通信选型：HTTP vs gRPC vs Service Proxy</h1><p>Vert.x 生态提供了三种服务间通信方式，各有适用场景。</p>
+<h2 id="Service-Proxy-是什么？"><a href="#Service-Proxy-是什么？" class="headerlink" title="Service Proxy 是什么？"></a>Service Proxy 是什么？</h2><p>Service Proxy 是 Vert.x 提供的<strong>Event Bus RPC 代码生成方案</strong>。你定义一个 Java 接口，Vert.x codegen 自动生成：</p>
+<ul>
+<li>Event Bus 消息发送&#x2F;接收的样板代码</li>
+<li>客户端代理类（像调本地方法一样调远程服务）</li>
+</ul>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义服务接口（用注解标记）</span></span><br><span class="line"><span class="meta">@ProxyGen</span></span><br><span class="line"><span class="meta">@VertxGen</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">UserService</span> &#123;</span><br><span class="line">  Future&lt;JsonObject&gt; <span class="title function_">getUser</span><span class="params">(String userId)</span>;</span><br><span class="line">  Future&lt;JsonObject&gt; <span class="title function_">createUser</span><span class="params">(JsonObject data)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>生成后的使用方式：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 服务端：注册到 Event Bus</span></span><br><span class="line"><span class="type">UserService</span> <span class="variable">service</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UserServiceImpl</span>();</span><br><span class="line"><span class="keyword">new</span> <span class="title class_">ServiceBinder</span>(vertx)</span><br><span class="line">  .setAddress(<span class="string">&quot;user-service&quot;</span>)</span><br><span class="line">  .register(UserService.class, service);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端：通过代理调用（看起来像本地方法）</span></span><br><span class="line"><span class="type">UserService</span> <span class="variable">proxy</span> <span class="operator">=</span> UserServiceVertxEBProxy(vertx, <span class="string">&quot;user-service&quot;</span>);</span><br><span class="line">proxy.getUser(<span class="string">&quot;user_123&quot;</span>)</span><br><span class="line">  .onSuccess(user -&gt; System.out.println(user));</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>本质上是对 Event Bus request&#x2F;reply 模式的语法糖。</strong></p>
+<h2 id="三者全方位对比"><a href="#三者全方位对比" class="headerlink" title="三者全方位对比"></a>三者全方位对比</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>HTTP (Vert.x Web)</th>
+<th>gRPC</th>
+<th>Service Proxy</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>传输层</strong></td>
+<td>HTTP&#x2F;1.1 或 HTTP&#x2F;2</td>
+<td>HTTP&#x2F;2</td>
+<td>Event Bus（本地&#x2F;集群）</td>
+</tr>
+<tr>
+<td><strong>序列化</strong></td>
+<td>JSON（文本）</td>
+<td>Protobuf（二进制）</td>
+<td>JSON over Event Bus</td>
+</tr>
+<tr>
+<td><strong>IDL&#x2F;契约</strong></td>
+<td>OpenAPI（可选）</td>
+<td>.proto 文件（强制）</td>
+<td>Java 接口 + 注解</td>
+</tr>
+<tr>
+<td><strong>代码生成</strong></td>
+<td>可选</td>
+<td>必须</td>
+<td>必须</td>
+</tr>
+<tr>
+<td><strong>跨语言</strong></td>
+<td>✅ 任何语言</td>
+<td>✅ 多语言</td>
+<td>❌ 仅 JVM</td>
+</tr>
+<tr>
+<td><strong>流式通信</strong></td>
+<td>❌（需 WebSocket）</td>
+<td>✅ 四种流模式</td>
+<td>❌ 仅请求-响应</td>
+</tr>
+<tr>
+<td><strong>性能（同 JVM）</strong></td>
+<td>⭐⭐ 有网络开销</td>
+<td>⭐⭐ 有网络开销</td>
+<td>⭐⭐⭐ 无网络，纯内存</td>
+</tr>
+<tr>
+<td><strong>性能（跨节点）</strong></td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐ 依赖集群管理器</td>
+</tr>
+<tr>
+<td><strong>服务发现</strong></td>
+<td>需要注册中心</td>
+<td>需要注册中心</td>
+<td>Event Bus 集群自动路由</td>
+</tr>
+<tr>
+<td><strong>浏览器兼容</strong></td>
+<td>✅ 原生</td>
+<td>⚠️ 需 Transcoding</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>调试便利</strong></td>
+<td>⭐⭐⭐ curl 直接调</td>
+<td>⭐⭐ 需 grpcurl</td>
+<td>⭐ 需要 Vert.x 环境</td>
+</tr>
+<tr>
+<td><strong>运维复杂度</strong></td>
+<td>低</td>
+<td>中（需管理 proto）</td>
+<td>低</td>
+</tr>
+</tbody></table>
+<h2 id="选型决策树"><a href="#选型决策树" class="headerlink" title="选型决策树"></a>选型决策树</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">你的服务需要跨语言调用吗？</span><br><span class="line">├── 是 → 需要流式通信吗？</span><br><span class="line">│       ├── 是 → gRPC</span><br><span class="line">│       └── 否 → gRPC（强类型）或 HTTP（简单场景）</span><br><span class="line">│</span><br><span class="line">└── 否（纯 JVM / Vert.x 技术栈）</span><br><span class="line">    ├── 需要对外暴露 API 吗？</span><br><span class="line">    │   ├── 是 → gRPC + Transcoding（兼顾内外）</span><br><span class="line">    │   └── 否 → 服务间需要跨节点部署吗？</span><br><span class="line">    │           ├── 高频 + 低延迟要求 → gRPC</span><br><span class="line">    │           ├── 中等频率 + 简单调用 → Service Proxy</span><br><span class="line">    │           └── 同 JVM 内部通信 → Service Proxy 或直接 Event Bus</span><br><span class="line">    │</span><br><span class="line">    └── 需要流式通信吗？</span><br><span class="line">        ├── 是 → gRPC 双向流</span><br><span class="line">        └── 否 → Service Proxy（最省事）</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="典型架构组合"><a href="#典型架构组合" class="headerlink" title="典型架构组合"></a>典型架构组合</h2><p>在实际微服务系统中，通常<strong>混合使用</strong>：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────────────┐</span><br><span class="line">│                        API Gateway                               │</span><br><span class="line">│                    (HTTP + gRPC Transcoding)                      │</span><br><span class="line">└────────────────────────────┬────────────────────────────────────┘</span><br><span class="line">                             │ gRPC / HTTP</span><br><span class="line">         ┌───────────────────┼───────────────────┐</span><br><span class="line">         ▼                   ▼                   ▼</span><br><span class="line">┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐</span><br><span class="line">│  User Service   │ │  Order Service  │ │  Payment Service │</span><br><span class="line">│  (Vert.x)      │ │  (Vert.x)      │ │  (Go/Java)      │</span><br><span class="line">├─────────────────┤ ├─────────────────┤ ├─────────────────┤</span><br><span class="line">│ gRPC Verticle   │ │ gRPC Verticle   │ │ gRPC Server     │</span><br><span class="line">│       ↕ EB      │ │       ↕ EB      │ │                 │</span><br><span class="line">│ Service Proxy   │ │ Service Proxy   │ │                 │</span><br><span class="line">│ (内部模块通信)   │ │ (内部模块通信)   │ │                 │</span><br><span class="line">└─────────────────┘ └─────────────────┘ └─────────────────┘</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>分层原则：</strong></p>
+<table>
+<thead>
+<tr>
+<th>通信层</th>
+<th>方案</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>外部 → Gateway</td>
+<td>HTTP &#x2F; gRPC + Transcoding</td>
+<td>浏览器和第三方兼容</td>
+</tr>
+<tr>
+<td>服务 ↔ 服务</td>
+<td>gRPC</td>
+<td>跨节点、强类型、高性能</td>
+</tr>
+<tr>
+<td>服务内部模块</td>
+<td>Service Proxy &#x2F; Event Bus</td>
+<td>同 JVM，零开销，最简单</td>
+</tr>
+</tbody></table>
+<h2 id="什么时候不用-Service-Proxy？"><a href="#什么时候不用-Service-Proxy？" class="headerlink" title="什么时候不用 Service Proxy？"></a>什么时候<strong>不用</strong> Service Proxy？</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>原因</th>
+<th>替代方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>需要跨语言</td>
+<td>Service Proxy 只支持 JVM</td>
+<td>gRPC</td>
+</tr>
+<tr>
+<td>需要流式传输</td>
+<td>Service Proxy 仅支持请求-响应</td>
+<td>gRPC Stream</td>
+</tr>
+<tr>
+<td>高频跨节点调用</td>
+<td>Event Bus 集群性能不如直连 gRPC</td>
+<td>gRPC</td>
+</tr>
+<tr>
+<td>需要精细的超时&#x2F;重试&#x2F;熔断</td>
+<td>Service Proxy 不提供这些</td>
+<td>gRPC + 拦截器</td>
+</tr>
+</tbody></table>
+<h2 id="什么时候优先用-Service-Proxy？"><a href="#什么时候优先用-Service-Proxy？" class="headerlink" title="什么时候优先用 Service Proxy？"></a>什么时候<strong>优先用</strong> Service Proxy？</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同 JVM 内多 Verticle 协作</td>
+<td>零序列化，极快</td>
+</tr>
+<tr>
+<td>小团队 &#x2F; 纯 Vert.x 项目</td>
+<td>不需要维护 proto 文件，Java 接口即契约</td>
+</tr>
+<tr>
+<td>快速原型开发</td>
+<td>定义接口就能用，无需学 Protobuf</td>
+</tr>
+<tr>
+<td>同集群少量节点通信</td>
+<td>Event Bus Cluster 够用，不想引入额外协议</td>
+</tr>
+</tbody></table>
+<h1 id="📌-14-本章总结"><a href="#📌-14-本章总结" class="headerlink" title="📌 14. 本章总结"></a>📌 14. 本章总结</h1><p>本章你学到了：</p>
+<ul>
+<li><strong>Vert.x gRPC 是独立实现</strong>：复用 HTTP&#x2F;2 Server，不依赖 grpc-java</li>
+<li><strong>Protoc 插件</strong>：生成 Vert.x 风格的 Future&#x2F;Stream 代码</li>
+<li><strong>四种通信模式</strong>：一元、服务端流、客户端流、双向流</li>
+<li><strong>Transcoding</strong>：同一端口同时服务 gRPC 和 HTTP&#x2F;JSON 客户端</li>
+<li><strong>拦截器</strong>：认证、日志、监控的切面</li>
+<li><strong>与 Event Bus 结合</strong>：gRPC 做外部接入，Event Bus 做内部路由</li>
+<li><strong>Service Proxy vs gRPC vs HTTP</strong>：分层选型，各取所长</li>
+<li><strong>选型原则</strong>：对外用 HTTP&#x2F;gRPC+Transcoding，服务间用 gRPC，服务内部用 Service Proxy</li>
+</ul>
+<p>下一篇我们进入<strong>长连接的世界</strong>——用 Vert.x WebSocket 构建实时推送引擎，探索 10 万级连接管理的实战技巧。</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-07-05 10:00:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-07-04 14:45:31
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/2026/07/05/vertx-series-9/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Vert-x/">#Vert.x</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/NIO/">#NIO</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Netty/">#Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Distribution/">#Distribution</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Java/">#Java</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/gRPC/">#gRPC</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="prev" rel="prev" href="/2026/07/05/vertx-series-10/">
+					<span class="left arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-left"></i>
+					</span>
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第十弹：WebSocket实时推送引擎</span>
+						<span class="post-nav-item">Prev posts</span>
+					</span>
+				</a>
+			</div>
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2026/07/04/vertx-series-8/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第八弹：手写高性能API Gateway</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9C%A8-Vert-x-%E9%87%8C%E7%94%A8-gRPC%EF%BC%9F"><span class="nav-text">🌟 1. 为什么在 Vert.x 里用 gRPC？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-2-Vert-x-gRPC-vs-grpc-java%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E2%80%9D%E9%87%8D%E6%96%B0%E9%80%A0%E8%BD%AE%E5%AD%90%E2%80%9D%EF%BC%9F"><span class="nav-text">🎯 2. Vert.x gRPC vs grpc-java：为什么要”重新造轮子”？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8F%97-3-%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA"><span class="nav-text">🏗 3. 项目搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven-%E4%BE%9D%E8%B5%96"><span class="nav-text">Maven 依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gradle-build-gradle-kts"><span class="nav-text">Gradle (build.gradle.kts)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89-Proto-%E6%96%87%E4%BB%B6"><span class="nav-text">定义 Proto 文件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%A7-4-%E5%AE%9E%E7%8E%B0-gRPC-%E6%9C%8D%E5%8A%A1"><span class="nav-text">🔧 4. 实现 gRPC 服务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%80-5-%E5%90%AF%E5%8A%A8-gRPC-Server"><span class="nav-text">🚀 5. 启动 gRPC Server</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%90-6-Transcoding%EF%BC%9AgRPC-%E5%8F%98%E8%BA%AB-REST-API"><span class="nav-text">🌐 6. Transcoding：gRPC 变身 REST API</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-text">工作原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%98%A0%E5%B0%84%E8%A7%84%E5%88%99%EF%BC%88%E7%94%B1-proto-%E4%B8%AD%E7%9A%84-HttpRule-%E5%AE%9A%E4%B9%89%EF%BC%89"><span class="nav-text">映射规则（由 proto 中的 HttpRule 定义）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E7%94%A8-Transcoding"><span class="nav-text">启用 Transcoding</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95"><span class="nav-text">测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E5%BE%88%E9%87%8D%E8%A6%81%EF%BC%9F"><span class="nav-text">为什么这很重要？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%A1-7-gRPC-%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-text">📡 7. gRPC 客户端</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%84-8-gRPC-Event-Bus%EF%BC%9A%E6%89%93%E9%80%9A%E5%86%85%E9%83%A8%E9%80%9A%E4%BF%A1"><span class="nav-text">🔄 8. gRPC + Event Bus：打通内部通信</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-9-%E6%B5%81%E5%BC%8F%E9%80%9A%E4%BF%A1%E5%AE%9E%E6%88%98%EF%BC%9A%E5%AE%9E%E6%97%B6%E6%95%B0%E6%8D%AE%E6%8E%A8%E9%80%81"><span class="nav-text">⚡ 9. 流式通信实战：实时数据推送</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94-WebSocket"><span class="nav-text">对比 WebSocket</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9B%A1-10-%E6%8B%A6%E6%88%AA%E5%99%A8%EF%BC%88Interceptor%EF%BC%89"><span class="nav-text">🛡 10. 拦截器（Interceptor）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E6%8B%A6%E6%88%AA%E5%99%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">日志拦截器示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8A-11-%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="nav-text">📊 11. 性能对比</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E5%9C%BA%E6%99%AF"><span class="nav-text">测试场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-12-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-text">🎯 12. 最佳实践</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%86%9A-13-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E9%80%9A%E4%BF%A1%E9%80%89%E5%9E%8B%EF%BC%9AHTTP-vs-gRPC-vs-Service-Proxy"><span class="nav-text">🆚 13. 微服务通信选型：HTTP vs gRPC vs Service Proxy</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Service-Proxy-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-text">Service Proxy 是什么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E8%80%85%E5%85%A8%E6%96%B9%E4%BD%8D%E5%AF%B9%E6%AF%94"><span class="nav-text">三者全方位对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E6%A0%91"><span class="nav-text">选型决策树</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B8%E5%9E%8B%E6%9E%B6%E6%9E%84%E7%BB%84%E5%90%88"><span class="nav-text">典型架构组合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E4%B8%8D%E7%94%A8-Service-Proxy%EF%BC%9F"><span class="nav-text">什么时候不用 Service Proxy？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E4%BC%98%E5%85%88%E7%94%A8-Service-Proxy%EF%BC%9F"><span class="nav-text">什么时候优先用 Service Proxy？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-14-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 14. 本章总结</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        14 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>

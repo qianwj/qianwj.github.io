@@ -140,7 +140,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/redefine-og.webp">
 <meta property="article:published_time" content="2026-07-04T10:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-04T05:46:44.254Z">
+<meta property="article:modified_time" content="2026-07-04T06:05:43.622Z">
 <meta property="article:author" content="Elvis Qian">
 <meta property="article:tag" content="Distribution">
 <meta property="article:tag" content="Java">
@@ -392,7 +392,7 @@
 
         <div class="statistics flex justify-around my-2.5">
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">8</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">11</div>
         <div class="label text-third-text-color text-sm">Tags</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
@@ -400,7 +400,7 @@
         <div class="label text-third-text-color text-sm">Categories</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">8</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
         <div class="label text-third-text-color text-sm">Posts</div>
     </a>
 </div>
@@ -455,8 +455,8 @@
     
         <span class="article-date article-meta-item">
             <i class="fa-regular fa-wrench"></i>&nbsp;
-            <span class="desktop">2026-07-04 13:46:44</span>
-            <span class="mobile">2026-07-04 13:46:44</span>
+            <span class="desktop">2026-07-04 14:05:43</span>
+            <span class="mobile">2026-07-04 14:05:43</span>
             <span class="hover-info">Updated</span>
         </span>
     
@@ -811,7 +811,101 @@
 <li><code>vertx.pool.queue.size</code> — Worker Pool 排队任务数</li>
 <li><code>vertx.pool.usage</code> — 线程池利用率</li>
 </ul>
-<h2 id="③-火焰图定位瓶颈"><a href="#③-火焰图定位瓶颈" class="headerlink" title="③ 火焰图定位瓶颈"></a>③ 火焰图定位瓶颈</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用 async-profiler 生成火焰图</span></span><br><span class="line">./profiler.sh -d 30 -f flamegraph.html &lt;pid&gt;</span><br></pre></td></tr></table></figure></div>
+<h2 id="③-JFR（Java-Flight-Recorder）—-JDK-11-内置，推荐方案"><a href="#③-JFR（Java-Flight-Recorder）—-JDK-11-内置，推荐方案" class="headerlink" title="③ JFR（Java Flight Recorder）— JDK 11+ 内置，推荐方案"></a>③ JFR（Java Flight Recorder）— JDK 11+ 内置，推荐方案</h2><p>JFR 从 JDK 11 起开源内置于 OpenJDK（此前是 Oracle JDK 的商业特性）。开销极低（&lt;2%），生产环境可常开。JDK 17+ 对事件类型和 API 进一步完善，JDK 21 新增了虚拟线程相关的调度事件，非常适合诊断 Event Loop 阻塞问题。</p>
+<p><strong>启动时开启 JFR：</strong></p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -XX:StartFlightRecording=duration=60s,filename=vertx-app.jfr -jar app.jar</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>运行时动态开启：</strong></p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 通过 jcmd 启动录制</span></span><br><span class="line">jcmd &lt;pid&gt; JFR.start duration=30s filename=recording.jfr</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看正在运行的录制</span></span><br><span class="line">jcmd &lt;pid&gt; JFR.check</span><br><span class="line"></span><br><span class="line"><span class="comment"># 手动停止</span></span><br><span class="line">jcmd &lt;pid&gt; JFR.stop name=1</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>重点关注的 JFR 事件：</strong></p>
+<table>
+<thead>
+<tr>
+<th>事件类型</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>jdk.ThreadPark</code></td>
+<td>检测线程等待&#x2F;阻塞（能精确看到 Event Loop 被卡在哪）</td>
+</tr>
+<tr>
+<td><code>jdk.ThreadSleep</code></td>
+<td>发现代码中的 sleep 调用</td>
+</tr>
+<tr>
+<td><code>jdk.JavaMonitorEnter</code></td>
+<td>锁竞争（如果有人在 Event Loop 上加了 synchronized）</td>
+</tr>
+<tr>
+<td><code>jdk.SocketRead</code> &#x2F; <code>jdk.SocketWrite</code></td>
+<td>IO 操作耗时，发现同步 IO 调用</td>
+</tr>
+<tr>
+<td><code>jdk.ExecutionSample</code></td>
+<td>CPU 采样，等价于火焰图数据</td>
+</tr>
+<tr>
+<td><code>jdk.ObjectAllocationSample</code></td>
+<td>内存分配热点，找 GC 压力来源</td>
+</tr>
+</tbody></table>
+<p><strong>用 JMC（JDK Mission Control）分析：</strong></p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 打开 JFR 文件</span></span><br><span class="line">jmc -open vertx-app.jfr</span><br></pre></td></tr></table></figure></div>
+
+<p>JMC 中可以直接看到：</p>
+<ul>
+<li>线程活动时间线——Event Loop 线程何时被阻塞、阻塞多久</li>
+<li>热点方法排名——哪些方法占用了 Event Loop 的时间</li>
+<li>锁竞争图——是否有意外的锁</li>
+</ul>
+<p><strong>代码中嵌入自定义 JFR 事件：</strong></p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义自定义事件</span></span><br><span class="line"><span class="meta">@Label(&quot;Verticle Message Handling&quot;)</span></span><br><span class="line"><span class="meta">@Description(&quot;Tracks time spent handling an Event Bus message&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MessageHandlingEvent</span> <span class="keyword">extends</span> <span class="title class_">jdk</span>.jfr.Event &#123;</span><br><span class="line">  <span class="meta">@Label(&quot;Address&quot;)</span></span><br><span class="line">  <span class="keyword">public</span> String address;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Label(&quot;Duration Ms&quot;)</span></span><br><span class="line">  <span class="keyword">public</span> <span class="type">long</span> durationMs;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Label(&quot;Success&quot;)</span></span><br><span class="line">  <span class="keyword">public</span> <span class="type">boolean</span> success;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在消息处理中使用</span></span><br><span class="line">vertx.eventBus().&lt;JsonObject&gt;consumer(<span class="string">&quot;order.create&quot;</span>, msg -&gt; &#123;</span><br><span class="line">  <span class="type">MessageHandlingEvent</span> <span class="variable">event</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MessageHandlingEvent</span>();</span><br><span class="line">  event.address = <span class="string">&quot;order.create&quot;</span>;</span><br><span class="line">  event.begin();</span><br><span class="line"></span><br><span class="line">  handleOrder(msg.body())</span><br><span class="line">    .onComplete(ar -&gt; &#123;</span><br><span class="line">      event.success = ar.succeeded();</span><br><span class="line">      event.commit();  <span class="comment">// 记录到 JFR</span></span><br><span class="line">      <span class="keyword">if</span> (ar.succeeded()) &#123;</span><br><span class="line">        msg.reply(ar.result());</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        msg.fail(<span class="number">500</span>, ar.cause().getMessage());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<p>这样你可以在 JMC 中精确看到每个 Event Bus 地址的处理耗时分布，比日志更轻量、比 Metrics 更详细。</p>
+<p><strong>JFR vs async-profiler 对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>JFR</th>
+<th>async-profiler</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>安装</td>
+<td>JDK 内置，零依赖</td>
+<td>需要额外下载</td>
+</tr>
+<tr>
+<td>开销</td>
+<td>&lt;2%，可常开</td>
+<td>~5%，临时使用</td>
+</tr>
+<tr>
+<td>事件丰富度</td>
+<td>IO&#x2F;锁&#x2F;GC&#x2F;分配&#x2F;自定义事件</td>
+<td>主要是 CPU 采样</td>
+</tr>
+<tr>
+<td>火焰图</td>
+<td>通过 JMC 或转换工具生成</td>
+<td>原生支持</td>
+</tr>
+<tr>
+<td>生产环境</td>
+<td>✅ 推荐常开</td>
+<td>⚠️ 按需开启</td>
+</tr>
+<tr>
+<td>线程阻塞诊断</td>
+<td>⭐⭐⭐ 精确到事件级别</td>
+<td>⭐⭐ 需要 wall-clock 模式</td>
+</tr>
+</tbody></table>
+<p><strong>推荐做法：</strong> 生产环境常开 JFR（低开销采集），出现问题时用 JMC 分析录制文件。开发阶段配合 async-profiler 生成火焰图做快速定位。</p>
+<h2 id="④-火焰图（async-profiler）"><a href="#④-火焰图（async-profiler）" class="headerlink" title="④ 火焰图（async-profiler）"></a>④ 火焰图（async-profiler）</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用 async-profiler 生成火焰图</span></span><br><span class="line">./profiler.sh -d 30 -f flamegraph.html &lt;pid&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># wall-clock 模式：能看到阻塞等待的时间（不只是 CPU 时间）</span></span><br><span class="line">./profiler.sh -d 30 -e wall -f flamegraph.html &lt;pid&gt;</span><br></pre></td></tr></table></figure></div>
 
 <p>火焰图能直观看出：</p>
 <ul>
@@ -819,6 +913,9 @@
 <li>是否有意外的阻塞调用</li>
 <li>哪个回调是性能热点</li>
 </ul>
+<blockquote>
+<p>💡 提示：诊断 Event Loop 阻塞问题时用 <code>-e wall</code>（wall-clock 模式），而不是默认的 CPU 模式。CPU 模式看不到线程在等待 IO&#x2F;锁的时间。</p>
+</blockquote>
 <h1 id="🎯-13-常见误区与纠正"><a href="#🎯-13-常见误区与纠正" class="headerlink" title="🎯 13. 常见误区与纠正"></a>🎯 13. 常见误区与纠正</h1><table>
 <thead>
 <tr>
@@ -877,7 +974,7 @@
         
             <li>
                 <strong>Updated at
-                    :</strong> 2026-07-04 13:46:44
+                    :</strong> 2026-07-04 14:05:43
             </li>
         
         <li>
@@ -930,6 +1027,18 @@
 		
 		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
 			
+			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="prev" rel="prev" href="/2026/07/04/vertx-series-8/">
+					<span class="left arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-left"></i>
+					</span>
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第八弹：手写高性能API Gateway</span>
+						<span class="post-nav-item">Prev posts</span>
+					</span>
+				</a>
+			</div>
+			
 			
 			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
 				<a class="next" rel="next" href="/2026/07/04/vertx-series-6/">
@@ -956,7 +1065,7 @@
 	<div class="post-toc">
 		<div class="toc-title">On this page</div>
 		<div class="page-title">Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发</div>
-		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E7%81%B5%E9%AD%82%E6%8B%B7%E9%97%AE%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-Vert-x-%E5%8F%AA%E7%94%A8%E5%87%A0%E4%B8%AA%E7%BA%BF%E7%A8%8B%E5%B0%B1%E8%83%BD%E5%A4%84%E7%90%86%E6%95%B0%E4%B8%87%E5%B9%B6%E5%8F%91%EF%BC%9F"><span class="nav-text">🌟 1. 灵魂拷问：为什么 Vert.x 只用几个线程就能处理数万并发？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-2-%E4%BC%A0%E7%BB%9F%E6%A8%A1%E5%9E%8B-vs-Event-Loop-%E6%A8%A1%E5%9E%8B"><span class="nav-text">🎯 2. 传统模型 vs Event Loop 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F-BIO%EF%BC%9A%E4%B8%80%E4%B8%AA%E8%BF%9E%E6%8E%A5%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B"><span class="nav-text">传统 BIO：一个连接一个线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-Loop%EF%BC%9A%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B%E6%9C%8D%E5%8A%A1%E6%89%80%E6%9C%89%E8%BF%9E%E6%8E%A5"><span class="nav-text">Event Loop：一个线程服务所有连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E7%B1%BB%E6%AF%94"><span class="nav-text">一个类比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8F%97-3-Vert-x-%E7%BA%BF%E7%A8%8B%E6%9E%B6%E6%9E%84%E5%85%A8%E6%99%AF"><span class="nav-text">🏗 3. Vert.x 线程架构全景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8D-4-Event-Loop-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%BE%AA%E7%8E%AF"><span class="nav-text">🔍 4. Event Loop 的工作循环</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-5-%E9%BB%84%E9%87%91%E6%B3%95%E5%88%99%EF%BC%9A%E6%B0%B8%E8%BF%9C%E4%B8%8D%E8%A6%81%E9%98%BB%E5%A1%9E-Event-Loop"><span class="nav-text">⚡ 5. 黄金法则：永远不要阻塞 Event Loop</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E7%AE%97%E2%80%9D%E9%98%BB%E5%A1%9E%E2%80%9D%EF%BC%9F"><span class="nav-text">什么算”阻塞”？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%BB%E5%A1%9E%E7%9A%84%E5%90%8E%E6%9E%9C"><span class="nav-text">阻塞的后果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9C%9F%E5%AE%9E%E8%B8%A9%E5%9D%91%E6%A1%88%E4%BE%8B"><span class="nav-text">真实踩坑案例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%A8-6-BlockedThreadChecker%EF%BC%9A%E4%BD%A0%E7%9A%84%E4%BF%9D%E5%91%BD%E5%B7%A5%E5%85%B7"><span class="nav-text">🚨 6. BlockedThreadChecker：你的保命工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E9%98%88%E5%80%BC"><span class="nav-text">默认阈值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E9%98%88%E5%80%BC"><span class="nav-text">自定义阈值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%BB%BA%E8%AE%AE"><span class="nav-text">生产环境建议</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%A7-7-%E6%AD%A3%E7%A1%AE%E5%A4%84%E7%90%86%E9%98%BB%E5%A1%9E%E6%93%8D%E4%BD%9C"><span class="nav-text">🔧 7. 正确处理阻塞操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9AexecuteBlocking"><span class="nav-text">方案一：executeBlocking</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9AWorker-Verticle"><span class="nav-text">方案二：Worker Verticle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E4%BD%BF%E7%94%A8%E5%BC%82%E6%AD%A5%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-text">方案三：使用异步客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="nav-text">三种方案对比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A0-8-Context%EF%BC%9A%E7%BA%BF%E7%A8%8B%E4%B8%8E-Verticle-%E7%9A%84%E6%A1%A5%E6%A2%81"><span class="nav-text">🧠 8. Context：线程与 Verticle 的桥梁</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Context%EF%BC%9F"><span class="nav-text">什么是 Context？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Context-%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-text">Context 的类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#runOnContext%EF%BC%9A%E5%AE%89%E5%85%A8%E5%9C%B0%E5%88%87%E5%9B%9E-Event-Loop"><span class="nav-text">runOnContext：安全地切回 Event Loop</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8A-9-%E6%80%A7%E8%83%BD%E5%AE%9E%E9%AA%8C%EF%BC%9A%E6%95%B0%E6%8D%AE%E8%AF%B4%E8%AF%9D"><span class="nav-text">📊 9. 性能实验：数据说话</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%AE%BE%E7%BD%AE"><span class="nav-text">实验设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-1ms-%E9%98%BB%E5%A1%9E%E5%BD%B1%E5%93%8D%E8%BF%99%E4%B9%88%E5%A4%A7%EF%BC%9F"><span class="nav-text">为什么 1ms 阻塞影响这么大？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%AC-10-%E6%BA%90%E7%A0%81%E7%BA%A7%E8%A7%A3%E8%AF%BB%EF%BC%9AEvent-Loop-%E5%A6%82%E4%BD%95%E5%88%86%E9%85%8D%E7%BB%99-Verticle"><span class="nav-text">🔬 10. 源码级解读：Event Loop 如何分配给 Verticle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9B%A0-11-%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0"><span class="nav-text">🛠 11. 调优参数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-Loop-%E7%BA%BF%E7%A8%8B%E6%95%B0"><span class="nav-text">Event Loop 线程数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker-Pool-%E5%A4%A7%E5%B0%8F"><span class="nav-text">Worker Pool 大小</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89-Worker-Pool"><span class="nav-text">自定义 Worker Pool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Verticle-%E5%AE%9E%E4%BE%8B%E6%95%B0"><span class="nav-text">Verticle 实例数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-12-%E8%AF%8A%E6%96%AD%E5%B7%A5%E5%85%B7"><span class="nav-text">🧪 12. 诊断工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-%E6%89%93%E5%8D%B0%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%EF%BC%88%E5%BF%AB%E9%80%9F%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E5%9C%A8-Event-Loop-%E4%B8%8A%EF%BC%89"><span class="nav-text">① 打印当前线程（快速判断是否在 Event Loop 上）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-Vert-x-Metrics%EF%BC%88Micrometer%EF%BC%89"><span class="nav-text">② Vert.x Metrics（Micrometer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-%E7%81%AB%E7%84%B0%E5%9B%BE%E5%AE%9A%E4%BD%8D%E7%93%B6%E9%A2%88"><span class="nav-text">③ 火焰图定位瓶颈</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-13-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA%E4%B8%8E%E7%BA%A0%E6%AD%A3"><span class="nav-text">🎯 13. 常见误区与纠正</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-14-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 14. 本章总结</span></a></li></ol>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E7%81%B5%E9%AD%82%E6%8B%B7%E9%97%AE%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-Vert-x-%E5%8F%AA%E7%94%A8%E5%87%A0%E4%B8%AA%E7%BA%BF%E7%A8%8B%E5%B0%B1%E8%83%BD%E5%A4%84%E7%90%86%E6%95%B0%E4%B8%87%E5%B9%B6%E5%8F%91%EF%BC%9F"><span class="nav-text">🌟 1. 灵魂拷问：为什么 Vert.x 只用几个线程就能处理数万并发？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-2-%E4%BC%A0%E7%BB%9F%E6%A8%A1%E5%9E%8B-vs-Event-Loop-%E6%A8%A1%E5%9E%8B"><span class="nav-text">🎯 2. 传统模型 vs Event Loop 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F-BIO%EF%BC%9A%E4%B8%80%E4%B8%AA%E8%BF%9E%E6%8E%A5%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B"><span class="nav-text">传统 BIO：一个连接一个线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-Loop%EF%BC%9A%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B%E6%9C%8D%E5%8A%A1%E6%89%80%E6%9C%89%E8%BF%9E%E6%8E%A5"><span class="nav-text">Event Loop：一个线程服务所有连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E7%B1%BB%E6%AF%94"><span class="nav-text">一个类比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8F%97-3-Vert-x-%E7%BA%BF%E7%A8%8B%E6%9E%B6%E6%9E%84%E5%85%A8%E6%99%AF"><span class="nav-text">🏗 3. Vert.x 线程架构全景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8D-4-Event-Loop-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%BE%AA%E7%8E%AF"><span class="nav-text">🔍 4. Event Loop 的工作循环</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-5-%E9%BB%84%E9%87%91%E6%B3%95%E5%88%99%EF%BC%9A%E6%B0%B8%E8%BF%9C%E4%B8%8D%E8%A6%81%E9%98%BB%E5%A1%9E-Event-Loop"><span class="nav-text">⚡ 5. 黄金法则：永远不要阻塞 Event Loop</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E7%AE%97%E2%80%9D%E9%98%BB%E5%A1%9E%E2%80%9D%EF%BC%9F"><span class="nav-text">什么算”阻塞”？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%BB%E5%A1%9E%E7%9A%84%E5%90%8E%E6%9E%9C"><span class="nav-text">阻塞的后果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9C%9F%E5%AE%9E%E8%B8%A9%E5%9D%91%E6%A1%88%E4%BE%8B"><span class="nav-text">真实踩坑案例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%A8-6-BlockedThreadChecker%EF%BC%9A%E4%BD%A0%E7%9A%84%E4%BF%9D%E5%91%BD%E5%B7%A5%E5%85%B7"><span class="nav-text">🚨 6. BlockedThreadChecker：你的保命工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E9%98%88%E5%80%BC"><span class="nav-text">默认阈值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E9%98%88%E5%80%BC"><span class="nav-text">自定义阈值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%BB%BA%E8%AE%AE"><span class="nav-text">生产环境建议</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%A7-7-%E6%AD%A3%E7%A1%AE%E5%A4%84%E7%90%86%E9%98%BB%E5%A1%9E%E6%93%8D%E4%BD%9C"><span class="nav-text">🔧 7. 正确处理阻塞操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9AexecuteBlocking"><span class="nav-text">方案一：executeBlocking</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9AWorker-Verticle"><span class="nav-text">方案二：Worker Verticle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E4%BD%BF%E7%94%A8%E5%BC%82%E6%AD%A5%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-text">方案三：使用异步客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="nav-text">三种方案对比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A0-8-Context%EF%BC%9A%E7%BA%BF%E7%A8%8B%E4%B8%8E-Verticle-%E7%9A%84%E6%A1%A5%E6%A2%81"><span class="nav-text">🧠 8. Context：线程与 Verticle 的桥梁</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Context%EF%BC%9F"><span class="nav-text">什么是 Context？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Context-%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-text">Context 的类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#runOnContext%EF%BC%9A%E5%AE%89%E5%85%A8%E5%9C%B0%E5%88%87%E5%9B%9E-Event-Loop"><span class="nav-text">runOnContext：安全地切回 Event Loop</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8A-9-%E6%80%A7%E8%83%BD%E5%AE%9E%E9%AA%8C%EF%BC%9A%E6%95%B0%E6%8D%AE%E8%AF%B4%E8%AF%9D"><span class="nav-text">📊 9. 性能实验：数据说话</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%AE%BE%E7%BD%AE"><span class="nav-text">实验设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-1ms-%E9%98%BB%E5%A1%9E%E5%BD%B1%E5%93%8D%E8%BF%99%E4%B9%88%E5%A4%A7%EF%BC%9F"><span class="nav-text">为什么 1ms 阻塞影响这么大？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%AC-10-%E6%BA%90%E7%A0%81%E7%BA%A7%E8%A7%A3%E8%AF%BB%EF%BC%9AEvent-Loop-%E5%A6%82%E4%BD%95%E5%88%86%E9%85%8D%E7%BB%99-Verticle"><span class="nav-text">🔬 10. 源码级解读：Event Loop 如何分配给 Verticle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9B%A0-11-%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0"><span class="nav-text">🛠 11. 调优参数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-Loop-%E7%BA%BF%E7%A8%8B%E6%95%B0"><span class="nav-text">Event Loop 线程数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker-Pool-%E5%A4%A7%E5%B0%8F"><span class="nav-text">Worker Pool 大小</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89-Worker-Pool"><span class="nav-text">自定义 Worker Pool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Verticle-%E5%AE%9E%E4%BE%8B%E6%95%B0"><span class="nav-text">Verticle 实例数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-12-%E8%AF%8A%E6%96%AD%E5%B7%A5%E5%85%B7"><span class="nav-text">🧪 12. 诊断工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-%E6%89%93%E5%8D%B0%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%EF%BC%88%E5%BF%AB%E9%80%9F%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E5%9C%A8-Event-Loop-%E4%B8%8A%EF%BC%89"><span class="nav-text">① 打印当前线程（快速判断是否在 Event Loop 上）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-Vert-x-Metrics%EF%BC%88Micrometer%EF%BC%89"><span class="nav-text">② Vert.x Metrics（Micrometer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-JFR%EF%BC%88Java-Flight-Recorder%EF%BC%89%E2%80%94-JDK-11-%E5%86%85%E7%BD%AE%EF%BC%8C%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="nav-text">③ JFR（Java Flight Recorder）— JDK 11+ 内置，推荐方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A3-%E7%81%AB%E7%84%B0%E5%9B%BE%EF%BC%88async-profiler%EF%BC%89"><span class="nav-text">④ 火焰图（async-profiler）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-13-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA%E4%B8%8E%E7%BA%A0%E6%AD%A3"><span class="nav-text">🎯 13. 常见误区与纠正</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-14-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 14. 本章总结</span></a></li></ol>
 
 	</div>
 </div>
@@ -983,7 +1092,7 @@
                 
                 <p class="post-count space-x-0.5">
                     <span>
-                        8 posts in total
+                        14 posts in total
                     </span>
                     
                 </p>

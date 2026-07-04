@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2026/07/05/vertx-series-11/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息">
+<meta property="og:url" content="http://example.com/2026/07/05/vertx-series-11/index.html">
+<meta property="og:site_name" content="Elvis&#39; Guraden">
+<meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-07-05T10:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T07:23:06.618Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="Distribution">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Vert.x">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息 | Elvis&#39; Guraden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Hexo Theme Redefine, Redefine Your Hexo Journey."},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Tags":{"icon":"fa-solid fa-tags","path":"/tags/"},"About":{"icon":"fa-regular fa-user","path":"/about/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Guraden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    TAGS
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    ABOUT
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                TAGS
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                ABOUT
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">11</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-07-05 18:00</span>
+        <span class="mobile">2026-07-05 18:00</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-07-04 15:23:06</span>
+            <span class="mobile">2026-07-04 15:23:06</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/NIO/">NIO</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Netty/">Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Distribution/">Distribution</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<h1 id="🌟-1-为什么需要集群？"><a href="#🌟-1-为什么需要集群？" class="headerlink" title="🌟 1. 为什么需要集群？"></a>🌟 1. 为什么需要集群？</h1><p>到目前为止，我们所有代码都跑在<strong>单个 JVM</strong> 里。Event Bus 消息在进程内流转，Verticle 共享同一个 Vertx 实例。</p>
+<p>但生产环境中，你会遇到这些问题：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>单机方案的局限</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单机扛不住</td>
+<td>CPU&#x2F;内存&#x2F;连接数到顶了</td>
+</tr>
+<tr>
+<td>高可用</td>
+<td>进程挂了，服务全停</td>
+</tr>
+<tr>
+<td>地理分布</td>
+<td>用户在不同地域，需要就近部署</td>
+</tr>
+<tr>
+<td>服务拆分</td>
+<td>不同团队负责不同模块，需要独立部署</td>
+</tr>
+</tbody></table>
+<p>Vert.x 的解决方案：<strong>集群模式</strong>——多个 Vert.x 实例组成集群，Event Bus 消息跨 JVM 透明传输。</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">单机模式：                        集群模式：</span><br><span class="line">┌────────────────────┐          ┌──────────┐    ┌──────────┐    ┌──────────┐</span><br><span class="line">│ JVM                │          │ Node-1   │    │ Node-2   │    │ Node-3   │</span><br><span class="line">│ ┌────┐  EB  ┌────┐│          │ ┌────┐   │    │ ┌────┐   │    │ ┌────┐   │</span><br><span class="line">│ │ V1 │◄────►│ V2 ││          │ │ V1 │   │    │ │ V3 │   │    │ │ V5 │   │</span><br><span class="line">│ └────┘      └────┘│          │ │ V2 │   │    │ │ V4 │   │    │ │ V6 │   │</span><br><span class="line">│ ┌────┐  EB  ┌────┐│          │ └────┘   │    │ └────┘   │    │ └────┘   │</span><br><span class="line">│ │ V3 │◄────►│ V4 ││          │     ↕    │    │     ↕    │    │     ↕    │</span><br><span class="line">│ └────┘      └────┘│          │ Cluster  │◄──►│ Cluster  │◄──►│ Cluster  │</span><br><span class="line">└────────────────────┘          │ Manager  │    │ Manager  │    │ Manager  │</span><br><span class="line">                                └──────────┘    └──────────┘    └──────────┘</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>关键特性：对应用代码完全透明。</strong> 你用 <code>eventBus.send(&quot;address&quot;, msg)</code> 发消息，不需要关心消费者在哪个节点——集群自动路由。</p>
+<h1 id="🎯-2-集群模式的核心组件"><a href="#🎯-2-集群模式的核心组件" class="headerlink" title="🎯 2. 集群模式的核心组件"></a>🎯 2. 集群模式的核心组件</h1><h2 id="Cluster-Manager"><a href="#Cluster-Manager" class="headerlink" title="Cluster Manager"></a>Cluster Manager</h2><p>Cluster Manager 是 Vert.x 集群的基础设施，负责：</p>
+<ol>
+<li><strong>节点发现</strong>：新节点上线&#x2F;下线的检测</li>
+<li><strong>Event Bus 路由</strong>：维护”哪个地址在哪个节点”的映射表</li>
+<li><strong>分布式数据</strong>：SharedData API 的跨节点实现</li>
+<li><strong>分布式锁</strong>：跨节点的互斥控制</li>
+</ol>
+<h2 id="可选的-Cluster-Manager-实现"><a href="#可选的-Cluster-Manager-实现" class="headerlink" title="可选的 Cluster Manager 实现"></a>可选的 Cluster Manager 实现</h2><table>
+<thead>
+<tr>
+<th>Cluster Manager</th>
+<th>发现机制</th>
+<th>适合场景</th>
+<th>依赖</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hazelcast</td>
+<td>组播&#x2F;TCP</td>
+<td>通用，功能最全</td>
+<td>hazelcast</td>
+</tr>
+<tr>
+<td>Infinispan</td>
+<td>JGroups</td>
+<td>Red Hat 生态，高性能</td>
+<td>infinispan</td>
+</tr>
+<tr>
+<td>Zookeeper</td>
+<td>ZK 注册</td>
+<td>已有 ZK 集群的团队</td>
+<td>curator</td>
+</tr>
+<tr>
+<td>Ignite</td>
+<td>组播&#x2F;TCP</td>
+<td>需要分布式计算</td>
+<td>ignite</td>
+</tr>
+</tbody></table>
+<p><strong>推荐：</strong> 大多数场景用 Hazelcast（默认、文档最多）。已有 ZK&#x2F;Infinispan 基础设施的团队用对应方案。</p>
+<h1 id="🏗-3-搭建集群"><a href="#🏗-3-搭建集群" class="headerlink" title="🏗 3. 搭建集群"></a>🏗 3. 搭建集群</h1><h2 id="Maven-依赖（以-Hazelcast-为例）"><a href="#Maven-依赖（以-Hazelcast-为例）" class="headerlink" title="Maven 依赖（以 Hazelcast 为例）"></a>Maven 依赖（以 Hazelcast 为例）</h2><div class="code-container" data-rel="Xml"><figure class="iseeu highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.vertx<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>vertx-hazelcast<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.0.11<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure></div>
+
+<h2 id="Gradle"><a href="#Gradle" class="headerlink" title="Gradle"></a>Gradle</h2><div class="code-container" data-rel="Kotlin"><figure class="iseeu highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">implementation(<span class="string">&quot;io.vertx:vertx-hazelcast:5.0.11&quot;</span>)</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="启动集群模式"><a href="#启动集群模式" class="headerlink" title="启动集群模式"></a>启动集群模式</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ClusterApp</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    <span class="comment">// 创建集群管理器</span></span><br><span class="line">    <span class="type">ClusterManager</span> <span class="variable">mgr</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HazelcastClusterManager</span>();</span><br><span class="line"></span><br><span class="line">    <span class="type">VertxOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">      .setClusterManager(mgr);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 以集群模式启动 Vert.x（异步，需要等待加入集群）</span></span><br><span class="line">    Vertx.clusteredVertx(options)</span><br><span class="line">      .onSuccess(vertx -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Cluster node started! ID: &quot;</span> + mgr.getNodeId());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 部署你的 Verticle</span></span><br><span class="line">        vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">MyServiceVerticle</span>());</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(err -&gt; &#123;</span><br><span class="line">        System.err.println(<span class="string">&quot;Failed to join cluster: &quot;</span> + err.getMessage());</span><br><span class="line">        err.printStackTrace();</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>就这样——<code>Vertx.clusteredVertx()</code> 替代 <code>Vertx.vertx()</code>，其他代码<strong>不需要任何改动</strong>。</p>
+<h2 id="Hazelcast-配置"><a href="#Hazelcast-配置" class="headerlink" title="Hazelcast 配置"></a>Hazelcast 配置</h2><p>默认使用组播发现（局域网自动发现）。生产环境通常用 TCP 明确指定节点：</p>
+<div class="code-container" data-rel="Xml"><figure class="iseeu highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- cluster.xml 放在 classpath 下 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">hazelcast</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">network</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">join</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!-- 禁用组播（生产环境） --&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">multicast</span> <span class="attr">enabled</span>=<span class="string">&quot;false&quot;</span>/&gt;</span></span><br><span class="line">      <span class="comment">&lt;!-- TCP 方式明确指定成员 --&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">tcp-ip</span> <span class="attr">enabled</span>=<span class="string">&quot;true&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">member</span>&gt;</span>192.168.1.101<span class="tag">&lt;/<span class="name">member</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">member</span>&gt;</span>192.168.1.102<span class="tag">&lt;/<span class="name">member</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">member</span>&gt;</span>192.168.1.103<span class="tag">&lt;/<span class="name">member</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">tcp-ip</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">join</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">port</span> <span class="attr">auto-increment</span>=<span class="string">&quot;true&quot;</span>&gt;</span>5701<span class="tag">&lt;/<span class="name">port</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">network</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">cluster-name</span>&gt;</span>my-vertx-cluster<span class="tag">&lt;/<span class="name">cluster-name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">hazelcast</span>&gt;</span></span><br></pre></td></tr></table></figure></div>
+
+<p>加载自定义配置：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Config</span> <span class="variable">hazelcastConfig</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileSystemXmlConfig</span>(<span class="string">&quot;cluster.xml&quot;</span>);</span><br><span class="line"><span class="type">ClusterManager</span> <span class="variable">mgr</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HazelcastClusterManager</span>(hazelcastConfig);</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🔄-4-分布式-Event-Bus-原理"><a href="#🔄-4-分布式-Event-Bus-原理" class="headerlink" title="🔄 4. 分布式 Event Bus 原理"></a>🔄 4. 分布式 Event Bus 原理</h1><h2 id="消息路由过程"><a href="#消息路由过程" class="headerlink" title="消息路由过程"></a>消息路由过程</h2><p>当你在 Node-1 执行 <code>eventBus.send(&quot;order.create&quot;, data)</code> 时：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Node-1                              Node-2</span><br><span class="line">┌───────────────────┐              ┌───────────────────┐</span><br><span class="line">│ 1. send(&quot;order.   │              │                   │</span><br><span class="line">│    create&quot;, data)  │              │ consumer(&quot;order.  │</span><br><span class="line">│                   │              │   create&quot;)        │</span><br><span class="line">│ 2. 查询路由表：    │              │                   │</span><br><span class="line">│    &quot;order.create&quot;  │              │ 5. 收到消息，     │</span><br><span class="line">│    → Node-2       │              │    触发 handler   │</span><br><span class="line">│                   │              │                   │</span><br><span class="line">│ 3. 序列化消息      │──── TCP ───→│ 4. 反序列化       │</span><br><span class="line">│    (Codec)        │              │    (Codec)        │</span><br><span class="line">└───────────────────┘              └───────────────────┘</span><br></pre></td></tr></table></figure></div>
+
+<p>关键步骤：</p>
+<ol>
+<li>发送方查询 Cluster Manager 的路由表</li>
+<li>找到目标节点后，通过 TCP 直连发送</li>
+<li>消息使用 MessageCodec 序列化&#x2F;反序列化</li>
+<li>接收方在本地 Event Loop 触发 handler</li>
+</ol>
+<h2 id="send-vs-publish-在集群中的行为"><a href="#send-vs-publish-在集群中的行为" class="headerlink" title="send vs publish 在集群中的行为"></a>send vs publish 在集群中的行为</h2><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>单机</th>
+<th>集群</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>send</code></td>
+<td>投递给一个本地 consumer</td>
+<td>投递给集群中<strong>任意一个</strong> consumer（轮询）</td>
+</tr>
+<tr>
+<td><code>publish</code></td>
+<td>投递给所有本地 consumer</td>
+<td>投递给集群中<strong>所有节点的所有</strong> consumer</td>
+</tr>
+<tr>
+<td><code>request</code></td>
+<td>等一个本地 consumer reply</td>
+<td>等集群中任意一个 consumer reply</td>
+</tr>
+</tbody></table>
+<p><strong>重要：</strong> <code>send</code> 在集群中依然是点对点（Round-Robin 选择一个目标），不会重复消费。</p>
+<h2 id="注册同步"><a href="#注册同步" class="headerlink" title="注册同步"></a>注册同步</h2><p>当一个 Verticle 在 Node-2 上注册了 <code>eventBus.consumer(&quot;order.create&quot;, ...)</code>：</p>
+<ol>
+<li>Node-2 的 Cluster Manager 将 <code>(&quot;order.create&quot;, Node-2)</code> 写入分布式注册表</li>
+<li>所有节点收到通知，更新本地路由缓存</li>
+<li>后续任何节点 send 到 <code>&quot;order.create&quot;</code> 都知道去找 Node-2</li>
+</ol>
+<p>节点下线时，其注册的地址会被自动清理。</p>
+<h1 id="🛡-5-分布式-SharedData"><a href="#🛡-5-分布式-SharedData" class="headerlink" title="🛡 5. 分布式 SharedData"></a>🛡 5. 分布式 SharedData</h1><p>集群模式下，Vert.x 提供跨节点共享数据的 API。</p>
+<h2 id="分布式-Map（AsyncMap）"><a href="#分布式-Map（AsyncMap）" class="headerlink" title="分布式 Map（AsyncMap）"></a>分布式 Map（AsyncMap）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">SharedData</span> <span class="variable">sharedData</span> <span class="operator">=</span> vertx.sharedData();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取集群级别的异步 Map</span></span><br><span class="line">sharedData.&lt;String, JsonObject&gt;getClusterWideMap(<span class="string">&quot;sessions&quot;</span>)</span><br><span class="line">  .onSuccess(map -&gt; &#123;</span><br><span class="line">    <span class="comment">// 写入（所有节点可见）</span></span><br><span class="line">    map.put(<span class="string">&quot;session_123&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;userId&quot;</span>, <span class="string">&quot;alice&quot;</span>).put(<span class="string">&quot;loginAt&quot;</span>, now()))</span><br><span class="line">      .onSuccess(v -&gt; System.out.println(<span class="string">&quot;Session stored&quot;</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 读取</span></span><br><span class="line">    map.get(<span class="string">&quot;session_123&quot;</span>)</span><br><span class="line">      .onSuccess(session -&gt; System.out.println(<span class="string">&quot;Session: &quot;</span> + session));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 删除</span></span><br><span class="line">    map.remove(<span class="string">&quot;session_123&quot;</span>)</span><br><span class="line">      .onSuccess(v -&gt; System.out.println(<span class="string">&quot;Session removed&quot;</span>));</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="分布式锁（Lock）"><a href="#分布式锁（Lock）" class="headerlink" title="分布式锁（Lock）"></a>分布式锁（Lock）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">sharedData.getLock(<span class="string">&quot;order-creation-lock&quot;</span>)</span><br><span class="line">  .onSuccess(lock -&gt; &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Lock acquired!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 执行需要互斥的操作</span></span><br><span class="line">    processExclusiveTask()</span><br><span class="line">      .onComplete(ar -&gt; &#123;</span><br><span class="line">        <span class="comment">// 释放锁</span></span><br><span class="line">        lock.release();</span><br><span class="line">        System.out.println(<span class="string">&quot;Lock released&quot;</span>);</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;)</span><br><span class="line">  .onFailure(err -&gt; &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Failed to acquire lock: &quot;</span> + err.getMessage());</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 带超时的锁</span></span><br><span class="line">sharedData.getLockWithTimeout(<span class="string">&quot;resource-lock&quot;</span>, <span class="number">5000</span>)</span><br><span class="line">  .onSuccess(lock -&gt; &#123; <span class="comment">/* ... */</span> &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="分布式计数器（Counter）"><a href="#分布式计数器（Counter）" class="headerlink" title="分布式计数器（Counter）"></a>分布式计数器（Counter）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sharedData.getCounter(<span class="string">&quot;request-count&quot;</span>)</span><br><span class="line">  .onSuccess(counter -&gt; &#123;</span><br><span class="line">    counter.incrementAndGet()</span><br><span class="line">      .onSuccess(val -&gt; System.out.println(<span class="string">&quot;Total requests: &quot;</span> + val));</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="使用建议"><a href="#使用建议" class="headerlink" title="使用建议"></a>使用建议</h2><table>
+<thead>
+<tr>
+<th>数据类型</th>
+<th>适合</th>
+<th>不适合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AsyncMap</td>
+<td>会话存储、配置共享、缓存</td>
+<td>高频读写（性能不如 Redis）</td>
+</tr>
+<tr>
+<td>Lock</td>
+<td>分布式任务调度、防重复处理</td>
+<td>长时间持有（会阻塞其他节点）</td>
+</tr>
+<tr>
+<td>Counter</td>
+<td>全局计数、ID 生成</td>
+<td>精确计数（网络分区时可能不一致）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ SharedData 适合轻量级场景。高频读写或需要持久化的场景，建议用 Redis。</p>
+</blockquote>
+<h1 id="📡-6-实战：构建分布式聊天服务"><a href="#📡-6-实战：构建分布式聊天服务" class="headerlink" title="📡 6. 实战：构建分布式聊天服务"></a>📡 6. 实战：构建分布式聊天服务</h1><p>多节点部署的聊天服务，用户连接到任意节点都能互相通信：</p>
+<h2 id="聊天-Verticle"><a href="#聊天-Verticle" class="headerlink" title="聊天 Verticle"></a>聊天 Verticle</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ChatVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, ServerWebSocket&gt; localConnections = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">(Promise&lt;Void&gt; startPromise)</span> &#123;</span><br><span class="line">    <span class="comment">// 订阅聊天消息（所有节点都会收到 publish 的消息）</span></span><br><span class="line">    vertx.eventBus().&lt;JsonObject&gt;consumer(<span class="string">&quot;chat.deliver&quot;</span>, msg -&gt; &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">targetUser</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;to&quot;</span>);</span><br><span class="line">      <span class="type">ServerWebSocket</span> <span class="variable">ws</span> <span class="operator">=</span> localConnections.get(targetUser);</span><br><span class="line">      <span class="keyword">if</span> (ws != <span class="literal">null</span> &amp;&amp; !ws.isClosed()) &#123;</span><br><span class="line">        ws.writeTextMessage(msg.body().getJsonObject(<span class="string">&quot;payload&quot;</span>).encode());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// WebSocket 服务</span></span><br><span class="line">    vertx.createHttpServer()</span><br><span class="line">      .webSocketHandler(<span class="built_in">this</span>::handleConnection)</span><br><span class="line">      .listen(<span class="number">8080</span>)</span><br><span class="line">      .onSuccess(s -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;[Chat] Node started on port 8080&quot;</span>);</span><br><span class="line">        startPromise.complete();</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(startPromise::fail);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleConnection</span><span class="params">(ServerWebSocket ws)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">userId</span> <span class="operator">=</span> parseUserId(ws);</span><br><span class="line">    <span class="keyword">if</span> (userId == <span class="literal">null</span>) &#123;</span><br><span class="line">      ws.reject(<span class="number">401</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    localConnections.put(userId, ws);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 在分布式 Map 中注册用户位置</span></span><br><span class="line">    vertx.sharedData().&lt;String, String&gt;getClusterWideMap(<span class="string">&quot;user-locations&quot;</span>)</span><br><span class="line">      .onSuccess(map -&gt; map.put(userId, getNodeId()));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 广播上线通知</span></span><br><span class="line">    vertx.eventBus().publish(<span class="string">&quot;chat.presence&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;user&quot;</span>, userId)</span><br><span class="line">        .put(<span class="string">&quot;event&quot;</span>, <span class="string">&quot;online&quot;</span>));</span><br><span class="line"></span><br><span class="line">    ws.textMessageHandler(rawMsg -&gt; handleMessage(userId, rawMsg));</span><br><span class="line"></span><br><span class="line">    ws.closeHandler(v -&gt; &#123;</span><br><span class="line">      localConnections.remove(userId);</span><br><span class="line">      vertx.sharedData().&lt;String, String&gt;getClusterWideMap(<span class="string">&quot;user-locations&quot;</span>)</span><br><span class="line">        .onSuccess(map -&gt; map.remove(userId));</span><br><span class="line">      vertx.eventBus().publish(<span class="string">&quot;chat.presence&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">          .put(<span class="string">&quot;user&quot;</span>, userId)</span><br><span class="line">          .put(<span class="string">&quot;event&quot;</span>, <span class="string">&quot;offline&quot;</span>));</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleMessage</span><span class="params">(String fromUser, String rawMsg)</span> &#123;</span><br><span class="line">    <span class="type">JsonObject</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>(rawMsg);</span><br><span class="line">    <span class="type">String</span> <span class="variable">toUser</span> <span class="operator">=</span> msg.getString(<span class="string">&quot;to&quot;</span>);</span><br><span class="line">    <span class="type">String</span> <span class="variable">text</span> <span class="operator">=</span> msg.getString(<span class="string">&quot;text&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">JsonObject</span> <span class="variable">payload</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">      .put(<span class="string">&quot;from&quot;</span>, fromUser)</span><br><span class="line">      .put(<span class="string">&quot;text&quot;</span>, text)</span><br><span class="line">      .put(<span class="string">&quot;timestamp&quot;</span>, System.currentTimeMillis());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 先尝试本地投递</span></span><br><span class="line">    <span class="type">ServerWebSocket</span> <span class="variable">targetWs</span> <span class="operator">=</span> localConnections.get(toUser);</span><br><span class="line">    <span class="keyword">if</span> (targetWs != <span class="literal">null</span> &amp;&amp; !targetWs.isClosed()) &#123;</span><br><span class="line">      targetWs.writeTextMessage(payload.encode());</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 本地没有，通过 Event Bus 跨节点投递</span></span><br><span class="line">    vertx.eventBus().publish(<span class="string">&quot;chat.deliver&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;to&quot;</span>, toUser)</span><br><span class="line">        .put(<span class="string">&quot;payload&quot;</span>, payload));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> String <span class="title function_">parseUserId</span><span class="params">(ServerWebSocket ws)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">query</span> <span class="operator">=</span> ws.query();</span><br><span class="line">    <span class="keyword">if</span> (query == <span class="literal">null</span>) <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">for</span> (String param : query.split(<span class="string">&quot;&amp;&quot;</span>)) &#123;</span><br><span class="line">      String[] kv = param.split(<span class="string">&quot;=&quot;</span>);</span><br><span class="line">      <span class="keyword">if</span> (kv.length == <span class="number">2</span> &amp;&amp; <span class="string">&quot;user&quot;</span>.equals(kv[<span class="number">0</span>])) <span class="keyword">return</span> kv[<span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> String <span class="title function_">getNodeId</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> vertx.sharedData().getLocalMap(<span class="string">&quot;meta&quot;</span>).get(<span class="string">&quot;nodeId&quot;</span>).toString();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="启动多节点"><a href="#启动多节点" class="headerlink" title="启动多节点"></a>启动多节点</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 终端 1：启动节点 1</span></span><br><span class="line">java -jar chat.jar -Dport=8080</span><br><span class="line"></span><br><span class="line"><span class="comment"># 终端 2：启动节点 2</span></span><br><span class="line">java -jar chat.jar -Dport=8081</span><br><span class="line"></span><br><span class="line"><span class="comment"># 终端 3：启动节点 3</span></span><br><span class="line">java -jar chat.jar -Dport=8082</span><br></pre></td></tr></table></figure></div>
+
+<p>三个节点自动组成集群。Alice 连接到 Node-1，Bob 连接到 Node-3，他们依然可以无缝聊天。</p>
+<h1 id="⚡-7-集群中的负载均衡"><a href="#⚡-7-集群中的负载均衡" class="headerlink" title="⚡ 7. 集群中的负载均衡"></a>⚡ 7. 集群中的负载均衡</h1><h2 id="Event-Bus-内置负载均衡"><a href="#Event-Bus-内置负载均衡" class="headerlink" title="Event Bus 内置负载均衡"></a>Event Bus 内置负载均衡</h2><p>当多个节点注册了同一个 Event Bus 地址：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Node-1: consumer(&quot;order.process&quot;)</span><br><span class="line">Node-2: consumer(&quot;order.process&quot;)</span><br><span class="line">Node-3: consumer(&quot;order.process&quot;)</span><br></pre></td></tr></table></figure></div>
+
+<p>使用 <code>send()</code> 发送消息时，集群自动 Round-Robin 分配：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">第 1 条 → Node-1</span><br><span class="line">第 2 条 → Node-2</span><br><span class="line">第 3 条 → Node-3</span><br><span class="line">第 4 条 → Node-1</span><br><span class="line">...</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>不需要额外的负载均衡器。</strong> 这是 Vert.x 集群的天然优势。</p>
+<h2 id="结合外部-LB-做连接分发"><a href="#结合外部-LB-做连接分发" class="headerlink" title="结合外部 LB 做连接分发"></a>结合外部 LB 做连接分发</h2><p>对于 WebSocket 等长连接场景，客户端需要一个入口：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">            ┌────────────────┐</span><br><span class="line">            │ Nginx / HAProxy│</span><br><span class="line">            │ (L4 负载均衡)   │</span><br><span class="line">            └───────┬────────┘</span><br><span class="line">      ┌─────────────┼─────────────┐</span><br><span class="line">      ▼             ▼             ▼</span><br><span class="line">┌──────────┐ ┌──────────┐ ┌──────────┐</span><br><span class="line">│ Node-1   │ │ Node-2   │ │ Node-3   │</span><br><span class="line">│ :8080    │ │ :8080    │ │ :8080    │</span><br><span class="line">└──────────┘ └──────────┘ └──────────┘</span><br></pre></td></tr></table></figure></div>
+
+<p>Nginx 配置：</p>
+<div class="code-container" data-rel="Nginx"><figure class="iseeu highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">upstream</span> vertx_cluster &#123;</span><br><span class="line">  <span class="comment"># ip_hash 保证同一客户端连到同一节点（WebSocket 需要）</span></span><br><span class="line">  ip_hash;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">192.168.1.101:8080</span>;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">192.168.1.102:8080</span>;</span><br><span class="line">  <span class="attribute">server</span> <span class="number">192.168.1.103:8080</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">  <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line"></span><br><span class="line">  <span class="section">location</span> /ws/ &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://vertx_cluster;</span><br><span class="line">    <span class="attribute">proxy_http_version</span> <span class="number">1</span>.<span class="number">1</span>;</span><br><span class="line">    <span class="attribute">proxy_set_header</span> Upgrade <span class="variable">$http_upgrade</span>;</span><br><span class="line">    <span class="attribute">proxy_set_header</span> Connection <span class="string">&quot;upgrade&quot;</span>;</span><br><span class="line">    <span class="attribute">proxy_read_timeout</span> <span class="number">3600s</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🔍-8-节点故障与恢复"><a href="#🔍-8-节点故障与恢复" class="headerlink" title="🔍 8. 节点故障与恢复"></a>🔍 8. 节点故障与恢复</h1><h2 id="故障检测"><a href="#故障检测" class="headerlink" title="故障检测"></a>故障检测</h2><p>Cluster Manager 通过心跳检测节点存活：</p>
+<table>
+<thead>
+<tr>
+<th>Cluster Manager</th>
+<th>默认超时</th>
+<th>检测方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hazelcast</td>
+<td>5s</td>
+<td>TCP 心跳</td>
+</tr>
+<tr>
+<td>Infinispan</td>
+<td>30s</td>
+<td>JGroups FD</td>
+</tr>
+<tr>
+<td>Zookeeper</td>
+<td>session timeout</td>
+<td>Ephemeral Node</td>
+</tr>
+</tbody></table>
+<h2 id="故障时的行为"><a href="#故障时的行为" class="headerlink" title="故障时的行为"></a>故障时的行为</h2><p>当 Node-2 宕机：</p>
+<ol>
+<li><strong>Cluster Manager 检测到</strong> Node-2 心跳丢失（~5s）</li>
+<li><strong>路由表清理</strong>：所有 Node-2 注册的 Event Bus 地址被移除</li>
+<li><strong>后续消息路由</strong>：<code>send(&quot;order.process&quot;)</code> 只会发往 Node-1 和 Node-3</li>
+<li><strong>SharedData 清理</strong>：Node-2 持有的锁自动释放</li>
+</ol>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">正常状态：                         Node-2 宕机后：</span><br><span class="line">send → [Node-1, Node-2, Node-3]   send → [Node-1, Node-3]</span><br><span class="line">                                   （自动摘除，无需人工干预）</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="HA（High-Availability）部署"><a href="#HA（High-Availability）部署" class="headerlink" title="HA（High Availability）部署"></a>HA（High Availability）部署</h2><p>Vert.x 支持 Verticle 级别的 HA——当某节点宕机时，其 Verticle 自动迁移到其他节点：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 以 HA 模式部署</span></span><br><span class="line"><span class="type">DeploymentOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setHa(<span class="literal">true</span>);</span><br><span class="line">vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">OrderServiceVerticle</span>(), options);</span><br></pre></td></tr></table></figure></div>
+
+<p>当节点挂掉时：</p>
+<ol>
+<li>集群检测到节点离开</li>
+<li>该节点上标记为 HA 的 Verticle 会在其他存活节点上重新部署</li>
+<li>服务自动恢复</li>
+</ol>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 启动时开启 HA</span></span><br><span class="line"><span class="type">VertxOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">  .setClusterManager(<span class="keyword">new</span> <span class="title class_">HazelcastClusterManager</span>())</span><br><span class="line">  .setHAEnabled(<span class="literal">true</span>)</span><br><span class="line">  .setHAGroup(<span class="string">&quot;production&quot;</span>);  <span class="comment">// HA 组（只在同组内迁移）</span></span><br><span class="line"></span><br><span class="line">Vertx.clusteredVertx(options).onSuccess(vertx -&gt; &#123;</span><br><span class="line">  <span class="comment">// 部署带 HA 的 Verticle</span></span><br><span class="line">  vertx.deployVerticle(<span class="string">&quot;com.example.OrderVerticle&quot;</span>,</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setHa(<span class="literal">true</span>).setInstances(<span class="number">2</span>));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🐛-9-常见问题与排错"><a href="#🐛-9-常见问题与排错" class="headerlink" title="🐛 9. 常见问题与排错"></a>🐛 9. 常见问题与排错</h1><h2 id="①-节点无法发现彼此"><a href="#①-节点无法发现彼此" class="headerlink" title="① 节点无法发现彼此"></a>① 节点无法发现彼此</h2><p><strong>症状：</strong> 启动后日志只显示 1 个成员。</p>
+<p><strong>排查：</strong></p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 打印集群成员</span></span><br><span class="line"><span class="type">ClusterManager</span> <span class="variable">mgr</span> <span class="operator">=</span> ((VertxInternal) vertx).getClusterManager();</span><br><span class="line">System.out.println(<span class="string">&quot;Cluster members: &quot;</span> + mgr.getNodes());</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>常见原因：</strong></p>
+<ul>
+<li>组播被防火墙&#x2F;Docker 网络阻断 → 改用 TCP 发现</li>
+<li><code>cluster-name</code> 不一致 → 确保所有节点配置相同</li>
+<li>端口冲突 → Hazelcast 默认 5701，检查是否被占用</li>
+</ul>
+<h2 id="②-Event-Bus-消息发出去但对方收不到"><a href="#②-Event-Bus-消息发出去但对方收不到" class="headerlink" title="② Event Bus 消息发出去但对方收不到"></a>② Event Bus 消息发出去但对方收不到</h2><p><strong>排查步骤：</strong></p>
+<ol>
+<li>确认两个节点在同一个集群（日志中应显示 member joined）</li>
+<li>确认 consumer 注册在 send 之前完成</li>
+<li>检查 MessageCodec——自定义对象是否注册了 Codec</li>
+<li>检查防火墙——Event Bus 集群通信用的端口（默认随机）是否放开</li>
+</ol>
+<p><strong>配置固定 Event Bus 端口：</strong></p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">VertxOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">  .setClusterManager(mgr)</span><br><span class="line">  .getEventBusOptions()</span><br><span class="line">    .setHost(<span class="string">&quot;192.168.1.101&quot;</span>)  <span class="comment">// 明确绑定 IP（多网卡时必须）</span></span><br><span class="line">    .setPort(<span class="number">5801</span>)             <span class="comment">// 固定端口（方便防火墙配置）</span></span><br><span class="line">    .setClusterPublicHost(<span class="string">&quot;192.168.1.101&quot;</span>);  <span class="comment">// 公告给其他节点的地址</span></span><br></pre></td></tr></table></figure></div>
+
+<h2 id="③-脑裂（Split-Brain）"><a href="#③-脑裂（Split-Brain）" class="headerlink" title="③ 脑裂（Split Brain）"></a>③ 脑裂（Split Brain）</h2><p>当网络分区时，集群可能分裂成两个子集群。</p>
+<p><strong>Hazelcast 的处理策略：</strong></p>
+<div class="code-container" data-rel="Xml"><figure class="iseeu highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">hazelcast</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">network</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">join</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">tcp-ip</span> <span class="attr">enabled</span>=<span class="string">&quot;true&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">member</span>&gt;</span>192.168.1.101<span class="tag">&lt;/<span class="name">member</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">member</span>&gt;</span>192.168.1.102<span class="tag">&lt;/<span class="name">member</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">member</span>&gt;</span>192.168.1.103<span class="tag">&lt;/<span class="name">member</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">tcp-ip</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">join</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">network</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- 脑裂恢复策略 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">split-brain-protection</span> <span class="attr">name</span>=<span class="string">&quot;quorum&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">minimum-cluster-size</span>&gt;</span>2<span class="tag">&lt;/<span class="name">minimum-cluster-size</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">split-brain-protection</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">hazelcast</span>&gt;</span></span><br></pre></td></tr></table></figure></div>
+
+<p><strong>应对建议：</strong></p>
+<ul>
+<li>生产环境至少 3 个节点（避免偶数分裂）</li>
+<li>配置 split-brain-protection（少数派自动降级）</li>
+<li>重要数据不要只放 SharedData，兜底存一份到 Redis&#x2F;DB</li>
+</ul>
+<h2 id="④-集群启动时序问题"><a href="#④-集群启动时序问题" class="headerlink" title="④ 集群启动时序问题"></a>④ 集群启动时序问题</h2><p><strong>问题：</strong> Node-1 先启动并 send 消息，此时 Node-2 还没注册 consumer。</p>
+<p><strong>解决方案：</strong></p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方案 1：带重试的 send</span></span><br><span class="line">Future&lt;Message&lt;JsonObject&gt;&gt; <span class="title function_">sendWithRetry</span><span class="params">(String address, JsonObject msg, <span class="type">int</span> maxRetries)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> vertx.eventBus().&lt;JsonObject&gt;request(address, msg)</span><br><span class="line">    .recover(err -&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (maxRetries &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        Promise&lt;Message&lt;JsonObject&gt;&gt; p = Promise.promise();</span><br><span class="line">        vertx.setTimer(<span class="number">1000</span>, id -&gt;</span><br><span class="line">          sendWithRetry(address, msg, maxRetries - <span class="number">1</span>).onComplete(p));</span><br><span class="line">        <span class="keyword">return</span> p.future();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> Future.failedFuture(err);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方案 2：等待特定地址就绪</span></span><br><span class="line">vertx.eventBus().consumer(<span class="string">&quot;service.ready&quot;</span>, msg -&gt; &#123;</span><br><span class="line">  <span class="comment">// Node-2 启动完毕后发 ready 信号</span></span><br><span class="line">  startSendingMessages();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="📊-10-集群性能考量"><a href="#📊-10-集群性能考量" class="headerlink" title="📊 10. 集群性能考量"></a>📊 10. 集群性能考量</h1><h2 id="Event-Bus-跨节点-vs-本地"><a href="#Event-Bus-跨节点-vs-本地" class="headerlink" title="Event Bus 跨节点 vs 本地"></a>Event Bus 跨节点 vs 本地</h2><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>本地 Event Bus</th>
+<th>跨节点 Event Bus</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>延迟</td>
+<td>&lt;0.1ms</td>
+<td>0.5-2ms（取决于网络）</td>
+</tr>
+<tr>
+<td>吞吐</td>
+<td>~500,000 msg&#x2F;s</td>
+<td>~50,000 msg&#x2F;s（单对节点）</td>
+</tr>
+<tr>
+<td>序列化</td>
+<td>无（对象引用传递）</td>
+<td>有（需要 Codec）</td>
+</tr>
+</tbody></table>
+<p><strong>优化原则：</strong></p>
+<ul>
+<li>高频通信的 Verticle 尽量部署在同一节点</li>
+<li>跨节点传输的消息保持小体积</li>
+<li>大对象先存 Redis&#x2F;S3，Event Bus 只传引用（ID&#x2F;URL）</li>
+</ul>
+<h2 id="集群规模建议"><a href="#集群规模建议" class="headerlink" title="集群规模建议"></a>集群规模建议</h2><table>
+<thead>
+<tr>
+<th>节点数</th>
+<th>注意事项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2-5</td>
+<td>Hazelcast 默认配置即可</td>
+</tr>
+<tr>
+<td>5-20</td>
+<td>关闭组播，用 TCP 发现；监控 Hazelcast 内存</td>
+</tr>
+<tr>
+<td>20-50</td>
+<td>考虑分组（不同服务用不同集群）</td>
+</tr>
+<tr>
+<td>50+</td>
+<td>不建议单集群这么大，拆成多个小集群 + gRPC 互联</td>
+</tr>
+</tbody></table>
+<h1 id="🏭-11-生产部署架构"><a href="#🏭-11-生产部署架构" class="headerlink" title="🏭 11. 生产部署架构"></a>🏭 11. 生产部署架构</h1><h2 id="Kubernetes-部署"><a href="#Kubernetes-部署" class="headerlink" title="Kubernetes 部署"></a>Kubernetes 部署</h2><div class="code-container" data-rel="Yaml"><figure class="iseeu highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">vertx-cluster</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">vertx-service</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">vertx-service</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">vertx</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">my-vertx-app:latest</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span>   <span class="comment"># HTTP/WebSocket</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">5701</span>   <span class="comment"># Hazelcast</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">5801</span>   <span class="comment"># Event Bus cluster port</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">CLUSTER_MEMBERS</span></span><br><span class="line">          <span class="attr">value:</span> <span class="string">&quot;vertx-cluster-0.vertx-cluster,vertx-cluster-1.vertx-cluster,vertx-cluster-2.vertx-cluster&quot;</span></span><br></pre></td></tr></table></figure></div>
+
+<p>Hazelcast Kubernetes 发现插件：</p>
+<div class="code-container" data-rel="Xml"><figure class="iseeu highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">hazelcast</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">network</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">join</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">multicast</span> <span class="attr">enabled</span>=<span class="string">&quot;false&quot;</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">tcp-ip</span> <span class="attr">enabled</span>=<span class="string">&quot;false&quot;</span>/&gt;</span></span><br><span class="line">      <span class="comment">&lt;!-- Kubernetes 服务发现 --&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">kubernetes</span> <span class="attr">enabled</span>=<span class="string">&quot;true&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">namespace</span>&gt;</span>default<span class="tag">&lt;/<span class="name">namespace</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">service-name</span>&gt;</span>vertx-cluster<span class="tag">&lt;/<span class="name">service-name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">kubernetes</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">join</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">network</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">hazelcast</span>&gt;</span></span><br></pre></td></tr></table></figure></div>
+
+<div class="code-container" data-rel="Kotlin"><figure class="iseeu highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Gradle 依赖</span></span><br><span class="line">implementation(<span class="string">&quot;com.hazelcast:hazelcast-kubernetes:2.2.3&quot;</span>)</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="Docker-Compose（开发-测试）"><a href="#Docker-Compose（开发-测试）" class="headerlink" title="Docker Compose（开发&#x2F;测试）"></a>Docker Compose（开发&#x2F;测试）</h2><div class="code-container" data-rel="Yaml"><figure class="iseeu highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&#x27;3.8&#x27;</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">node1:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">my-vertx-app</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;8081:8080&quot;</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">CLUSTER_MEMBERS=node1,node2,node3</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">NODE_HOST=node1</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">node2:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">my-vertx-app</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;8082:8080&quot;</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">CLUSTER_MEMBERS=node1,node2,node3</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">NODE_HOST=node2</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">node3:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">my-vertx-app</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;8083:8080&quot;</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">CLUSTER_MEMBERS=node1,node2,node3</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">NODE_HOST=node3</span></span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🎯-12-最佳实践"><a href="#🎯-12-最佳实践" class="headerlink" title="🎯 12. 最佳实践"></a>🎯 12. 最佳实践</h1><table>
+<thead>
+<tr>
+<th>实践</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>生产环境禁用组播</td>
+<td>用 TCP 或 Kubernetes 发现</td>
+</tr>
+<tr>
+<td>固定 Event Bus 端口</td>
+<td>方便防火墙和监控</td>
+</tr>
+<tr>
+<td>明确绑定 IP</td>
+<td>多网卡环境避免绑错接口</td>
+</tr>
+<tr>
+<td>奇数个节点</td>
+<td>防止脑裂时无法选举</td>
+</tr>
+<tr>
+<td>监控集群健康</td>
+<td>定期检查成员数、Event Bus 延迟</td>
+</tr>
+<tr>
+<td>小消息原则</td>
+<td>跨节点消息控制在几 KB 以内</td>
+</tr>
+<tr>
+<td>HA 只用于有状态 Verticle</td>
+<td>无状态服务靠多实例即可</td>
+</tr>
+<tr>
+<td>优雅停机</td>
+<td>先从 LB 摘除，再关闭节点</td>
+</tr>
+<tr>
+<td>集群 ≠ 数据库</td>
+<td>SharedData 做缓存，不做持久存储</td>
+</tr>
+</tbody></table>
+<h1 id="📌-13-本章总结"><a href="#📌-13-本章总结" class="headerlink" title="📌 13. 本章总结"></a>📌 13. 本章总结</h1><p>本章你掌握了：</p>
+<ul>
+<li><strong>集群模式启动</strong>：<code>Vertx.clusteredVertx()</code> 一行代码加入集群</li>
+<li><strong>Cluster Manager 选型</strong>：Hazelcast &#x2F; Infinispan &#x2F; Zookeeper</li>
+<li><strong>分布式 Event Bus 原理</strong>：路由表、跨节点 TCP 传输、注册同步</li>
+<li><strong>SharedData API</strong>：AsyncMap、Lock、Counter 的跨节点使用</li>
+<li><strong>HA 部署</strong>：节点故障时 Verticle 自动迁移</li>
+<li><strong>负载均衡</strong>：Event Bus 内置 Round-Robin + 外部 LB 配合</li>
+<li><strong>故障排查</strong>：节点发现、脑裂、时序问题的解决方案</li>
+<li><strong>生产部署</strong>：Kubernetes &#x2F; Docker Compose 配置</li>
+</ul>
+<p>至此，你已经具备了构建分布式 Vert.x 系统的能力。下一篇我们聚焦<strong>性能极致</strong>——从 JMH 基准测试到火焰图分析，手把手带你把吞吐量从 5 万提到 20 万 QPS。</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-07-05 18:00:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-07-04 15:23:06
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/2026/07/05/vertx-series-11/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Vert-x/">#Vert.x</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/NIO/">#NIO</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Netty/">#Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Distribution/">#Distribution</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Java/">#Java</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="prev" rel="prev" href="/2026/07/05/vertx-series-12/">
+					<span class="left arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-left"></i>
+					</span>
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS</span>
+						<span class="post-nav-item">Prev posts</span>
+					</span>
+				</a>
+			</div>
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2026/07/05/vertx-series-10/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第十弹：WebSocket实时推送引擎</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%9B%86%E7%BE%A4%EF%BC%9F"><span class="nav-text">🌟 1. 为什么需要集群？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-2-%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%E7%9A%84%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6"><span class="nav-text">🎯 2. 集群模式的核心组件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster-Manager"><span class="nav-text">Cluster Manager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E9%80%89%E7%9A%84-Cluster-Manager-%E5%AE%9E%E7%8E%B0"><span class="nav-text">可选的 Cluster Manager 实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8F%97-3-%E6%90%AD%E5%BB%BA%E9%9B%86%E7%BE%A4"><span class="nav-text">🏗 3. 搭建集群</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven-%E4%BE%9D%E8%B5%96%EF%BC%88%E4%BB%A5-Hazelcast-%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="nav-text">Maven 依赖（以 Hazelcast 为例）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gradle"><span class="nav-text">Gradle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F"><span class="nav-text">启动集群模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hazelcast-%E9%85%8D%E7%BD%AE"><span class="nav-text">Hazelcast 配置</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%84-4-%E5%88%86%E5%B8%83%E5%BC%8F-Event-Bus-%E5%8E%9F%E7%90%86"><span class="nav-text">🔄 4. 分布式 Event Bus 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E8%B7%AF%E7%94%B1%E8%BF%87%E7%A8%8B"><span class="nav-text">消息路由过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#send-vs-publish-%E5%9C%A8%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84%E8%A1%8C%E4%B8%BA"><span class="nav-text">send vs publish 在集群中的行为</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E5%86%8C%E5%90%8C%E6%AD%A5"><span class="nav-text">注册同步</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9B%A1-5-%E5%88%86%E5%B8%83%E5%BC%8F-SharedData"><span class="nav-text">🛡 5. 分布式 SharedData</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F-Map%EF%BC%88AsyncMap%EF%BC%89"><span class="nav-text">分布式 Map（AsyncMap）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%88Lock%EF%BC%89"><span class="nav-text">分布式锁（Lock）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%A1%E6%95%B0%E5%99%A8%EF%BC%88Counter%EF%BC%89"><span class="nav-text">分布式计数器（Counter）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE"><span class="nav-text">使用建议</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%A1-6-%E5%AE%9E%E6%88%98%EF%BC%9A%E6%9E%84%E5%BB%BA%E5%88%86%E5%B8%83%E5%BC%8F%E8%81%8A%E5%A4%A9%E6%9C%8D%E5%8A%A1"><span class="nav-text">📡 6. 实战：构建分布式聊天服务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%8A%E5%A4%A9-Verticle"><span class="nav-text">聊天 Verticle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E5%A4%9A%E8%8A%82%E7%82%B9"><span class="nav-text">启动多节点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-7-%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="nav-text">⚡ 7. 集群中的负载均衡</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-Bus-%E5%86%85%E7%BD%AE%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="nav-text">Event Bus 内置负载均衡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E5%90%88%E5%A4%96%E9%83%A8-LB-%E5%81%9A%E8%BF%9E%E6%8E%A5%E5%88%86%E5%8F%91"><span class="nav-text">结合外部 LB 做连接分发</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8D-8-%E8%8A%82%E7%82%B9%E6%95%85%E9%9A%9C%E4%B8%8E%E6%81%A2%E5%A4%8D"><span class="nav-text">🔍 8. 节点故障与恢复</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E6%A3%80%E6%B5%8B"><span class="nav-text">故障检测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E6%97%B6%E7%9A%84%E8%A1%8C%E4%B8%BA"><span class="nav-text">故障时的行为</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HA%EF%BC%88High-Availability%EF%BC%89%E9%83%A8%E7%BD%B2"><span class="nav-text">HA（High Availability）部署</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%90%9B-9-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%8E%92%E9%94%99"><span class="nav-text">🐛 9. 常见问题与排错</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-%E8%8A%82%E7%82%B9%E6%97%A0%E6%B3%95%E5%8F%91%E7%8E%B0%E5%BD%BC%E6%AD%A4"><span class="nav-text">① 节点无法发现彼此</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-Event-Bus-%E6%B6%88%E6%81%AF%E5%8F%91%E5%87%BA%E5%8E%BB%E4%BD%86%E5%AF%B9%E6%96%B9%E6%94%B6%E4%B8%8D%E5%88%B0"><span class="nav-text">② Event Bus 消息发出去但对方收不到</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-%E8%84%91%E8%A3%82%EF%BC%88Split-Brain%EF%BC%89"><span class="nav-text">③ 脑裂（Split Brain）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A3-%E9%9B%86%E7%BE%A4%E5%90%AF%E5%8A%A8%E6%97%B6%E5%BA%8F%E9%97%AE%E9%A2%98"><span class="nav-text">④ 集群启动时序问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8A-10-%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E8%80%83%E9%87%8F"><span class="nav-text">📊 10. 集群性能考量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-Bus-%E8%B7%A8%E8%8A%82%E7%82%B9-vs-%E6%9C%AC%E5%9C%B0"><span class="nav-text">Event Bus 跨节点 vs 本地</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9B%86%E7%BE%A4%E8%A7%84%E6%A8%A1%E5%BB%BA%E8%AE%AE"><span class="nav-text">集群规模建议</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8F%AD-11-%E7%94%9F%E4%BA%A7%E9%83%A8%E7%BD%B2%E6%9E%B6%E6%9E%84"><span class="nav-text">🏭 11. 生产部署架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Kubernetes-%E9%83%A8%E7%BD%B2"><span class="nav-text">Kubernetes 部署</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Docker-Compose%EF%BC%88%E5%BC%80%E5%8F%91-%E6%B5%8B%E8%AF%95%EF%BC%89"><span class="nav-text">Docker Compose（开发&#x2F;测试）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-12-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-text">🎯 12. 最佳实践</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-13-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 13. 本章总结</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        14 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>

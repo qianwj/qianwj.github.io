@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2026/07/05/vertx-series-12/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS">
+<meta property="og:url" content="http://example.com/2026/07/05/vertx-series-12/index.html">
+<meta property="og:site_name" content="Elvis&#39; Guraden">
+<meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-07-05T14:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T07:33:28.384Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="Distribution">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Vert.x">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS | Elvis&#39; Guraden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Hexo Theme Redefine, Redefine Your Hexo Journey."},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Tags":{"icon":"fa-solid fa-tags","path":"/tags/"},"About":{"icon":"fa-regular fa-user","path":"/about/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Guraden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    TAGS
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    ABOUT
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                TAGS
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                ABOUT
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">11</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-07-05 22:00</span>
+        <span class="mobile">2026-07-05 22:00</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-07-04 15:33:28</span>
+            <span class="mobile">2026-07-04 15:33:28</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/NIO/">NIO</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Netty/">Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Distribution/">Distribution</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<h1 id="🌟-1-性能调优的正确姿势"><a href="#🌟-1-性能调优的正确姿势" class="headerlink" title="🌟 1. 性能调优的正确姿势"></a>🌟 1. 性能调优的正确姿势</h1><p>很多人做性能优化的方式是：凭感觉改参数 → 压测 → 没效果 → 再猜。</p>
+<p>正确的方法论是：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">测量 → 定位瓶颈 → 优化瓶颈 → 验证 → 重复</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>不要猜，用数据说话。</strong> 本篇带你走完从基准测试、瓶颈定位到逐步优化的全过程。</p>
+<h2 id="实验环境"><a href="#实验环境" class="headerlink" title="实验环境"></a>实验环境</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">服务器：4 核 8G（JDK 21，Vert.x 5.0）</span><br><span class="line">压测机：独立机器，避免与服务端争抢资源</span><br><span class="line">场景：HTTP JSON API，接收请求 → 查询内存数据 → 返回 JSON</span><br><span class="line">工具：wrk / vegeta / JMH / async-profiler / JFR</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="📏-2-基准测试：先搞清楚现在有多快"><a href="#📏-2-基准测试：先搞清楚现在有多快" class="headerlink" title="📏 2. 基准测试：先搞清楚现在有多快"></a>📏 2. 基准测试：先搞清楚现在有多快</h1><h2 id="wrk：快速-HTTP-压测"><a href="#wrk：快速-HTTP-压测" class="headerlink" title="wrk：快速 HTTP 压测"></a>wrk：快速 HTTP 压测</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 4 线程、500 并发连接、持续 30 秒</span></span><br><span class="line">wrk -t4 -c500 -d30s http://localhost:8080/api/users/1</span><br></pre></td></tr></table></figure></div>
+
+<p>输出：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Running 30s test @ http://localhost:8080/api/users/1</span><br><span class="line">  4 threads and 500 connections</span><br><span class="line">  Thread Stats   Avg      Stdev     Max   +/- Stdev</span><br><span class="line">    Latency     9.82ms    5.43ms  98.21ms   72.35%</span><br><span class="line">    Req/Sec    12.85k     1.23k   18.92k    68.50%</span><br><span class="line">  1,538,421 requests in 30.01s</span><br><span class="line">  Requests/sec:  51,263.42</span><br><span class="line">  Transfer/sec:     8.12MB</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>基线：51,263 QPS，平均延迟 9.82ms。</strong></p>
+<h2 id="JMH：微基准测试"><a href="#JMH：微基准测试" class="headerlink" title="JMH：微基准测试"></a>JMH：微基准测试</h2><p>对于核心热路径的代码，用 JMH 精确测量：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@BenchmarkMode(Mode.Throughput)</span></span><br><span class="line"><span class="meta">@OutputTimeUnit(TimeUnit.SECONDS)</span></span><br><span class="line"><span class="meta">@State(Scope.Benchmark)</span></span><br><span class="line"><span class="meta">@Warmup(iterations = 3, time = 3)</span></span><br><span class="line"><span class="meta">@Measurement(iterations = 5, time = 5)</span></span><br><span class="line"><span class="meta">@Fork(1)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SerializationBenchmark</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> JsonObject testData;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Setup</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setup</span><span class="params">()</span> &#123;</span><br><span class="line">    testData = <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">      .put(<span class="string">&quot;id&quot;</span>, <span class="string">&quot;user_123&quot;</span>)</span><br><span class="line">      .put(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;Alice&quot;</span>)</span><br><span class="line">      .put(<span class="string">&quot;email&quot;</span>, <span class="string">&quot;alice@example.com&quot;</span>)</span><br><span class="line">      .put(<span class="string">&quot;age&quot;</span>, <span class="number">28</span>)</span><br><span class="line">      .put(<span class="string">&quot;roles&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonArray</span>().add(<span class="string">&quot;admin&quot;</span>).add(<span class="string">&quot;user&quot;</span>));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Benchmark</span></span><br><span class="line">  <span class="keyword">public</span> String <span class="title function_">jsonEncode</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> testData.encode();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Benchmark</span></span><br><span class="line">  <span class="keyword">public</span> JsonObject <span class="title function_">jsonDecode</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>(<span class="string">&quot;&#123;\&quot;id\&quot;:\&quot;user_123\&quot;,\&quot;name\&quot;:\&quot;Alice\&quot;,\&quot;email\&quot;:\&quot;alice@example.com\&quot;,\&quot;age\&quot;:28&#125;&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Benchmark</span></span><br><span class="line">  <span class="keyword">public</span> <span class="type">byte</span>[] jsonToBuffer() &#123;</span><br><span class="line">    <span class="keyword">return</span> testData.toBuffer().getBytes();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 运行</span></span><br><span class="line">mvn clean install &amp;&amp; java -jar target/benchmarks.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># 结果</span></span><br><span class="line">Benchmark                           Mode  Cnt        Score   Error  Units</span><br><span class="line">SerializationBenchmark.jsonEncode  thrpt    5  2,845,123.4 ± 12345  ops/s</span><br><span class="line">SerializationBenchmark.jsonDecode  thrpt    5  1,923,456.7 ± 9876   ops/s</span><br><span class="line">SerializationBenchmark.jsonToBuffer thrpt   5  2,134,567.8 ± 11234  ops/s</span><br></pre></td></tr></table></figure></div>
+
+<p>JMH 帮你找到序列化是否是瓶颈。</p>
+<h1 id="🔍-3-瓶颈定位：火焰图-JFR"><a href="#🔍-3-瓶颈定位：火焰图-JFR" class="headerlink" title="🔍 3. 瓶颈定位：火焰图 + JFR"></a>🔍 3. 瓶颈定位：火焰图 + JFR</h1><h2 id="async-profiler-火焰图"><a href="#async-profiler-火焰图" class="headerlink" title="async-profiler 火焰图"></a>async-profiler 火焰图</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CPU 火焰图：看哪些方法消耗 CPU</span></span><br><span class="line">./profiler.sh -d 30 -e cpu -f cpu-flamegraph.html &lt;pid&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># wall-clock 火焰图：看线程在哪里等待（包括 IO 阻塞）</span></span><br><span class="line">./profiler.sh -d 30 -e wall -f wall-flamegraph.html &lt;pid&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 内存分配火焰图：看哪里在大量创建对象</span></span><br><span class="line">./profiler.sh -d 30 -e alloc -f alloc-flamegraph.html &lt;pid&gt;</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>怎么看火焰图：</strong></p>
+<ul>
+<li>横轴 &#x3D; 该方法占总采样的比例（越宽越耗资源）</li>
+<li>纵轴 &#x3D; 调用栈深度</li>
+<li>找最宽的”平顶”——那就是瓶颈</li>
+</ul>
+<p>典型发现：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">场景 1：CPU 火焰图中 JSON 序列化占 40%</span><br><span class="line">  → 优化方向：减少序列化次数 / 换更快的序列化库</span><br><span class="line"></span><br><span class="line">场景 2：wall-clock 火焰图中 Event Loop 线程大量时间在 GC</span><br><span class="line">  → 优化方向：减少对象创建 / 调整 GC 参数</span><br><span class="line"></span><br><span class="line">场景 3：wall-clock 火焰图中 Thread.sleep 或 synchronized</span><br><span class="line">  → 优化方向：找到阻塞代码，改为异步</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="JFR-持续采集"><a href="#JFR-持续采集" class="headerlink" title="JFR 持续采集"></a>JFR 持续采集</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启动时开启 JFR（开销 &lt;2%，可常开）</span></span><br><span class="line">java -XX:StartFlightRecording=settings=profile,maxsize=256m,disk=<span class="literal">true</span>,dumponexit=<span class="literal">true</span>,filename=app.jfr -jar app.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行时动态开启</span></span><br><span class="line">jcmd &lt;pid&gt; JFR.start duration=60s filename=perf-analysis.jfr settings=profile</span><br></pre></td></tr></table></figure></div>
+
+<p>JFR 中重点关注的事件：</p>
+<table>
+<thead>
+<tr>
+<th>事件</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>jdk.ExecutionSample</code></td>
+<td>CPU 采样，等同火焰图</td>
+</tr>
+<tr>
+<td><code>jdk.ThreadPark</code></td>
+<td>Event Loop 阻塞定位</td>
+</tr>
+<tr>
+<td><code>jdk.JavaMonitorEnter</code></td>
+<td>锁竞争</td>
+</tr>
+<tr>
+<td><code>jdk.ObjectAllocationSample</code></td>
+<td>内存分配热点</td>
+</tr>
+<tr>
+<td><code>jdk.GCPhasePause</code></td>
+<td>GC 停顿时长和频率</td>
+</tr>
+<tr>
+<td><code>jdk.SocketRead</code> &#x2F; <code>jdk.SocketWrite</code></td>
+<td>网络 IO 耗时</td>
+</tr>
+</tbody></table>
+<p>用 JMC（JDK Mission Control）打开 <code>.jfr</code> 文件分析。</p>
+<h1 id="⚡-4-第一轮优化：消除阻塞"><a href="#⚡-4-第一轮优化：消除阻塞" class="headerlink" title="⚡ 4. 第一轮优化：消除阻塞"></a>⚡ 4. 第一轮优化：消除阻塞</h1><h2 id="发现问题"><a href="#发现问题" class="headerlink" title="发现问题"></a>发现问题</h2><p>wall-clock 火焰图显示 <code>vert.x-eventloop-thread-2</code> 有 15% 的时间在 <code>java.lang.Thread.sleep</code>。</p>
+<p>追踪代码发现：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 灾难代码：在 handler 中同步调用了一个带 sleep 的第三方 SDK</span></span><br><span class="line">router.get(<span class="string">&quot;/api/users/:id&quot;</span>).handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="type">String</span> <span class="variable">userId</span> <span class="operator">=</span> ctx.pathParam(<span class="string">&quot;id&quot;</span>);</span><br><span class="line">  <span class="comment">// 这个 SDK 内部有 Thread.sleep 做重试！</span></span><br><span class="line">  <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> thirdPartySDK.getUser(userId);</span><br><span class="line">  ctx.response().end(JsonObject.mapFrom(user).encode());</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="修复"><a href="#修复" class="headerlink" title="修复"></a>修复</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">router.get(<span class="string">&quot;/api/users/:id&quot;</span>).handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="type">String</span> <span class="variable">userId</span> <span class="operator">=</span> ctx.pathParam(<span class="string">&quot;id&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 丢给 Worker 线程</span></span><br><span class="line">  vertx.&lt;User&gt;executeBlocking(() -&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> thirdPartySDK.getUser(userId);</span><br><span class="line">  &#125;).onSuccess(user -&gt; &#123;</span><br><span class="line">    ctx.response().end(JsonObject.mapFrom(user).encode());</span><br><span class="line">  &#125;).onFailure(err -&gt; &#123;</span><br><span class="line">    ctx.response().setStatusCode(<span class="number">500</span>).end(err.getMessage());</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>更好的方案：</strong> 用 Vert.x 异步 HTTP Client 替换第三方同步 SDK。</p>
+<h2 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">优化前：51,263 QPS，P99 98ms</span><br><span class="line">优化后：78,432 QPS，P99 28ms（+53%）</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="⚡-5-第二轮优化：减少序列化开销"><a href="#⚡-5-第二轮优化：减少序列化开销" class="headerlink" title="⚡ 5. 第二轮优化：减少序列化开销"></a>⚡ 5. 第二轮优化：减少序列化开销</h1><h2 id="发现问题-1"><a href="#发现问题-1" class="headerlink" title="发现问题"></a>发现问题</h2><p>CPU 火焰图显示 <code>JsonObject.encode()</code> 和 <code>new JsonObject(string)</code> 占了 35% CPU。</p>
+<p>分析代码发现每个请求做了<strong>3 次序列化</strong>：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 反复序列化</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="type">JsonObject</span> <span class="variable">user</span> <span class="operator">=</span> getUserFromCache(id);        <span class="comment">// 1. 从缓存拿到 JsonObject</span></span><br><span class="line">  <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> user.encode();                    <span class="comment">// 2. 编码为 String（第 1 次）</span></span><br><span class="line">  <span class="type">JsonObject</span> <span class="variable">enriched</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>(json);     <span class="comment">// 3. 又解码回来（第 2 次！）</span></span><br><span class="line">  enriched.put(<span class="string">&quot;requestTime&quot;</span>, now());</span><br><span class="line">  ctx.response().end(enriched.encode());          <span class="comment">// 4. 再编码（第 3 次！）</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="修复-1"><a href="#修复-1" class="headerlink" title="修复"></a>修复</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ✅ 只序列化一次</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="type">JsonObject</span> <span class="variable">user</span> <span class="operator">=</span> getUserFromCache(id);</span><br><span class="line">  user.put(<span class="string">&quot;requestTime&quot;</span>, now());                <span class="comment">// 直接操作原对象</span></span><br><span class="line">  ctx.response().end(user.toBuffer());            <span class="comment">// 用 Buffer 避免 String 中间态</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="进一步优化：预序列化热数据"><a href="#进一步优化：预序列化热数据" class="headerlink" title="进一步优化：预序列化热数据"></a>进一步优化：预序列化热数据</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserCache</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 存 Buffer 而不是 JsonObject，省去每次请求的序列化</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Buffer&gt; cache = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">put</span><span class="params">(String id, JsonObject user)</span> &#123;</span><br><span class="line">    cache.put(id, user.toBuffer());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> Buffer <span class="title function_">get</span><span class="params">(String id)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> cache.get(id);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// handler 中直接返回 Buffer</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="type">Buffer</span> <span class="variable">cached</span> <span class="operator">=</span> userCache.get(id);</span><br><span class="line">  <span class="keyword">if</span> (cached != <span class="literal">null</span>) &#123;</span><br><span class="line">    ctx.response()</span><br><span class="line">      .putHeader(<span class="string">&quot;Content-Type&quot;</span>, <span class="string">&quot;application/json&quot;</span>)</span><br><span class="line">      .end(cached);  <span class="comment">// 零序列化！</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="效果-1"><a href="#效果-1" class="headerlink" title="效果"></a>效果</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">优化前：78,432 QPS</span><br><span class="line">优化后：112,890 QPS（+44%）</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="⚡-6-第三轮优化：GC-调优"><a href="#⚡-6-第三轮优化：GC-调优" class="headerlink" title="⚡ 6. 第三轮优化：GC 调优"></a>⚡ 6. 第三轮优化：GC 调优</h1><h2 id="发现问题-2"><a href="#发现问题-2" class="headerlink" title="发现问题"></a>发现问题</h2><p>JFR 显示 GC 停顿频繁：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">G1 Young GC: 平均 8ms，每秒 12 次</span><br><span class="line">G1 Mixed GC: 平均 25ms，每 10 秒 1 次</span><br><span class="line">总 GC 开销: ~12% CPU</span><br></pre></td></tr></table></figure></div>
+
+<p>对象分配火焰图显示大量短生命周期对象来自：</p>
+<ul>
+<li>HTTP 请求&#x2F;响应头解析（String 创建）</li>
+<li>JSON 处理（中间 Map&#x2F;List 对象）</li>
+<li>Buffer 分配</li>
+</ul>
+<h2 id="调优-GC-参数"><a href="#调优-GC-参数" class="headerlink" title="调优 GC 参数"></a>调优 GC 参数</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># JDK 21 推荐使用 ZGC（亚毫秒级停顿）</span></span><br><span class="line">java -XX:+UseZGC \</span><br><span class="line">     -XX:+ZGenerational \</span><br><span class="line">     -Xms4g -Xmx4g \</span><br><span class="line">     -XX:SoftMaxHeapSize=3g \</span><br><span class="line">     -jar app.jar</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="G1-vs-ZGC-对比（本场景实测）"><a href="#G1-vs-ZGC-对比（本场景实测）" class="headerlink" title="G1 vs ZGC 对比（本场景实测）"></a>G1 vs ZGC 对比（本场景实测）</h2><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>G1 GC</th>
+<th>ZGC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GC 停顿 P99</td>
+<td>25ms</td>
+<td>0.5ms</td>
+</tr>
+<tr>
+<td>GC CPU 开销</td>
+<td>~12%</td>
+<td>~5%</td>
+</tr>
+<tr>
+<td>QPS</td>
+<td>112,890</td>
+<td>128,560</td>
+</tr>
+<tr>
+<td>P99 延迟</td>
+<td>22ms</td>
+<td>9ms</td>
+</tr>
+</tbody></table>
+<h2 id="减少对象分配"><a href="#减少对象分配" class="headerlink" title="减少对象分配"></a>减少对象分配</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 每次请求创建新对象</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="type">JsonObject</span> <span class="variable">response</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>();  <span class="comment">// 每次 new</span></span><br><span class="line">  response.put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;ok&quot;</span>);</span><br><span class="line">  response.put(<span class="string">&quot;timestamp&quot;</span>, System.currentTimeMillis());</span><br><span class="line">  ctx.response().end(response.encode());</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 复用 StringBuilder，减少中间对象</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">RESPONSE_PREFIX</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;status\&quot;:\&quot;ok\&quot;,\&quot;timestamp\&quot;:&quot;</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">RESPONSE_SUFFIX</span> <span class="operator">=</span> <span class="string">&quot;&#125;&quot;</span>;</span><br><span class="line"></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  ctx.response()</span><br><span class="line">    .putHeader(<span class="string">&quot;Content-Type&quot;</span>, <span class="string">&quot;application/json&quot;</span>)</span><br><span class="line">    .end(RESPONSE_PREFIX + System.currentTimeMillis() + RESPONSE_SUFFIX);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<blockquote>
+<p>⚠️ 注意：上面的字符串拼接优化属于<strong>极端优化</strong>。大多数场景用 JsonObject 即可，只有性能瓶颈确实在序列化时才需要手动拼接。</p>
+</blockquote>
+<h2 id="效果-2"><a href="#效果-2" class="headerlink" title="效果"></a>效果</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">优化前：112,890 QPS，P99 22ms</span><br><span class="line">优化后：128,560 QPS，P99 9ms（+14%，延迟降 59%）</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="⚡-7-第四轮优化：Vert-x-参数调优"><a href="#⚡-7-第四轮优化：Vert-x-参数调优" class="headerlink" title="⚡ 7. 第四轮优化：Vert.x 参数调优"></a>⚡ 7. 第四轮优化：Vert.x 参数调优</h1><h2 id="Event-Loop-线程数"><a href="#Event-Loop-线程数" class="headerlink" title="Event Loop 线程数"></a>Event Loop 线程数</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 默认 CPU × 2，对于纯 IO 转发型应用足够</span></span><br><span class="line"><span class="comment">// 如果有少量 CPU 计算（JSON 解析），可以适当增加</span></span><br><span class="line"><span class="type">VertxOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">  .setEventLoopPoolSize(Runtime.getRuntime().availableProcessors() * <span class="number">2</span>);  <span class="comment">// 默认</span></span><br></pre></td></tr></table></figure></div>
+
+<p>一般不需要改。验证方法：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 看 Event Loop 线程利用率</span></span><br><span class="line"><span class="comment"># 如果所有 EL 线程 CPU 都打满 → 增加线程数或优化计算逻辑</span></span><br><span class="line"><span class="comment"># 如果 EL 线程 CPU 不高但 QPS 上不去 → 瓶颈不在 Event Loop</span></span><br></pre></td></tr></table></figure></div>
+
+<h2 id="HTTP-Server-参数"><a href="#HTTP-Server-参数" class="headerlink" title="HTTP Server 参数"></a>HTTP Server 参数</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">HttpServerOptions</span> <span class="variable">serverOptions</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HttpServerOptions</span>()</span><br><span class="line">  .setPort(<span class="number">8080</span>)</span><br><span class="line">  .setTcpNoDelay(<span class="literal">true</span>)              <span class="comment">// 禁用 Nagle，降低延迟</span></span><br><span class="line">  .setTcpKeepAlive(<span class="literal">true</span>)            <span class="comment">// TCP KeepAlive</span></span><br><span class="line">  .setAcceptBacklog(<span class="number">10240</span>)          <span class="comment">// 连接队列（高并发时调大）</span></span><br><span class="line">  .setReusePort(<span class="literal">true</span>)               <span class="comment">// SO_REUSEPORT（Linux 内核 3.9+，多线程共享端口）</span></span><br><span class="line">  .setTcpFastOpen(<span class="literal">true</span>)             <span class="comment">// TCP Fast Open（减少握手 RTT）</span></span><br><span class="line">  .setCompressionSupported(<span class="literal">false</span>);   <span class="comment">// 关闭压缩（CPU 换带宽，高 QPS 场景关闭）</span></span><br></pre></td></tr></table></figure></div>
+
+<h2 id="HTTP-Client-参数（调用下游时）"><a href="#HTTP-Client-参数（调用下游时）" class="headerlink" title="HTTP Client 参数（调用下游时）"></a>HTTP Client 参数（调用下游时）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">HttpClientOptions</span> <span class="variable">clientOptions</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HttpClientOptions</span>()</span><br><span class="line">  .setMaxPoolSize(<span class="number">100</span>)              <span class="comment">// 连接池大小（按目标服务调整）</span></span><br><span class="line">  .setKeepAlive(<span class="literal">true</span>)               <span class="comment">// 连接复用</span></span><br><span class="line">  .setKeepAliveTimeout(<span class="number">30</span>)          <span class="comment">// KeepAlive 超时（秒）</span></span><br><span class="line">  .setPipelining(<span class="literal">true</span>)              <span class="comment">// HTTP 管线化</span></span><br><span class="line">  .setPipeliningLimit(<span class="number">10</span>)           <span class="comment">// 管线化队列深度</span></span><br><span class="line">  .setConnectTimeout(<span class="number">3000</span>)          <span class="comment">// 连接超时</span></span><br><span class="line">  .setIdleTimeout(<span class="number">60</span>)               <span class="comment">// 空闲超时</span></span><br><span class="line">  .setTcpNoDelay(<span class="literal">true</span>);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="Verticle-实例数"><a href="#Verticle-实例数" class="headerlink" title="Verticle 实例数"></a>Verticle 实例数</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 实例数 = Event Loop 线程数，让每个 EL 线程分到一个实例</span></span><br><span class="line"><span class="type">int</span> <span class="variable">instances</span> <span class="operator">=</span> Runtime.getRuntime().availableProcessors() * <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">vertx.deployVerticle(MyApiVerticle.class.getName(),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setInstances(instances));</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="效果-3"><a href="#效果-3" class="headerlink" title="效果"></a>效果</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">优化前：128,560 QPS</span><br><span class="line">优化后：152,340 QPS（+18%）</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="⚡-8-第五轮优化：系统级调优"><a href="#⚡-8-第五轮优化：系统级调优" class="headerlink" title="⚡ 8. 第五轮优化：系统级调优"></a>⚡ 8. 第五轮优化：系统级调优</h1><h2 id="Linux-内核参数"><a href="#Linux-内核参数" class="headerlink" title="Linux 内核参数"></a>Linux 内核参数</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># /etc/sysctl.conf</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 文件描述符</span></span><br><span class="line">fs.file-max = 1000000</span><br><span class="line"></span><br><span class="line"><span class="comment"># TCP 连接队列</span></span><br><span class="line">net.core.somaxconn = 65535</span><br><span class="line">net.core.netdev_max_backlog = 65535</span><br><span class="line"></span><br><span class="line"><span class="comment"># TCP 内存</span></span><br><span class="line">net.ipv4.tcp_max_syn_backlog = 65535</span><br><span class="line">net.ipv4.tcp_tw_reuse = 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 端口范围（压测机也要调）</span></span><br><span class="line">net.ipv4.ip_local_port_range = 1024 65535</span><br><span class="line"></span><br><span class="line"><span class="comment"># TCP Buffer</span></span><br><span class="line">net.core.rmem_max = 16777216</span><br><span class="line">net.core.wmem_max = 16777216</span><br><span class="line">net.ipv4.tcp_rmem = 4096 87380 16777216</span><br><span class="line">net.ipv4.tcp_wmem = 4096 65536 16777216</span><br><span class="line"></span><br><span class="line"><span class="comment"># TCP Fast Open</span></span><br><span class="line">net.ipv4.tcp_fastopen = 3</span><br></pre></td></tr></table></figure></div>
+
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 应用</span></span><br><span class="line">sysctl -p</span><br><span class="line"></span><br><span class="line"><span class="comment"># 文件描述符限制</span></span><br><span class="line"><span class="built_in">ulimit</span> -n 200000</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="JVM-参数"><a href="#JVM-参数" class="headerlink" title="JVM 参数"></a>JVM 参数</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">java \</span><br><span class="line">  -XX:+UseZGC \</span><br><span class="line">  -XX:+ZGenerational \</span><br><span class="line">  -Xms4g -Xmx4g \</span><br><span class="line">  -XX:+AlwaysPreTouch \</span><br><span class="line">  -XX:+UseTransparentHugePages \</span><br><span class="line">  -XX:-OmitStackTraceInFastThrow \</span><br><span class="line">  -Dio.netty.recycler.maxCapacityPerThread=4096 \</span><br><span class="line">  -Dio.netty.buffer.checkBounds=<span class="literal">false</span> \</span><br><span class="line">  -Dio.netty.buffer.checkAccessible=<span class="literal">false</span> \</span><br><span class="line">  -jar app.jar</span><br></pre></td></tr></table></figure></div>
+
+<p>关键参数说明：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-XX:+AlwaysPreTouch</code></td>
+<td>启动时预分配堆内存，避免运行时缺页中断</td>
+</tr>
+<tr>
+<td><code>-XX:+UseTransparentHugePages</code></td>
+<td>大页内存，减少 TLB miss</td>
+</tr>
+<tr>
+<td><code>io.netty.recycler.maxCapacityPerThread</code></td>
+<td>Netty 对象池容量，减少 GC</td>
+</tr>
+<tr>
+<td><code>io.netty.buffer.checkBounds=false</code></td>
+<td>关闭 Buffer 边界检查（生产慎用）</td>
+</tr>
+</tbody></table>
+<h2 id="效果-4"><a href="#效果-4" class="headerlink" title="效果"></a>效果</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">优化前：152,340 QPS</span><br><span class="line">优化后：198,760 QPS（+30%）</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="📊-9-优化全过程回顾"><a href="#📊-9-优化全过程回顾" class="headerlink" title="📊 9. 优化全过程回顾"></a>📊 9. 优化全过程回顾</h1><table>
+<thead>
+<tr>
+<th>轮次</th>
+<th>优化内容</th>
+<th>QPS</th>
+<th>提升</th>
+<th>累计提升</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>基线</td>
+<td>未优化</td>
+<td>51,263</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>第一轮</td>
+<td>消除 Event Loop 阻塞</td>
+<td>78,432</td>
+<td>+53%</td>
+<td>+53%</td>
+</tr>
+<tr>
+<td>第二轮</td>
+<td>减少序列化开销</td>
+<td>112,890</td>
+<td>+44%</td>
+<td>+120%</td>
+</tr>
+<tr>
+<td>第三轮</td>
+<td>GC 调优（G1→ZGC）</td>
+<td>128,560</td>
+<td>+14%</td>
+<td>+151%</td>
+</tr>
+<tr>
+<td>第四轮</td>
+<td>Vert.x 参数调优</td>
+<td>152,340</td>
+<td>+18%</td>
+<td>+197%</td>
+</tr>
+<tr>
+<td>第五轮</td>
+<td>系统级调优</td>
+<td>198,760</td>
+<td>+30%</td>
+<td><strong>+288%</strong></td>
+</tr>
+</tbody></table>
+<p><strong>从 5.1 万到 19.9 万，提升近 4 倍。</strong></p>
+<p>每轮优化的投入产出比：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">阻塞消除 ████████████████████████████  (+53%) ← 投入最少，收益最大</span><br><span class="line">序列化优化 ██████████████████████████  (+44%)</span><br><span class="line">GC 调优    ████████████              (+14%)</span><br><span class="line">Vert.x参数  ██████████████           (+18%)</span><br><span class="line">系统调优    ██████████████████████    (+30%)</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>经验法则：先消灭阻塞，再减少分配，最后调参数。</strong></p>
+<h1 id="🧪-10-持续性能监控"><a href="#🧪-10-持续性能监控" class="headerlink" title="🧪 10. 持续性能监控"></a>🧪 10. 持续性能监控</h1><p>优化不是一次性的，需要持续监控防止性能退化。</p>
+<h2 id="Vert-x-Micrometer-Metrics"><a href="#Vert-x-Micrometer-Metrics" class="headerlink" title="Vert.x Micrometer Metrics"></a>Vert.x Micrometer Metrics</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 启用 Prometheus 指标</span></span><br><span class="line"><span class="type">MicrometerMetricsOptions</span> <span class="variable">metricsOptions</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MicrometerMetricsOptions</span>()</span><br><span class="line">  .setEnabled(<span class="literal">true</span>)</span><br><span class="line">  .setPrometheusOptions(<span class="keyword">new</span> <span class="title class_">VertxPrometheusOptions</span>()</span><br><span class="line">    .setEnabled(<span class="literal">true</span>)</span><br><span class="line">    .setStartEmbeddedServer(<span class="literal">true</span>)</span><br><span class="line">    .setEmbeddedServerEndpoint(<span class="string">&quot;/metrics&quot;</span>)</span><br><span class="line">    .setEmbeddedServerOptions(<span class="keyword">new</span> <span class="title class_">HttpServerOptions</span>().setPort(<span class="number">9090</span>)));</span><br><span class="line"></span><br><span class="line"><span class="type">VertxOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">  .setMetricsOptions(metricsOptions);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="关键监控指标"><a href="#关键监控指标" class="headerlink" title="关键监控指标"></a>关键监控指标</h2><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+<th>告警阈值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>vertx_http_server_requests_seconds</code></td>
+<td>请求延迟分布</td>
+<td>P99 &gt; 100ms</td>
+</tr>
+<tr>
+<td><code>vertx_http_server_active_requests</code></td>
+<td>当前活跃请求数</td>
+<td>&gt; 线程数 × 100</td>
+</tr>
+<tr>
+<td><code>vertx_eventbus_pending</code></td>
+<td>Event Bus 待处理消息</td>
+<td>持续增长</td>
+</tr>
+<tr>
+<td><code>vertx_pool_queue_size</code></td>
+<td>Worker Pool 队列长度</td>
+<td>&gt; 0 持续</td>
+</tr>
+<tr>
+<td><code>vertx_pool_usage_seconds</code></td>
+<td>线程池使用时间</td>
+<td>接近 100%</td>
+</tr>
+<tr>
+<td><code>jvm_gc_pause_seconds</code></td>
+<td>GC 停顿</td>
+<td>P99 &gt; 50ms</td>
+</tr>
+<tr>
+<td><code>jvm_memory_used_bytes</code></td>
+<td>堆内存使用</td>
+<td>&gt; 85%</td>
+</tr>
+</tbody></table>
+<h2 id="Grafana-Dashboard-示例查询"><a href="#Grafana-Dashboard-示例查询" class="headerlink" title="Grafana Dashboard 示例查询"></a>Grafana Dashboard 示例查询</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># QPS</span><br><span class="line">rate(vertx_http_server_requests_seconds_count[1m])</span><br><span class="line"></span><br><span class="line"># P99 延迟</span><br><span class="line">histogram_quantile(0.99, rate(vertx_http_server_requests_seconds_bucket[1m]))</span><br><span class="line"></span><br><span class="line"># Event Loop 利用率（通过 Event Bus 处理时间间接推算）</span><br><span class="line">rate(vertx_eventbus_processing_seconds_sum[1m])</span><br><span class="line"></span><br><span class="line"># GC 停顿率</span><br><span class="line">rate(jvm_gc_pause_seconds_sum[1m])</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🚫-11-性能反模式"><a href="#🚫-11-性能反模式" class="headerlink" title="🚫 11. 性能反模式"></a>🚫 11. 性能反模式</h1><p>这些常见错误会严重影响性能：</p>
+<h2 id="①-日志风暴"><a href="#①-日志风暴" class="headerlink" title="① 日志风暴"></a>① 日志风暴</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 每个请求都打 info 日志</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  logger.info(<span class="string">&quot;Received request: &quot;</span> + ctx.request().uri());  <span class="comment">// 字符串拼接 + IO</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  logger.info(<span class="string">&quot;Response sent: &quot;</span> + response.encode());       <span class="comment">// 又一次</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 用 debug 级别 + 惰性求值</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line">    logger.debug(<span class="string">&quot;Received request: &#123;&#125;&quot;</span>, ctx.request().uri());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="②-忘记关闭资源"><a href="#②-忘记关闭资源" class="headerlink" title="② 忘记关闭资源"></a>② 忘记关闭资源</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 每次请求创建 HttpClient</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="type">HttpClient</span> <span class="variable">client</span> <span class="operator">=</span> vertx.createHttpClient();  <span class="comment">// 每次创建！</span></span><br><span class="line">  client.request(...)</span><br><span class="line">    .onSuccess(req -&gt; &#123; <span class="comment">/* ... */</span> &#125;);</span><br><span class="line">  <span class="comment">// client 永远不会被关闭，连接泄漏</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 复用 HttpClient（Verticle 成员变量）</span></span><br><span class="line"><span class="keyword">private</span> HttpClient client;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">  client = vertx.createHttpClient(<span class="keyword">new</span> <span class="title class_">HttpClientOptions</span>().setMaxPoolSize(<span class="number">100</span>));</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="③-巨型-JSON"><a href="#③-巨型-JSON" class="headerlink" title="③ 巨型 JSON"></a>③ 巨型 JSON</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 一次返回 10 万条数据</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  List&lt;JsonObject&gt; allUsers = getAllUsers();  <span class="comment">// 10 万条</span></span><br><span class="line">  ctx.response().end(<span class="keyword">new</span> <span class="title class_">JsonArray</span>(allUsers).encode());  <span class="comment">// OOM 风险 + 巨大延迟</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 分页 / 流式返回</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="type">int</span> <span class="variable">page</span> <span class="operator">=</span> Integer.parseInt(ctx.queryParam(<span class="string">&quot;page&quot;</span>).orElse(<span class="string">&quot;1&quot;</span>));</span><br><span class="line">  <span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> <span class="number">20</span>;</span><br><span class="line">  List&lt;JsonObject&gt; users = getUsers(page, size);</span><br><span class="line">  ctx.response().end(<span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">    .put(<span class="string">&quot;data&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonArray</span>(users))</span><br><span class="line">    .put(<span class="string">&quot;page&quot;</span>, page)</span><br><span class="line">    .put(<span class="string">&quot;hasMore&quot;</span>, users.size() == size)</span><br><span class="line">    .encode());</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="④-在-Event-Loop-上做-CPU-密集计算"><a href="#④-在-Event-Loop-上做-CPU-密集计算" class="headerlink" title="④ 在 Event Loop 上做 CPU 密集计算"></a>④ 在 Event Loop 上做 CPU 密集计算</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 在 handler 中做复杂计算</span></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  <span class="comment">// 图片处理、加密运算、大数据排序...</span></span><br><span class="line">  <span class="type">byte</span>[] result = heavyComputation(data);  <span class="comment">// 阻塞 Event Loop</span></span><br><span class="line">  ctx.response().end(Buffer.buffer(result));</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 用独立 WorkerExecutor</span></span><br><span class="line"><span class="type">WorkerExecutor</span> <span class="variable">executor</span> <span class="operator">=</span> vertx.createSharedWorkerExecutor(<span class="string">&quot;compute-pool&quot;</span>, <span class="number">4</span>);</span><br><span class="line"></span><br><span class="line">handler(ctx -&gt; &#123;</span><br><span class="line">  executor.&lt;<span class="type">byte</span>[]&gt;executeBlocking(() -&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> heavyComputation(data);</span><br><span class="line">  &#125;).onSuccess(result -&gt; &#123;</span><br><span class="line">    ctx.response().end(Buffer.buffer(result));</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="⑤-Event-Bus-传大对象"><a href="#⑤-Event-Bus-传大对象" class="headerlink" title="⑤ Event Bus 传大对象"></a>⑤ Event Bus 传大对象</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 通过 Event Bus 传 10MB 的文件内容</span></span><br><span class="line">eventBus.send(<span class="string">&quot;file.process&quot;</span>, hugeBuffer);  <span class="comment">// 跨节点时网络拥塞</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 传引用，不传数据</span></span><br><span class="line">eventBus.send(<span class="string">&quot;file.process&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">  .put(<span class="string">&quot;fileId&quot;</span>, <span class="string">&quot;f_123&quot;</span>)</span><br><span class="line">  .put(<span class="string">&quot;path&quot;</span>, <span class="string">&quot;/data/uploads/f_123.pdf&quot;</span>));</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🎯-12-性能优化检查清单"><a href="#🎯-12-性能优化检查清单" class="headerlink" title="🎯 12. 性能优化检查清单"></a>🎯 12. 性能优化检查清单</h1><p>按优先级排序：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">优先级 1（必查）：</span><br><span class="line">  □ 有没有阻塞 Event Loop 的代码？</span><br><span class="line">  □ BlockedThreadChecker 有没有告警？</span><br><span class="line">  □ 第三方 SDK 是同步还是异步？</span><br><span class="line"></span><br><span class="line">优先级 2（高频）：</span><br><span class="line">  □ 序列化次数是否可以减少？</span><br><span class="line">  □ 对象创建是否可以复用/池化？</span><br><span class="line">  □ HttpClient 是否复用？连接池大小合适吗？</span><br><span class="line">  □ 日志级别是否过高？</span><br><span class="line"></span><br><span class="line">优先级 3（调优）：</span><br><span class="line">  □ GC 选型（ZGC vs G1）</span><br><span class="line">  □ Verticle 实例数是否匹配 CPU 核心？</span><br><span class="line">  □ TCP 参数是否调优（NoDelay, FastOpen, ReusePort）？</span><br><span class="line">  □ 系统 ulimit / sysctl 是否调大？</span><br><span class="line"></span><br><span class="line">优先级 4（极致）：</span><br><span class="line">  □ 热数据预序列化为 Buffer</span><br><span class="line">  □ Netty 参数调优</span><br><span class="line">  □ 响应体 zero-copy</span><br><span class="line">  □ JVM 大页内存</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="📌-13-本章总结"><a href="#📌-13-本章总结" class="headerlink" title="📌 13. 本章总结"></a>📌 13. 本章总结</h1><p>本章你掌握了：</p>
+<ul>
+<li><strong>基准测试方法论</strong>：wrk 全链路压测 + JMH 微基准</li>
+<li><strong>瓶颈定位三件套</strong>：async-profiler 火焰图 + JFR 事件分析 + Metrics 监控</li>
+<li><strong>五轮递进优化</strong>：<ol>
+<li>消除阻塞（+53%）</li>
+<li>减少序列化（+44%）</li>
+<li>GC 调优 G1→ZGC（+14%）</li>
+<li>Vert.x 参数调优（+18%）</li>
+<li>系统级调优（+30%）</li>
+</ol>
+</li>
+<li><strong>性能反模式</strong>：日志风暴、资源泄漏、大 JSON、CPU 密集阻塞</li>
+<li><strong>持续监控</strong>：Micrometer + Prometheus + Grafana</li>
+</ul>
+<p><strong>核心心法：</strong> 不猜测，先测量；先消灭最大的瓶颈，再优化细节。</p>
+<p>下一篇也是本系列的最后一弹——<strong>GraalVM Native Image</strong>，让你的 Vert.x 应用实现毫秒级启动，打开 Serverless 和边缘计算的大门。</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-07-05 22:00:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-07-04 15:33:28
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/2026/07/05/vertx-series-12/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Vert-x/">#Vert.x</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/NIO/">#NIO</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Netty/">#Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Distribution/">#Distribution</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Java/">#Java</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="prev" rel="prev" href="/2026/07/06/vertx-series-13/">
+					<span class="left arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-left"></i>
+					</span>
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第十三弹：GraalVM Native Image——毫秒级启动</span>
+						<span class="post-nav-item">Prev posts</span>
+					</span>
+				</a>
+			</div>
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2026/07/05/vertx-series-11/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E7%9A%84%E6%AD%A3%E7%A1%AE%E5%A7%BF%E5%8A%BF"><span class="nav-text">🌟 1. 性能调优的正确姿势</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83"><span class="nav-text">实验环境</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8F-2-%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95%EF%BC%9A%E5%85%88%E6%90%9E%E6%B8%85%E6%A5%9A%E7%8E%B0%E5%9C%A8%E6%9C%89%E5%A4%9A%E5%BF%AB"><span class="nav-text">📏 2. 基准测试：先搞清楚现在有多快</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#wrk%EF%BC%9A%E5%BF%AB%E9%80%9F-HTTP-%E5%8E%8B%E6%B5%8B"><span class="nav-text">wrk：快速 HTTP 压测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JMH%EF%BC%9A%E5%BE%AE%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95"><span class="nav-text">JMH：微基准测试</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8D-3-%E7%93%B6%E9%A2%88%E5%AE%9A%E4%BD%8D%EF%BC%9A%E7%81%AB%E7%84%B0%E5%9B%BE-JFR"><span class="nav-text">🔍 3. 瓶颈定位：火焰图 + JFR</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#async-profiler-%E7%81%AB%E7%84%B0%E5%9B%BE"><span class="nav-text">async-profiler 火焰图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JFR-%E6%8C%81%E7%BB%AD%E9%87%87%E9%9B%86"><span class="nav-text">JFR 持续采集</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-4-%E7%AC%AC%E4%B8%80%E8%BD%AE%E4%BC%98%E5%8C%96%EF%BC%9A%E6%B6%88%E9%99%A4%E9%98%BB%E5%A1%9E"><span class="nav-text">⚡ 4. 第一轮优化：消除阻塞</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E7%8E%B0%E9%97%AE%E9%A2%98"><span class="nav-text">发现问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%AE%E5%A4%8D"><span class="nav-text">修复</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C"><span class="nav-text">效果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-5-%E7%AC%AC%E4%BA%8C%E8%BD%AE%E4%BC%98%E5%8C%96%EF%BC%9A%E5%87%8F%E5%B0%91%E5%BA%8F%E5%88%97%E5%8C%96%E5%BC%80%E9%94%80"><span class="nav-text">⚡ 5. 第二轮优化：减少序列化开销</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E7%8E%B0%E9%97%AE%E9%A2%98-1"><span class="nav-text">发现问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%AE%E5%A4%8D-1"><span class="nav-text">修复</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E4%B8%80%E6%AD%A5%E4%BC%98%E5%8C%96%EF%BC%9A%E9%A2%84%E5%BA%8F%E5%88%97%E5%8C%96%E7%83%AD%E6%95%B0%E6%8D%AE"><span class="nav-text">进一步优化：预序列化热数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C-1"><span class="nav-text">效果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-6-%E7%AC%AC%E4%B8%89%E8%BD%AE%E4%BC%98%E5%8C%96%EF%BC%9AGC-%E8%B0%83%E4%BC%98"><span class="nav-text">⚡ 6. 第三轮优化：GC 调优</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E7%8E%B0%E9%97%AE%E9%A2%98-2"><span class="nav-text">发现问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B0%83%E4%BC%98-GC-%E5%8F%82%E6%95%B0"><span class="nav-text">调优 GC 参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#G1-vs-ZGC-%E5%AF%B9%E6%AF%94%EF%BC%88%E6%9C%AC%E5%9C%BA%E6%99%AF%E5%AE%9E%E6%B5%8B%EF%BC%89"><span class="nav-text">G1 vs ZGC 对比（本场景实测）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%8F%E5%B0%91%E5%AF%B9%E8%B1%A1%E5%88%86%E9%85%8D"><span class="nav-text">减少对象分配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C-2"><span class="nav-text">效果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-7-%E7%AC%AC%E5%9B%9B%E8%BD%AE%E4%BC%98%E5%8C%96%EF%BC%9AVert-x-%E5%8F%82%E6%95%B0%E8%B0%83%E4%BC%98"><span class="nav-text">⚡ 7. 第四轮优化：Vert.x 参数调优</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-Loop-%E7%BA%BF%E7%A8%8B%E6%95%B0"><span class="nav-text">Event Loop 线程数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP-Server-%E5%8F%82%E6%95%B0"><span class="nav-text">HTTP Server 参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP-Client-%E5%8F%82%E6%95%B0%EF%BC%88%E8%B0%83%E7%94%A8%E4%B8%8B%E6%B8%B8%E6%97%B6%EF%BC%89"><span class="nav-text">HTTP Client 参数（调用下游时）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Verticle-%E5%AE%9E%E4%BE%8B%E6%95%B0"><span class="nav-text">Verticle 实例数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C-3"><span class="nav-text">效果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-8-%E7%AC%AC%E4%BA%94%E8%BD%AE%E4%BC%98%E5%8C%96%EF%BC%9A%E7%B3%BB%E7%BB%9F%E7%BA%A7%E8%B0%83%E4%BC%98"><span class="nav-text">⚡ 8. 第五轮优化：系统级调优</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux-%E5%86%85%E6%A0%B8%E5%8F%82%E6%95%B0"><span class="nav-text">Linux 内核参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JVM-%E5%8F%82%E6%95%B0"><span class="nav-text">JVM 参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C-4"><span class="nav-text">效果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8A-9-%E4%BC%98%E5%8C%96%E5%85%A8%E8%BF%87%E7%A8%8B%E5%9B%9E%E9%A1%BE"><span class="nav-text">📊 9. 优化全过程回顾</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-10-%E6%8C%81%E7%BB%AD%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7"><span class="nav-text">🧪 10. 持续性能监控</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Vert-x-Micrometer-Metrics"><span class="nav-text">Vert.x Micrometer Metrics</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87"><span class="nav-text">关键监控指标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Grafana-Dashboard-%E7%A4%BA%E4%BE%8B%E6%9F%A5%E8%AF%A2"><span class="nav-text">Grafana Dashboard 示例查询</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%AB-11-%E6%80%A7%E8%83%BD%E5%8F%8D%E6%A8%A1%E5%BC%8F"><span class="nav-text">🚫 11. 性能反模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-%E6%97%A5%E5%BF%97%E9%A3%8E%E6%9A%B4"><span class="nav-text">① 日志风暴</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-%E5%BF%98%E8%AE%B0%E5%85%B3%E9%97%AD%E8%B5%84%E6%BA%90"><span class="nav-text">② 忘记关闭资源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-%E5%B7%A8%E5%9E%8B-JSON"><span class="nav-text">③ 巨型 JSON</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A3-%E5%9C%A8-Event-Loop-%E4%B8%8A%E5%81%9A-CPU-%E5%AF%86%E9%9B%86%E8%AE%A1%E7%AE%97"><span class="nav-text">④ 在 Event Loop 上做 CPU 密集计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A4-Event-Bus-%E4%BC%A0%E5%A4%A7%E5%AF%B9%E8%B1%A1"><span class="nav-text">⑤ Event Bus 传大对象</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-12-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="nav-text">🎯 12. 性能优化检查清单</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-13-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 13. 本章总结</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        14 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>
