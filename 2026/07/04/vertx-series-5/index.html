@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2026/07/04/vertx-series-5/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x从入门到放弃第五弹：Future组合与异步编排">
+<meta property="og:url" content="http://example.com/2026/07/04/vertx-series-5/index.html">
+<meta property="og:site_name" content="Elvis&#39; Guraden">
+<meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-07-04T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T05:22:37.126Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="Distribution">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Vert.x">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            Vert.x从入门到放弃第五弹：Future组合与异步编排 | Elvis&#39; Guraden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Hexo Theme Redefine, Redefine Your Hexo Journey."},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Tags":{"icon":"fa-solid fa-tags","path":"/tags/"},"About":{"icon":"fa-regular fa-user","path":"/about/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Guraden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    TAGS
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    ABOUT
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                TAGS
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                ABOUT
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">8</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">8</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第五弹：Future组合与异步编排" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第五弹：Future组合与异步编排</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-07-04 10:00</span>
+        <span class="mobile">2026-07-04 10:00</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-07-04 13:22:37</span>
+            <span class="mobile">2026-07-04 13:22:37</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/NIO/">NIO</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Netty/">Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Distribution/">Distribution</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<h1 id="🌟-1-从-Event-Bus-的-reply-说起"><a href="#🌟-1-从-Event-Bus-的-reply-说起" class="headerlink" title="🌟 1. 从 Event Bus 的 reply 说起"></a>🌟 1. 从 Event Bus 的 reply 说起</h1><p>上一篇我们学了 Event Bus 的 request&#x2F;reply 模式：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">vertx.eventBus().&lt;String&gt;request(<span class="string">&quot;order.create&quot;</span>, orderJson)</span><br><span class="line">  .onSuccess(reply -&gt; &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Order created: &quot;</span> + reply.body());</span><br><span class="line">  &#125;)</span><br><span class="line">  .onFailure(err -&gt; &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Failed: &quot;</span> + err.getMessage());</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<p>这里的 <code>request()</code> 返回的就是一个 <code>Future&lt;Message&lt;String&gt;&gt;</code>。</p>
+<p>但真实业务远比这复杂——一个下单请求可能需要：</p>
+<ol>
+<li>校验用户身份</li>
+<li>检查库存</li>
+<li>扣减余额</li>
+<li>创建订单</li>
+<li>发送通知</li>
+</ol>
+<p>每一步都是异步的，每一步都依赖上一步的结果。如果用回调嵌套，你会得到这样的代码：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">checkUser(userId, userResult -&gt; &#123;</span><br><span class="line">  <span class="keyword">if</span> (userResult.succeeded()) &#123;</span><br><span class="line">    checkStock(itemId, stockResult -&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (stockResult.succeeded()) &#123;</span><br><span class="line">        deductBalance(userId, amount, balanceResult -&gt; &#123;</span><br><span class="line">          <span class="keyword">if</span> (balanceResult.succeeded()) &#123;</span><br><span class="line">            createOrder(orderData, orderResult -&gt; &#123;</span><br><span class="line">              <span class="keyword">if</span> (orderResult.succeeded()) &#123;</span><br><span class="line">                sendNotification(userId, notifyResult -&gt; &#123;</span><br><span class="line">                  <span class="comment">// 终于完了...</span></span><br><span class="line">                &#125;);</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<p>这就是经典的 <strong>回调地狱（Callback Hell）</strong>。</p>
+<p>而 Vert.x 的 Future 体系就是为了消灭它。</p>
+<h1 id="🎯-2-Future-与-Promise-的本质"><a href="#🎯-2-Future-与-Promise-的本质" class="headerlink" title="🎯 2. Future 与 Promise 的本质"></a>🎯 2. Future 与 Promise 的本质</h1><h2 id="Future：一个”未来的结果”"><a href="#Future：一个”未来的结果”" class="headerlink" title="Future：一个”未来的结果”"></a>Future：一个”未来的结果”</h2><p><code>Future&lt;T&gt;</code> 代表一个异步操作的最终结果。它要么成功（包含值 T），要么失败（包含异常）。</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;String&gt; future = someAsyncOperation();</span><br><span class="line"></span><br><span class="line">future.onSuccess(value -&gt; System.out.println(<span class="string">&quot;Got: &quot;</span> + value));</span><br><span class="line">future.onFailure(err -&gt; System.out.println(<span class="string">&quot;Error: &quot;</span> + err.getMessage()));</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="Promise：Future-的”写入端”"><a href="#Promise：Future-的”写入端”" class="headerlink" title="Promise：Future 的”写入端”"></a>Promise：Future 的”写入端”</h2><p><code>Promise&lt;T&gt;</code> 是 Future 的生产者。你创建一个 Promise，把它的 Future 返回给调用方，然后在异步操作完成时调用 <code>complete()</code> 或 <code>fail()</code>。</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Future&lt;String&gt; <span class="title function_">fetchUserName</span><span class="params">(String userId)</span> &#123;</span><br><span class="line">  Promise&lt;String&gt; promise = Promise.promise();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 模拟异步操作</span></span><br><span class="line">  vertx.eventBus().&lt;JsonObject&gt;request(<span class="string">&quot;user.get&quot;</span>, userId)</span><br><span class="line">    .onSuccess(reply -&gt; &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> reply.body().getString(<span class="string">&quot;name&quot;</span>);</span><br><span class="line">      promise.complete(name);  <span class="comment">// 写入成功结果</span></span><br><span class="line">    &#125;)</span><br><span class="line">    .onFailure(promise::fail);  <span class="comment">// 写入失败原因</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> promise.future();  <span class="comment">// 返回读取端</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="一句话理解"><a href="#一句话理解" class="headerlink" title="一句话理解"></a>一句话理解</h2><blockquote>
+<p><strong>Promise 是写入端，Future 是读取端。</strong> 就像一张支票：开票人（Promise）填金额，持票人（Future）等着兑现。</p>
+</blockquote>
+<h1 id="🔗-3-compose：链式异步编排"><a href="#🔗-3-compose：链式异步编排" class="headerlink" title="🔗 3. compose：链式异步编排"></a>🔗 3. compose：链式异步编排</h1><p><code>compose</code> 是 Future 最核心的操作——把多个异步步骤串联起来，前一步的结果作为下一步的输入。</p>
+<h2 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;A&gt; step1 = doStep1();</span><br><span class="line"></span><br><span class="line">Future&lt;C&gt; result = step1</span><br><span class="line">  .compose(a -&gt; doStep2(a))   <span class="comment">// A -&gt; Future&lt;B&gt;</span></span><br><span class="line">  .compose(b -&gt; doStep3(b));  <span class="comment">// B -&gt; Future&lt;C&gt;</span></span><br></pre></td></tr></table></figure></div>
+
+<h2 id="实战：下单流程"><a href="#实战：下单流程" class="headerlink" title="实战：下单流程"></a>实战：下单流程</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Future&lt;String&gt; <span class="title function_">placeOrder</span><span class="params">(String userId, String itemId, <span class="type">int</span> quantity)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> checkUser(userId)</span><br><span class="line">    .compose(user -&gt; checkStock(itemId, quantity))</span><br><span class="line">    .compose(stock -&gt; deductBalance(userId, stock.getPrice()))</span><br><span class="line">    .compose(payment -&gt; createOrder(userId, itemId, quantity, payment.getTransactionId()))</span><br><span class="line">    .compose(orderId -&gt; sendNotification(userId, orderId).map(v -&gt; orderId));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>调用方：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">placeOrder(<span class="string">&quot;user_001&quot;</span>, <span class="string">&quot;item_123&quot;</span>, <span class="number">2</span>)</span><br><span class="line">  .onSuccess(orderId -&gt; System.out.println(<span class="string">&quot;下单成功: &quot;</span> + orderId))</span><br><span class="line">  .onFailure(err -&gt; System.out.println(<span class="string">&quot;下单失败: &quot;</span> + err.getMessage()));</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>5 步异步操作，0 层嵌套，清晰如同步代码。</strong></p>
+<h2 id="compose-vs-map"><a href="#compose-vs-map" class="headerlink" title="compose vs map"></a>compose vs map</h2><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>入参</th>
+<th>返回</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>compose</code></td>
+<td><code>T -&gt; Future&lt;U&gt;</code></td>
+<td><code>Future&lt;U&gt;</code></td>
+<td>链接下一个异步操作</td>
+</tr>
+<tr>
+<td><code>map</code></td>
+<td><code>T -&gt; U</code></td>
+<td><code>Future&lt;U&gt;</code></td>
+<td>同步转换结果</td>
+</tr>
+</tbody></table>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// compose：下一步是异步的</span></span><br><span class="line">future.compose(user -&gt; fetchOrdersFromDB(user.getId()));</span><br><span class="line"></span><br><span class="line"><span class="comment">// map：下一步是同步转换</span></span><br><span class="line">future.map(user -&gt; user.getName().toUpperCase());</span><br></pre></td></tr></table></figure></div>
+
+<p>简单规则：<strong>下一步要发起 IO 操作用 compose，纯数据转换用 map。</strong></p>
+<h1 id="⚡-4-CompositeFuture：并行执行多个异步操作"><a href="#⚡-4-CompositeFuture：并行执行多个异步操作" class="headerlink" title="⚡ 4. CompositeFuture：并行执行多个异步操作"></a>⚡ 4. CompositeFuture：并行执行多个异步操作</h1><p>并非所有步骤都有依赖关系。比如下单前，”校验用户” 和 “检查库存” 可以并行执行。</p>
+<h2 id="all：全部成功才算成功"><a href="#all：全部成功才算成功" class="headerlink" title="all：全部成功才算成功"></a>all：全部成功才算成功</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;JsonObject&gt; userFuture = checkUser(userId);</span><br><span class="line">Future&lt;JsonObject&gt; stockFuture = checkStock(itemId, quantity);</span><br><span class="line">Future&lt;JsonObject&gt; promoFuture = checkPromotion(itemId);</span><br><span class="line"></span><br><span class="line">CompositeFuture.all(userFuture, stockFuture, promoFuture)</span><br><span class="line">  .onSuccess(cf -&gt; &#123;</span><br><span class="line">    <span class="type">JsonObject</span> <span class="variable">user</span> <span class="operator">=</span> cf.resultAt(<span class="number">0</span>);</span><br><span class="line">    <span class="type">JsonObject</span> <span class="variable">stock</span> <span class="operator">=</span> cf.resultAt(<span class="number">1</span>);</span><br><span class="line">    <span class="type">JsonObject</span> <span class="variable">promo</span> <span class="operator">=</span> cf.resultAt(<span class="number">2</span>);</span><br><span class="line">    <span class="comment">// 三个都成功，继续下单流程</span></span><br><span class="line">  &#125;)</span><br><span class="line">  .onFailure(err -&gt; &#123;</span><br><span class="line">    <span class="comment">// 任何一个失败，整体失败</span></span><br><span class="line">    System.out.println(<span class="string">&quot;预检失败: &quot;</span> + err.getMessage());</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="any：任一成功即算成功"><a href="#any：任一成功即算成功" class="headerlink" title="any：任一成功即算成功"></a>any：任一成功即算成功</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 多个数据源，取最快返回的那个</span></span><br><span class="line">Future&lt;JsonObject&gt; fromCache = getFromCache(key);</span><br><span class="line">Future&lt;JsonObject&gt; fromDB = getFromDB(key);</span><br><span class="line"></span><br><span class="line">CompositeFuture.any(fromCache, fromDB)</span><br><span class="line">  .onSuccess(cf -&gt; &#123;</span><br><span class="line">    <span class="comment">// 拿到最先成功的结果</span></span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="join：等所有都完成（不管成败）"><a href="#join：等所有都完成（不管成败）" class="headerlink" title="join：等所有都完成（不管成败）"></a>join：等所有都完成（不管成败）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 批量发送通知，不关心个别失败</span></span><br><span class="line">Future&lt;Void&gt; sms = sendSms(phone);</span><br><span class="line">Future&lt;Void&gt; email = sendEmail(addr);</span><br><span class="line">Future&lt;Void&gt; push = sendPush(deviceId);</span><br><span class="line"></span><br><span class="line">CompositeFuture.join(sms, email, push)</span><br><span class="line">  .onComplete(cf -&gt; &#123;</span><br><span class="line">    <span class="comment">// 统计哪些成功、哪些失败</span></span><br><span class="line">    <span class="keyword">if</span> (sms.succeeded()) log(<span class="string">&quot;SMS sent&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (email.failed()) log(<span class="string">&quot;Email failed: &quot;</span> + email.cause());</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="对比总结"><a href="#对比总结" class="headerlink" title="对比总结"></a>对比总结</h2><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>语义</th>
+<th>失败条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>all</code></td>
+<td>全部成功</td>
+<td>任一失败即失败</td>
+</tr>
+<tr>
+<td><code>any</code></td>
+<td>任一成功</td>
+<td>全部失败才失败</td>
+</tr>
+<tr>
+<td><code>join</code></td>
+<td>等全部完成</td>
+<td>不会短路，全部执行完再回调</td>
+</tr>
+</tbody></table>
+<h1 id="🛡-5-错误处理与恢复"><a href="#🛡-5-错误处理与恢复" class="headerlink" title="🛡 5. 错误处理与恢复"></a>🛡 5. 错误处理与恢复</h1><p>异步编排最容易忽略的就是错误处理。Future 提供了优雅的错误恢复机制。</p>
+<h2 id="recover：失败时的降级逻辑"><a href="#recover：失败时的降级逻辑" class="headerlink" title="recover：失败时的降级逻辑"></a>recover：失败时的降级逻辑</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;JsonObject&gt; result = getFromCache(key)</span><br><span class="line">  .recover(err -&gt; &#123;</span><br><span class="line">    <span class="comment">// 缓存未命中，降级到数据库</span></span><br><span class="line">    log.warn(<span class="string">&quot;Cache miss, fallback to DB: &quot;</span> + err.getMessage());</span><br><span class="line">    <span class="keyword">return</span> getFromDB(key);</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="otherwise：失败时返回默认值"><a href="#otherwise：失败时返回默认值" class="headerlink" title="otherwise：失败时返回默认值"></a>otherwise：失败时返回默认值</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;Integer&gt; stock = checkStock(itemId)</span><br><span class="line">  .otherwise(<span class="number">0</span>);  <span class="comment">// 查不到库存就当 0</span></span><br></pre></td></tr></table></figure></div>
+
+<h2 id="otherwise-带逻辑"><a href="#otherwise-带逻辑" class="headerlink" title="otherwise 带逻辑"></a>otherwise 带逻辑</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;JsonObject&gt; config = loadRemoteConfig()</span><br><span class="line">  .otherwise(err -&gt; &#123;</span><br><span class="line">    log.warn(<span class="string">&quot;Remote config unavailable, using defaults&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> getDefaultConfig();</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="在-compose-链中处理错误"><a href="#在-compose-链中处理错误" class="headerlink" title="在 compose 链中处理错误"></a>在 compose 链中处理错误</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">placeOrder(userId, itemId, quantity)</span><br><span class="line">  .recover(err -&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (err <span class="keyword">instanceof</span> InsufficientBalanceException) &#123;</span><br><span class="line">      <span class="comment">// 余额不足，尝试信用支付</span></span><br><span class="line">      <span class="keyword">return</span> payWithCredit(userId, amount)</span><br><span class="line">        .compose(payment -&gt; createOrder(userId, itemId, quantity, payment.getId()));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> Future.failedFuture(err);  <span class="comment">// 其他错误继续向上抛</span></span><br><span class="line">  &#125;)</span><br><span class="line">  .onSuccess(orderId -&gt; respond(ctx, <span class="number">200</span>, orderId))</span><br><span class="line">  .onFailure(err -&gt; respond(ctx, <span class="number">500</span>, err.getMessage()));</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🔧-6-实用技巧"><a href="#🔧-6-实用技巧" class="headerlink" title="🔧 6. 实用技巧"></a>🔧 6. 实用技巧</h1><h2 id="①-Future-succeededFuture-Future-failedFuture"><a href="#①-Future-succeededFuture-Future-failedFuture" class="headerlink" title="① Future.succeededFuture &#x2F; Future.failedFuture"></a>① Future.succeededFuture &#x2F; Future.failedFuture</h2><p>快速创建已完成的 Future，适合条件判断：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Future&lt;Void&gt; <span class="title function_">validateAge</span><span class="params">(<span class="type">int</span> age)</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (age &lt; <span class="number">18</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> Future.failedFuture(<span class="string">&quot;未满18岁，禁止购买&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> Future.succeededFuture();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>用在 compose 链中：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">validateAge(user.getAge())</span><br><span class="line">  .compose(v -&gt; placeOrder(userId, itemId, quantity));</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="②-超时控制"><a href="#②-超时控制" class="headerlink" title="② 超时控制"></a>② 超时控制</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;String&gt; result = longRunningTask();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Vert.x 没有内置 timeout，但可以用 Timer 实现</span></span><br><span class="line">Promise&lt;String&gt; promise = Promise.promise();</span><br><span class="line"></span><br><span class="line"><span class="type">long</span> <span class="variable">timerId</span> <span class="operator">=</span> vertx.setTimer(<span class="number">5000</span>, id -&gt; &#123;</span><br><span class="line">  <span class="keyword">if</span> (!promise.future().isComplete()) &#123;</span><br><span class="line">    promise.fail(<span class="string">&quot;Operation timed out after 5s&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">result.onComplete(ar -&gt; &#123;</span><br><span class="line">  vertx.cancelTimer(timerId);</span><br><span class="line">  <span class="keyword">if</span> (ar.succeeded()) &#123;</span><br><span class="line">    promise.tryComplete(ar.result());</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    promise.tryFail(ar.cause());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> promise.future();</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="③-封装成通用的-withTimeout-工具"><a href="#③-封装成通用的-withTimeout-工具" class="headerlink" title="③ 封装成通用的 withTimeout 工具"></a>③ 封装成通用的 withTimeout 工具</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; Future&lt;T&gt; <span class="title function_">withTimeout</span><span class="params">(Vertx vertx, Future&lt;T&gt; future, <span class="type">long</span> timeoutMs)</span> &#123;</span><br><span class="line">  Promise&lt;T&gt; promise = Promise.promise();</span><br><span class="line"></span><br><span class="line">  <span class="type">long</span> <span class="variable">timerId</span> <span class="operator">=</span> vertx.setTimer(timeoutMs, id -&gt;</span><br><span class="line">    promise.tryFail(<span class="string">&quot;Timeout after &quot;</span> + timeoutMs + <span class="string">&quot;ms&quot;</span>)</span><br><span class="line">  );</span><br><span class="line"></span><br><span class="line">  future.onComplete(ar -&gt; &#123;</span><br><span class="line">    vertx.cancelTimer(timerId);</span><br><span class="line">    <span class="keyword">if</span> (ar.succeeded()) &#123;</span><br><span class="line">      promise.tryComplete(ar.result());</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      promise.tryFail(ar.cause());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> promise.future();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>使用：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">withTimeout(vertx, fetchRemoteData(), <span class="number">3000</span>)</span><br><span class="line">  .onSuccess(data -&gt; handleData(data))</span><br><span class="line">  .onFailure(err -&gt; handleTimeout(err));</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="④-循环中的异步编排"><a href="#④-循环中的异步编排" class="headerlink" title="④ 循环中的异步编排"></a>④ 循环中的异步编排</h2><p>处理列表中每个元素的异步操作（顺序执行）：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Future&lt;Void&gt; <span class="title function_">processOrders</span><span class="params">(List&lt;String&gt; orderIds)</span> &#123;</span><br><span class="line">  Future&lt;Void&gt; chain = Future.succeededFuture();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (String orderId : orderIds) &#123;</span><br><span class="line">    chain = chain.compose(v -&gt; processOneOrder(orderId));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> chain;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>并行执行所有元素：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Future&lt;List&lt;JsonObject&gt;&gt; <span class="title function_">fetchAllOrders</span><span class="params">(List&lt;String&gt; orderIds)</span> &#123;</span><br><span class="line">  List&lt;Future&lt;JsonObject&gt;&gt; futures = orderIds.stream()</span><br><span class="line">    .map(<span class="built_in">this</span>::fetchOrder)</span><br><span class="line">    .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> CompositeFuture.all(<span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(futures))</span><br><span class="line">    .map(cf -&gt; futures.stream()</span><br><span class="line">      .map(Future::result)</span><br><span class="line">      .collect(Collectors.toList()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🧪-7-完整实战：电商下单流程编排"><a href="#🧪-7-完整实战：电商下单流程编排" class="headerlink" title="🧪 7. 完整实战：电商下单流程编排"></a>🧪 7. 完整实战：电商下单流程编排</h1><p>把前面学到的所有技巧组合成一个真实的业务场景：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderService</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Vertx vertx;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> EventBus eventBus;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">OrderService</span><span class="params">(Vertx vertx)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.vertx = vertx;</span><br><span class="line">    <span class="built_in">this</span>.eventBus = vertx.eventBus();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 完整下单流程</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> Future&lt;JsonObject&gt; <span class="title function_">placeOrder</span><span class="params">(JsonObject request)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">userId</span> <span class="operator">=</span> request.getString(<span class="string">&quot;userId&quot;</span>);</span><br><span class="line">    <span class="type">String</span> <span class="variable">itemId</span> <span class="operator">=</span> request.getString(<span class="string">&quot;itemId&quot;</span>);</span><br><span class="line">    <span class="type">int</span> <span class="variable">quantity</span> <span class="operator">=</span> request.getInteger(<span class="string">&quot;quantity&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 第一阶段：并行预检（用户校验 + 库存检查 + 优惠查询）</span></span><br><span class="line">    Future&lt;JsonObject&gt; userCheck = requestWithTimeout(<span class="string">&quot;user.validate&quot;</span>, userId, <span class="number">3000</span>);</span><br><span class="line">    Future&lt;JsonObject&gt; stockCheck = requestWithTimeout(<span class="string">&quot;stock.check&quot;</span>,</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;itemId&quot;</span>, itemId).put(<span class="string">&quot;quantity&quot;</span>, quantity), <span class="number">3000</span>);</span><br><span class="line">    Future&lt;JsonObject&gt; promoCheck = requestWithTimeout(<span class="string">&quot;promo.query&quot;</span>, itemId, <span class="number">2000</span>)</span><br><span class="line">        .recover(err -&gt; Future.succeededFuture(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;discount&quot;</span>, <span class="number">0</span>)));  <span class="comment">// 优惠查询失败不影响下单</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> CompositeFuture.all(userCheck, stockCheck, promoCheck)</span><br><span class="line">      <span class="comment">// 第二阶段：计算价格</span></span><br><span class="line">      .map(cf -&gt; &#123;</span><br><span class="line">        <span class="type">JsonObject</span> <span class="variable">user</span> <span class="operator">=</span> cf.resultAt(<span class="number">0</span>);</span><br><span class="line">        <span class="type">JsonObject</span> <span class="variable">stock</span> <span class="operator">=</span> cf.resultAt(<span class="number">1</span>);</span><br><span class="line">        <span class="type">JsonObject</span> <span class="variable">promo</span> <span class="operator">=</span> cf.resultAt(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">        <span class="type">double</span> <span class="variable">price</span> <span class="operator">=</span> stock.getDouble(<span class="string">&quot;unitPrice&quot;</span>) * quantity;</span><br><span class="line">        <span class="type">double</span> <span class="variable">discount</span> <span class="operator">=</span> promo.getDouble(<span class="string">&quot;discount&quot;</span>, <span class="number">0.0</span>);</span><br><span class="line">        <span class="type">double</span> <span class="variable">finalPrice</span> <span class="operator">=</span> price - discount;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">          .put(<span class="string">&quot;userId&quot;</span>, userId)</span><br><span class="line">          .put(<span class="string">&quot;itemId&quot;</span>, itemId)</span><br><span class="line">          .put(<span class="string">&quot;quantity&quot;</span>, quantity)</span><br><span class="line">          .put(<span class="string">&quot;price&quot;</span>, finalPrice)</span><br><span class="line">          .put(<span class="string">&quot;userLevel&quot;</span>, user.getString(<span class="string">&quot;level&quot;</span>));</span><br><span class="line">      &#125;)</span><br><span class="line">      <span class="comment">// 第三阶段：扣款</span></span><br><span class="line">      .compose(orderInfo -&gt; &#123;</span><br><span class="line">        <span class="keyword">return</span> request(<span class="string">&quot;payment.deduct&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">            .put(<span class="string">&quot;userId&quot;</span>, userId)</span><br><span class="line">            .put(<span class="string">&quot;amount&quot;</span>, orderInfo.getDouble(<span class="string">&quot;price&quot;</span>)))</span><br><span class="line">          .map(payment -&gt; orderInfo.put(<span class="string">&quot;paymentId&quot;</span>, payment.getString(<span class="string">&quot;transactionId&quot;</span>)));</span><br><span class="line">      &#125;)</span><br><span class="line">      <span class="comment">// 第四阶段：创建订单</span></span><br><span class="line">      .compose(orderInfo -&gt; request(<span class="string">&quot;order.save&quot;</span>, orderInfo))</span><br><span class="line">      <span class="comment">// 第五阶段：异步通知（不阻塞主流程）</span></span><br><span class="line">      .compose(savedOrder -&gt; &#123;</span><br><span class="line">        <span class="comment">// 发通知但不等待结果</span></span><br><span class="line">        eventBus.publish(<span class="string">&quot;notification.send&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">          .put(<span class="string">&quot;userId&quot;</span>, userId)</span><br><span class="line">          .put(<span class="string">&quot;orderId&quot;</span>, savedOrder.getString(<span class="string">&quot;orderId&quot;</span>))</span><br><span class="line">          .put(<span class="string">&quot;type&quot;</span>, <span class="string">&quot;ORDER_CREATED&quot;</span>));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> Future.succeededFuture(savedOrder);</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> Future&lt;JsonObject&gt; <span class="title function_">request</span><span class="params">(String address, Object message)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> eventBus.&lt;JsonObject&gt;request(address, message)</span><br><span class="line">      .map(msg -&gt; msg.body());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> Future&lt;JsonObject&gt; <span class="title function_">requestWithTimeout</span><span class="params">(String address, Object message, <span class="type">long</span> timeoutMs)</span> &#123;</span><br><span class="line">    <span class="type">DeliveryOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DeliveryOptions</span>().setSendTimeout(timeoutMs);</span><br><span class="line">    <span class="keyword">return</span> eventBus.&lt;JsonObject&gt;request(address, message, options)</span><br><span class="line">      .map(msg -&gt; msg.body());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>这段代码体现了：</strong></p>
+<ul>
+<li><code>CompositeFuture.all</code>：并行预检，提升性能</li>
+<li><code>recover</code>：优惠查询失败降级为无优惠，不阻断流程</li>
+<li><code>compose</code>：串联有依赖的步骤</li>
+<li><code>map</code>：同步数据转换</li>
+<li><code>publish</code>：通知类操作不等待结果</li>
+<li><code>DeliveryOptions.setSendTimeout</code>：超时控制</li>
+</ul>
+<h1 id="🆚-8-对比其他异步方案"><a href="#🆚-8-对比其他异步方案" class="headerlink" title="🆚 8. 对比其他异步方案"></a>🆚 8. 对比其他异步方案</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Vert.x Future</th>
+<th>CompletableFuture</th>
+<th>Reactor Mono&#x2F;Flux</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>线程模型</td>
+<td>Event Loop 绑定</td>
+<td>ForkJoinPool</td>
+<td>Scheduler 调度</td>
+</tr>
+<tr>
+<td>操作符丰富度</td>
+<td>够用（compose&#x2F;map&#x2F;recover）</td>
+<td>较多</td>
+<td>极其丰富</td>
+</tr>
+<tr>
+<td>背压</td>
+<td>无</td>
+<td>无</td>
+<td>有</td>
+</tr>
+<tr>
+<td>学习曲线</td>
+<td>低</td>
+<td>中</td>
+<td>高</td>
+</tr>
+<tr>
+<td>与 Vert.x 集成</td>
+<td>原生</td>
+<td>需适配</td>
+<td>需 vertx-rx 桥接</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>IO 密集型编排</td>
+<td>通用异步</td>
+<td>流式数据处理</td>
+</tr>
+</tbody></table>
+<p><strong>选择建议：</strong></p>
+<ul>
+<li>纯 Vert.x 项目 → 用 Future，简单直接</li>
+<li>需要复杂流操作（窗口、合并、背压）→ 引入 vertx-rx（RxJava&#x2F;Mutiny）</li>
+<li>与 Spring 混用 → CompletableFuture 做桥接</li>
+</ul>
+<h1 id="🎯-9-最佳实践"><a href="#🎯-9-最佳实践" class="headerlink" title="🎯 9. 最佳实践"></a>🎯 9. 最佳实践</h1><table>
+<thead>
+<tr>
+<th>实践</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>方法签名返回 Future</td>
+<td>让调用方自由组合，不要在方法内部 onSuccess</td>
+</tr>
+<tr>
+<td>错误尽早失败</td>
+<td>参数校验用 <code>Future.failedFuture()</code> 立即返回</td>
+</tr>
+<tr>
+<td>recover 做降级，不吞异常</td>
+<td>降级时 log 原始错误，方便排查</td>
+</tr>
+<tr>
+<td>并行无依赖的操作</td>
+<td>用 CompositeFuture.all，别串行等待</td>
+</tr>
+<tr>
+<td>不要在 compose 里嵌套 compose</td>
+<td>保持链式平铺，嵌套 &#x3D; 回调地狱变种</td>
+</tr>
+<tr>
+<td>避免在 Future 链中共享可变状态</td>
+<td>用 map 传递数据，而不是外部变量</td>
+</tr>
+</tbody></table>
+<h2 id="反模式警示"><a href="#反模式警示" class="headerlink" title="反模式警示"></a>反模式警示</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误：compose 里嵌套</span></span><br><span class="line">step1().compose(a -&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> step2(a).compose(b -&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> step3(b).compose(c -&gt; &#123;</span><br><span class="line">      <span class="keyword">return</span> step4(c);  <span class="comment">// 又套起来了！</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 正确：平铺链式</span></span><br><span class="line">step1()</span><br><span class="line">  .compose(a -&gt; step2(a))</span><br><span class="line">  .compose(b -&gt; step3(b))</span><br><span class="line">  .compose(c -&gt; step4(c));</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="📌-10-本章总结"><a href="#📌-10-本章总结" class="headerlink" title="📌 10. 本章总结"></a>📌 10. 本章总结</h1><p>本章你已经掌握了：</p>
+<ul>
+<li><strong>Promise&#x2F;Future 的关系</strong>：Promise 写入，Future 读取</li>
+<li><strong>compose</strong>：串联异步操作，消灭回调地狱</li>
+<li><strong>map</strong>：同步转换 Future 的结果</li>
+<li><strong>CompositeFuture</strong>：all &#x2F; any &#x2F; join 并行编排</li>
+<li><strong>recover &#x2F; otherwise</strong>：错误恢复与降级</li>
+<li><strong>超时控制</strong>：用 Timer + Promise 实现</li>
+<li><strong>循环异步</strong>：顺序执行和并行执行列表操作</li>
+<li><strong>完整实战</strong>：电商下单流程中综合使用各种技巧</li>
+</ul>
+<p>掌握 Future 组合后，你就拥有了 Vert.x 异步编程的核心能力。接下来我们会基于 Event Bus + Future，构建一个<strong>轻量级 Actor 系统</strong>——让你看到 Verticle 不只是”部署单元”，它本身就是一个强大的并发模型。</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第五弹：Future组合与异步编排</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-07-04 10:00:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-07-04 13:22:37
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/2026/07/04/vertx-series-5/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Vert-x/">#Vert.x</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/NIO/">#NIO</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Netty/">#Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Distribution/">#Distribution</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Java/">#Java</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="prev" rel="prev" href="/2026/07/04/vertx-series-6/">
+					<span class="left arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-left"></i>
+					</span>
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统</span>
+						<span class="post-nav-item">Prev posts</span>
+					</span>
+				</a>
+			</div>
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2025/12/06/vertx-series-4/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第四弹：Event Bus入门</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">Vert.x从入门到放弃第五弹：Future组合与异步编排</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%BB%8E-Event-Bus-%E7%9A%84-reply-%E8%AF%B4%E8%B5%B7"><span class="nav-text">🌟 1. 从 Event Bus 的 reply 说起</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-2-Future-%E4%B8%8E-Promise-%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="nav-text">🎯 2. Future 与 Promise 的本质</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Future%EF%BC%9A%E4%B8%80%E4%B8%AA%E2%80%9D%E6%9C%AA%E6%9D%A5%E7%9A%84%E7%BB%93%E6%9E%9C%E2%80%9D"><span class="nav-text">Future：一个”未来的结果”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Promise%EF%BC%9AFuture-%E7%9A%84%E2%80%9D%E5%86%99%E5%85%A5%E7%AB%AF%E2%80%9D"><span class="nav-text">Promise：Future 的”写入端”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E7%90%86%E8%A7%A3"><span class="nav-text">一句话理解</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%97-3-compose%EF%BC%9A%E9%93%BE%E5%BC%8F%E5%BC%82%E6%AD%A5%E7%BC%96%E6%8E%92"><span class="nav-text">🔗 3. compose：链式异步编排</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-text">基本语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%88%98%EF%BC%9A%E4%B8%8B%E5%8D%95%E6%B5%81%E7%A8%8B"><span class="nav-text">实战：下单流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#compose-vs-map"><span class="nav-text">compose vs map</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-4-CompositeFuture%EF%BC%9A%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E6%93%8D%E4%BD%9C"><span class="nav-text">⚡ 4. CompositeFuture：并行执行多个异步操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#all%EF%BC%9A%E5%85%A8%E9%83%A8%E6%88%90%E5%8A%9F%E6%89%8D%E7%AE%97%E6%88%90%E5%8A%9F"><span class="nav-text">all：全部成功才算成功</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#any%EF%BC%9A%E4%BB%BB%E4%B8%80%E6%88%90%E5%8A%9F%E5%8D%B3%E7%AE%97%E6%88%90%E5%8A%9F"><span class="nav-text">any：任一成功即算成功</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#join%EF%BC%9A%E7%AD%89%E6%89%80%E6%9C%89%E9%83%BD%E5%AE%8C%E6%88%90%EF%BC%88%E4%B8%8D%E7%AE%A1%E6%88%90%E8%B4%A5%EF%BC%89"><span class="nav-text">join：等所有都完成（不管成败）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93"><span class="nav-text">对比总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9B%A1-5-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E6%81%A2%E5%A4%8D"><span class="nav-text">🛡 5. 错误处理与恢复</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#recover%EF%BC%9A%E5%A4%B1%E8%B4%A5%E6%97%B6%E7%9A%84%E9%99%8D%E7%BA%A7%E9%80%BB%E8%BE%91"><span class="nav-text">recover：失败时的降级逻辑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#otherwise%EF%BC%9A%E5%A4%B1%E8%B4%A5%E6%97%B6%E8%BF%94%E5%9B%9E%E9%BB%98%E8%AE%A4%E5%80%BC"><span class="nav-text">otherwise：失败时返回默认值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#otherwise-%E5%B8%A6%E9%80%BB%E8%BE%91"><span class="nav-text">otherwise 带逻辑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8-compose-%E9%93%BE%E4%B8%AD%E5%A4%84%E7%90%86%E9%94%99%E8%AF%AF"><span class="nav-text">在 compose 链中处理错误</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%A7-6-%E5%AE%9E%E7%94%A8%E6%8A%80%E5%B7%A7"><span class="nav-text">🔧 6. 实用技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-Future-succeededFuture-Future-failedFuture"><span class="nav-text">① Future.succeededFuture &#x2F; Future.failedFuture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-%E8%B6%85%E6%97%B6%E6%8E%A7%E5%88%B6"><span class="nav-text">② 超时控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-%E5%B0%81%E8%A3%85%E6%88%90%E9%80%9A%E7%94%A8%E7%9A%84-withTimeout-%E5%B7%A5%E5%85%B7"><span class="nav-text">③ 封装成通用的 withTimeout 工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A3-%E5%BE%AA%E7%8E%AF%E4%B8%AD%E7%9A%84%E5%BC%82%E6%AD%A5%E7%BC%96%E6%8E%92"><span class="nav-text">④ 循环中的异步编排</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-7-%E5%AE%8C%E6%95%B4%E5%AE%9E%E6%88%98%EF%BC%9A%E7%94%B5%E5%95%86%E4%B8%8B%E5%8D%95%E6%B5%81%E7%A8%8B%E7%BC%96%E6%8E%92"><span class="nav-text">🧪 7. 完整实战：电商下单流程编排</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%86%9A-8-%E5%AF%B9%E6%AF%94%E5%85%B6%E4%BB%96%E5%BC%82%E6%AD%A5%E6%96%B9%E6%A1%88"><span class="nav-text">🆚 8. 对比其他异步方案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-9-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-text">🎯 9. 最佳实践</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E6%A8%A1%E5%BC%8F%E8%AD%A6%E7%A4%BA"><span class="nav-text">反模式警示</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-10-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 10. 本章总结</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        8 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>

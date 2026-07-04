@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2026/07/04/vertx-series-7/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发">
+<meta property="og:url" content="http://example.com/2026/07/04/vertx-series-7/index.html">
+<meta property="og:site_name" content="Elvis&#39; Guraden">
+<meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-07-04T10:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T05:46:44.254Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="Distribution">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Vert.x">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发 | Elvis&#39; Guraden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Hexo Theme Redefine, Redefine Your Hexo Journey."},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Tags":{"icon":"fa-solid fa-tags","path":"/tags/"},"About":{"icon":"fa-regular fa-user","path":"/about/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Guraden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    TAGS
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    ABOUT
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                TAGS
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                ABOUT
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">8</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">8</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-07-04 18:00</span>
+        <span class="mobile">2026-07-04 18:00</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-07-04 13:46:44</span>
+            <span class="mobile">2026-07-04 13:46:44</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/NIO/">NIO</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Netty/">Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Distribution/">Distribution</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<h1 id="🌟-1-灵魂拷问：为什么-Vert-x-只用几个线程就能处理数万并发？"><a href="#🌟-1-灵魂拷问：为什么-Vert-x-只用几个线程就能处理数万并发？" class="headerlink" title="🌟 1. 灵魂拷问：为什么 Vert.x 只用几个线程就能处理数万并发？"></a>🌟 1. 灵魂拷问：为什么 Vert.x 只用几个线程就能处理数万并发？</h1><p>前面几篇我们一直在说：</p>
+<ul>
+<li>“不要阻塞 Event Loop”</li>
+<li>“Verticle 在同一个 Event Loop 上运行”</li>
+<li>“Worker Verticle 用另一个线程池”</li>
+</ul>
+<p>但你是否真正理解——<strong>Event Loop 到底在做什么？为什么一个线程能同时服务几千个连接？</strong></p>
+<p>本篇从底层彻底讲清楚 Vert.x 的线程模型。理解了它，你才能写出真正高性能的代码，而不只是”凑巧能跑”。</p>
+<h1 id="🎯-2-传统模型-vs-Event-Loop-模型"><a href="#🎯-2-传统模型-vs-Event-Loop-模型" class="headerlink" title="🎯 2. 传统模型 vs Event Loop 模型"></a>🎯 2. 传统模型 vs Event Loop 模型</h1><h2 id="传统-BIO：一个连接一个线程"><a href="#传统-BIO：一个连接一个线程" class="headerlink" title="传统 BIO：一个连接一个线程"></a>传统 BIO：一个连接一个线程</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Client-1 ──→ Thread-1 [读取...等待...处理...写入]</span><br><span class="line">Client-2 ──→ Thread-2 [读取...等待...处理...写入]</span><br><span class="line">Client-3 ──→ Thread-3 [读取...等待...处理...写入]</span><br><span class="line">...</span><br><span class="line">Client-10000 ──→ Thread-10000 [❌ OOM / 线程切换开销爆炸]</span><br></pre></td></tr></table></figure></div>
+
+<p>问题：</p>
+<ul>
+<li>每个线程占 ~1MB 栈内存，10000 连接 &#x3D; 10GB</li>
+<li>大部分时间线程在<strong>等待 IO</strong>（网络、磁盘），CPU 空转</li>
+<li>线程上下文切换成本：每次 ~1-10μs，高并发下切换开销比业务处理还大</li>
+</ul>
+<h2 id="Event-Loop：一个线程服务所有连接"><a href="#Event-Loop：一个线程服务所有连接" class="headerlink" title="Event Loop：一个线程服务所有连接"></a>Event Loop：一个线程服务所有连接</h2><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">                    ┌── fd1 可读 → 回调处理</span><br><span class="line">Event Loop Thread ──┤── fd2 可写 → 回调处理</span><br><span class="line">                    ├── fd3 可读 → 回调处理</span><br><span class="line">                    └── timer 到期 → 回调处理</span><br></pre></td></tr></table></figure></div>
+
+<p>核心区别：<strong>线程不再等待 IO，而是 IO 就绪后通知线程来处理。</strong></p>
+<p>这就是 NIO（Non-blocking IO）+ 事件驱动的本质。</p>
+<h2 id="一个类比"><a href="#一个类比" class="headerlink" title="一个类比"></a>一个类比</h2><blockquote>
+<p><strong>传统模型</strong>像餐厅里每桌配一个服务员——大部分时间站着等客人看菜单。<br><strong>Event Loop</strong>像一个高效的服务员负责所有桌——哪桌举手就过去处理，绝不站着干等。</p>
+</blockquote>
+<h1 id="🏗-3-Vert-x-线程架构全景"><a href="#🏗-3-Vert-x-线程架构全景" class="headerlink" title="🏗 3. Vert.x 线程架构全景"></a>🏗 3. Vert.x 线程架构全景</h1><div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────┐</span><br><span class="line">│                      Vert.x Instance                     │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│                                                          │</span><br><span class="line">│  ┌──────────────── Event Loop Group ──────────────────┐  │</span><br><span class="line">│  │                                                    │  │</span><br><span class="line">│  │  EL-0    EL-1    EL-2    ... EL-N                  │  │</span><br><span class="line">│  │  ┌───┐  ┌───┐  ┌───┐       ┌───┐                  │  │</span><br><span class="line">│  │  │ V1│  │ V3│  │ V5│       │...│   (Standard)     │  │</span><br><span class="line">│  │  │ V2│  │ V4│  │ V6│       │...│   (Verticles)    │  │</span><br><span class="line">│  │  └───┘  └───┘  └───┘       └───┘                  │  │</span><br><span class="line">│  └────────────────────────────────────────────────────┘  │</span><br><span class="line">│                                                          │</span><br><span class="line">│  ┌──────────────── Worker Pool ───────────────────────┐  │</span><br><span class="line">│  │                                                    │  │</span><br><span class="line">│  │  W-0    W-1    W-2    ... W-M                      │  │</span><br><span class="line">│  │  ┌───┐  ┌───┐  ┌───┐     ┌───┐                    │  │</span><br><span class="line">│  │  │WV1│  │WV2│  │   │     │   │   (Worker         │  │</span><br><span class="line">│  │  └───┘  └───┘  └───┘     └───┘    Verticles)     │  │</span><br><span class="line">│  └────────────────────────────────────────────────────┘  │</span><br><span class="line">│                                                          │</span><br><span class="line">│  ┌──────────────── Internal Pool ─────────────────────┐  │</span><br><span class="line">│  │  (File system operations, DNS, etc.)               │  │</span><br><span class="line">│  └────────────────────────────────────────────────────┘  │</span><br><span class="line">│                                                          │</span><br><span class="line">└─────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure></div>
+
+<p>三类线程池：</p>
+<table>
+<thead>
+<tr>
+<th>线程池</th>
+<th>默认大小</th>
+<th>职责</th>
+<th>线程名前缀</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Event Loop</td>
+<td>CPU 核心数 × 2</td>
+<td>非阻塞操作、Verticle 回调</td>
+<td><code>vert.x-eventloop-thread-</code></td>
+</tr>
+<tr>
+<td>Worker Pool</td>
+<td>20</td>
+<td>阻塞操作（executeBlocking）</td>
+<td><code>vert.x-worker-thread-</code></td>
+</tr>
+<tr>
+<td>Internal Pool</td>
+<td>20</td>
+<td>文件系统、DNS 等内部操作</td>
+<td><code>vert.x-internal-blocking-</code></td>
+</tr>
+</tbody></table>
+<h1 id="🔍-4-Event-Loop-的工作循环"><a href="#🔍-4-Event-Loop-的工作循环" class="headerlink" title="🔍 4. Event Loop 的工作循环"></a>🔍 4. Event Loop 的工作循环</h1><p>每个 Event Loop 线程本质上是一个无限循环：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 伪代码：Event Loop 的核心逻辑</span></span><br><span class="line"><span class="keyword">while</span> (running) &#123;</span><br><span class="line">  <span class="comment">// 1. 执行到期的定时器任务</span></span><br><span class="line">  runTimerCallbacks();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 通过 epoll/kqueue 检查哪些 IO 就绪</span></span><br><span class="line">  <span class="type">int</span> <span class="variable">readyCount</span> <span class="operator">=</span> selector.select(timeout);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 3. 处理就绪的 IO 事件</span></span><br><span class="line">  <span class="keyword">for</span> (SelectionKey key : selector.selectedKeys()) &#123;</span><br><span class="line">    <span class="keyword">if</span> (key.isReadable()) &#123;</span><br><span class="line">      fireReadCallback(key);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (key.isWritable()) &#123;</span><br><span class="line">      fireWriteCallback(key);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (key.isAcceptable()) &#123;</span><br><span class="line">      acceptNewConnection(key);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 4. 执行队列中的微任务（runOnContext 提交的）</span></span><br><span class="line">  runPendingTasks();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>关键洞察：</strong> <code>selector.select()</code> 是唯一会”等待”的地方——但它等的不是某一个连接，而是<strong>所有注册的连接中任意一个有事件</strong>。一旦有事件，立即醒来处理。</p>
+<p>这就是为什么一个线程能管理数千连接——它从不傻等某一个连接。</p>
+<h1 id="⚡-5-黄金法则：永远不要阻塞-Event-Loop"><a href="#⚡-5-黄金法则：永远不要阻塞-Event-Loop" class="headerlink" title="⚡ 5. 黄金法则：永远不要阻塞 Event Loop"></a>⚡ 5. 黄金法则：永远不要阻塞 Event Loop</h1><h2 id="什么算”阻塞”？"><a href="#什么算”阻塞”？" class="headerlink" title="什么算”阻塞”？"></a>什么算”阻塞”？</h2><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>是否阻塞</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Thread.sleep()</code></td>
+<td>✅</td>
+<td>直接冻结线程</td>
+</tr>
+<tr>
+<td><code>JDBC</code> 查询</td>
+<td>✅</td>
+<td>传统数据库驱动是同步的</td>
+</tr>
+<tr>
+<td><code>File.readFileSync()</code></td>
+<td>✅</td>
+<td>同步文件读取</td>
+</tr>
+<tr>
+<td><code>synchronized</code> 等锁</td>
+<td>✅</td>
+<td>锁竞争时阻塞</td>
+</tr>
+<tr>
+<td><code>CountDownLatch.await()</code></td>
+<td>✅</td>
+<td>等待其他线程</td>
+</tr>
+<tr>
+<td>CPU 密集计算（&gt;10ms）</td>
+<td>⚠️</td>
+<td>虽然不阻塞但霸占线程</td>
+</tr>
+<tr>
+<td><code>vertx.fileSystem().readFile()</code></td>
+<td>❌</td>
+<td>异步，交给 Internal Pool</td>
+</tr>
+<tr>
+<td><code>eventBus.request()</code></td>
+<td>❌</td>
+<td>异步，注册回调</td>
+</tr>
+<tr>
+<td><code>httpClient.request()</code></td>
+<td>❌</td>
+<td>异步，基于 Netty</td>
+</tr>
+</tbody></table>
+<h2 id="阻塞的后果"><a href="#阻塞的后果" class="headerlink" title="阻塞的后果"></a>阻塞的后果</h2><p>一个 Event Loop 线程通常负责数百个 Verticle 和数千个连接。如果你阻塞了它：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">EL-2 线程被阻塞 5 秒</span><br><span class="line">├── Verticle-A 的所有回调暂停 5 秒</span><br><span class="line">├── Verticle-B 的所有回调暂停 5 秒</span><br><span class="line">├── Verticle-C 的所有回调暂停 5 秒</span><br><span class="line">├── 该线程上所有 HTTP 连接无响应 5 秒</span><br><span class="line">└── 定时器全部延迟 5 秒</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>一个阻塞调用，影响的是这个 Event Loop 上的所有任务。</strong></p>
+<h2 id="真实踩坑案例"><a href="#真实踩坑案例" class="headerlink" title="真实踩坑案例"></a>真实踩坑案例</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 灾难代码：在 Event Loop 上执行 JDBC 查询</span></span><br><span class="line">vertx.eventBus().consumer(<span class="string">&quot;user.get&quot;</span>, msg -&gt; &#123;</span><br><span class="line">  <span class="type">String</span> <span class="variable">userId</span> <span class="operator">=</span> msg.body().toString();</span><br><span class="line">  <span class="comment">// 这里会阻塞 Event Loop 几十到几百毫秒！</span></span><br><span class="line">  <span class="type">ResultSet</span> <span class="variable">rs</span> <span class="operator">=</span> connection.executeQuery(<span class="string">&quot;SELECT * FROM users WHERE id = &quot;</span> + userId);</span><br><span class="line">  msg.reply(rs.getString(<span class="string">&quot;name&quot;</span>));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<p>上线后的表现：</p>
+<ul>
+<li>低流量时一切正常（阻塞时间短，感觉不到）</li>
+<li>流量上来后，响应时间从 5ms 飙升到 5000ms</li>
+<li>监控显示 CPU 使用率很低（线程在等 IO，不是在算）</li>
+<li>BlockedThreadChecker 疯狂报警</li>
+</ul>
+<h1 id="🚨-6-BlockedThreadChecker：你的保命工具"><a href="#🚨-6-BlockedThreadChecker：你的保命工具" class="headerlink" title="🚨 6. BlockedThreadChecker：你的保命工具"></a>🚨 6. BlockedThreadChecker：你的保命工具</h1><p>Vert.x 内置了阻塞检测器——如果 Event Loop 线程超过阈值时间没有返回，会打印警告：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">WARNING: Thread Thread[vert.x-eventloop-thread-0] has been blocked for 2031 ms,</span><br><span class="line">time limit is 2000 ms</span><br><span class="line">io.vertx.core.VertxException: Thread blocked</span><br><span class="line">    at java.base/java.lang.Thread.sleep(Native Method)</span><br><span class="line">    at com.example.MyVerticle.lambda$start$0(MyVerticle.java:15)</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="默认阈值"><a href="#默认阈值" class="headerlink" title="默认阈值"></a>默认阈值</h2><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>blockedThreadCheckInterval</code></td>
+<td>1000ms</td>
+<td>检查间隔</td>
+</tr>
+<tr>
+<td><code>maxEventLoopExecuteTime</code></td>
+<td>2000ms</td>
+<td>Event Loop 阻塞阈值</td>
+</tr>
+<tr>
+<td><code>maxWorkerExecuteTime</code></td>
+<td>60s</td>
+<td>Worker 线程阻塞阈值</td>
+</tr>
+</tbody></table>
+<h2 id="自定义阈值"><a href="#自定义阈值" class="headerlink" title="自定义阈值"></a>自定义阈值</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">VertxOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">  .setBlockedThreadCheckInterval(<span class="number">500</span>)</span><br><span class="line">  .setMaxEventLoopExecuteTime(<span class="number">1000</span>)</span><br><span class="line">  .setMaxEventLoopExecuteTimeUnit(TimeUnit.MILLISECONDS);</span><br><span class="line"></span><br><span class="line"><span class="type">Vertx</span> <span class="variable">vertx</span> <span class="operator">=</span> Vertx.vertx(options);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="生产环境建议"><a href="#生产环境建议" class="headerlink" title="生产环境建议"></a>生产环境建议</h2><p>开发阶段用严格阈值（500ms），及早发现问题。但<strong>不要</strong>在生产环境关闭它——它是你发现性能退化的第一道防线。</p>
+<h1 id="🔧-7-正确处理阻塞操作"><a href="#🔧-7-正确处理阻塞操作" class="headerlink" title="🔧 7. 正确处理阻塞操作"></a>🔧 7. 正确处理阻塞操作</h1><h2 id="方案一：executeBlocking"><a href="#方案一：executeBlocking" class="headerlink" title="方案一：executeBlocking"></a>方案一：executeBlocking</h2><p>把阻塞代码扔给 Worker Pool：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">vertx.eventBus().consumer(<span class="string">&quot;user.get&quot;</span>, msg -&gt; &#123;</span><br><span class="line">  <span class="type">String</span> <span class="variable">userId</span> <span class="operator">=</span> msg.body().toString();</span><br><span class="line"></span><br><span class="line">  vertx.executeBlocking(() -&gt; &#123;</span><br><span class="line">    <span class="comment">// 这段代码在 Worker 线程执行，不影响 Event Loop</span></span><br><span class="line">    <span class="keyword">return</span> jdbcConnection.query(<span class="string">&quot;SELECT * FROM users WHERE id = ?&quot;</span>, userId);</span><br><span class="line">  &#125;).onSuccess(result -&gt; &#123;</span><br><span class="line">    msg.reply(result.getString(<span class="string">&quot;name&quot;</span>));  <span class="comment">// 回到 Event Loop</span></span><br><span class="line">  &#125;).onFailure(err -&gt; &#123;</span><br><span class="line">    msg.fail(<span class="number">500</span>, err.getMessage());</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="方案二：Worker-Verticle"><a href="#方案二：Worker-Verticle" class="headerlink" title="方案二：Worker Verticle"></a>方案二：Worker Verticle</h2><p>整个 Verticle 跑在 Worker 线程上：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">JdbcVerticle</span>(),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setWorker(<span class="literal">true</span>));</span><br></pre></td></tr></table></figure></div>
+
+<p>Worker Verticle 内部可以随意写阻塞代码，但要注意：</p>
+<ul>
+<li>Worker Verticle 保证<strong>顺序性</strong>（同一时刻只处理一条消息）</li>
+<li>但它不在 Event Loop 上，无法直接操作 Event Loop 资源</li>
+</ul>
+<h2 id="方案三：使用异步客户端"><a href="#方案三：使用异步客户端" class="headerlink" title="方案三：使用异步客户端"></a>方案三：使用异步客户端</h2><p>最佳方案——根本不要阻塞：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Vert.x 异步 SQL 客户端（非 JDBC）</span></span><br><span class="line"><span class="type">SqlClient</span> <span class="variable">client</span> <span class="operator">=</span> PgPool.client(vertx, connectOptions, poolOptions);</span><br><span class="line"></span><br><span class="line">client.preparedQuery(<span class="string">&quot;SELECT * FROM users WHERE id = $1&quot;</span>)</span><br><span class="line">  .execute(Tuple.of(userId))</span><br><span class="line">  .onSuccess(rows -&gt; &#123;</span><br><span class="line">    <span class="comment">// 全程非阻塞，直接在 Event Loop 上处理</span></span><br><span class="line">    msg.reply(rows.iterator().next().getString(<span class="string">&quot;name&quot;</span>));</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="三种方案对比"><a href="#三种方案对比" class="headerlink" title="三种方案对比"></a>三种方案对比</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>性能</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>异步客户端</td>
+<td>⭐⭐⭐ 最佳</td>
+<td>有异步驱动可用时（推荐）</td>
+</tr>
+<tr>
+<td>executeBlocking</td>
+<td>⭐⭐ 一般</td>
+<td>偶尔的阻塞调用、调用第三方同步 SDK</td>
+</tr>
+<tr>
+<td>Worker Verticle</td>
+<td>⭐⭐ 一般</td>
+<td>整个模块都是阻塞逻辑（如文件处理）</td>
+</tr>
+</tbody></table>
+<h1 id="🧠-8-Context：线程与-Verticle-的桥梁"><a href="#🧠-8-Context：线程与-Verticle-的桥梁" class="headerlink" title="🧠 8. Context：线程与 Verticle 的桥梁"></a>🧠 8. Context：线程与 Verticle 的桥梁</h1><p>Context 是 Vert.x 中一个容易忽略但极其重要的概念。</p>
+<h2 id="什么是-Context？"><a href="#什么是-Context？" class="headerlink" title="什么是 Context？"></a>什么是 Context？</h2><p>每个 Verticle 启动时会绑定一个 Context。Context 保证：</p>
+<ol>
+<li><strong>同一个 Verticle 的所有回调在同一个 Event Loop 线程执行</strong></li>
+<li><strong>回调的执行顺序与注册顺序一致</strong></li>
+</ol>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 无论多少次回调，都保证在同一个线程</span></span><br><span class="line">System.out.println(Thread.currentThread().getName());</span><br><span class="line"><span class="comment">// 输出：vert.x-eventloop-thread-2</span></span><br><span class="line"></span><br><span class="line">vertx.setTimer(<span class="number">100</span>, id -&gt; &#123;</span><br><span class="line">  System.out.println(Thread.currentThread().getName());</span><br><span class="line">  <span class="comment">// 输出：vert.x-eventloop-thread-2（同一个！）</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">vertx.eventBus().consumer(<span class="string">&quot;test&quot;</span>, msg -&gt; &#123;</span><br><span class="line">  System.out.println(Thread.currentThread().getName());</span><br><span class="line">  <span class="comment">// 输出：vert.x-eventloop-thread-2（还是同一个！）</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="Context-的类型"><a href="#Context-的类型" class="headerlink" title="Context 的类型"></a>Context 的类型</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 获取当前 Context</span></span><br><span class="line"><span class="type">Context</span> <span class="variable">ctx</span> <span class="operator">=</span> vertx.getOrCreateContext();</span><br><span class="line"></span><br><span class="line">ctx.isEventLoopContext();   <span class="comment">// Standard Verticle</span></span><br><span class="line">ctx.isWorkerContext();      <span class="comment">// Worker Verticle</span></span><br></pre></td></tr></table></figure></div>
+
+<h2 id="runOnContext：安全地切回-Event-Loop"><a href="#runOnContext：安全地切回-Event-Loop" class="headerlink" title="runOnContext：安全地切回 Event Loop"></a>runOnContext：安全地切回 Event Loop</h2><p>当你在非 Vert.x 线程（比如第三方库的回调线程）需要操作 Verticle 资源时：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在外部线程中（如 CompletableFuture 的回调）</span></span><br><span class="line">someThirdPartyLib.asyncCall(result -&gt; &#123;</span><br><span class="line">  <span class="comment">// ⚠️ 此时不在 Event Loop 上！直接操作 Verticle 状态不安全</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// ✅ 安全方式：切回 Verticle 的 Context</span></span><br><span class="line">  context.runOnContext(v -&gt; &#123;</span><br><span class="line">    <span class="comment">// 现在安全了，回到了正确的 Event Loop 线程</span></span><br><span class="line">    <span class="built_in">this</span>.state = result;</span><br><span class="line">    vertx.eventBus().send(<span class="string">&quot;update&quot;</span>, result);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="📊-9-性能实验：数据说话"><a href="#📊-9-性能实验：数据说话" class="headerlink" title="📊 9. 性能实验：数据说话"></a>📊 9. 性能实验：数据说话</h1><h2 id="实验设置"><a href="#实验设置" class="headerlink" title="实验设置"></a>实验设置</h2><p>同一段逻辑，分别用三种模型跑基准测试：</p>
+<ul>
+<li><strong>BIO 模型</strong>：每请求一线程（Tomcat 默认）</li>
+<li><strong>Vert.x Event Loop</strong>：纯异步</li>
+<li><strong>Vert.x + 阻塞调用</strong>：在 Event Loop 上做了一次 Thread.sleep(1ms) 模拟微小阻塞</li>
+</ul>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">场景：HTTP echo 服务，返回 &quot;Hello World&quot;</span><br><span class="line">工具：wrk -t4 -c1000 -d30s</span><br><span class="line">机器：4 核 8G</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>QPS</th>
+<th>平均延迟</th>
+<th>P99 延迟</th>
+<th>线程数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BIO（200 线程池）</td>
+<td>~18,000</td>
+<td>55ms</td>
+<td>320ms</td>
+<td>200</td>
+</tr>
+<tr>
+<td>Vert.x Event Loop</td>
+<td>~120,000</td>
+<td>8ms</td>
+<td>15ms</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Vert.x + 1ms 阻塞</td>
+<td>~7,500</td>
+<td>130ms</td>
+<td>800ms</td>
+<td>8</td>
+</tr>
+</tbody></table>
+<p><strong>关键发现：</strong></p>
+<ul>
+<li>纯 Event Loop 比 BIO 快 6-7 倍，延迟低一个数量级</li>
+<li><strong>仅仅 1ms 的阻塞</strong>就让 Vert.x 的吞吐量从 12 万暴跌到 7500——降了 94%！</li>
+<li>这就是为什么”不要阻塞 Event Loop”不是建议，而是铁律</li>
+</ul>
+<h2 id="为什么-1ms-阻塞影响这么大？"><a href="#为什么-1ms-阻塞影响这么大？" class="headerlink" title="为什么 1ms 阻塞影响这么大？"></a>为什么 1ms 阻塞影响这么大？</h2><p>算一笔账：</p>
+<ul>
+<li>8 个 Event Loop 线程</li>
+<li>每个线程被阻塞 1ms &#x3D; 每秒每线程最多处理 1000 个请求</li>
+<li>8 × 1000 &#x3D; 8000 QPS（理论上限）</li>
+<li>实际还有调度开销，所以是 7500</li>
+</ul>
+<p>而非阻塞模式下，处理一个请求只需 ~8μs，一个线程每秒能处理 125,000 次。</p>
+<p><strong>阻塞时间 × 线程数 &#x3D; 吞吐量天花板。</strong></p>
+<h1 id="🔬-10-源码级解读：Event-Loop-如何分配给-Verticle"><a href="#🔬-10-源码级解读：Event-Loop-如何分配给-Verticle" class="headerlink" title="🔬 10. 源码级解读：Event Loop 如何分配给 Verticle"></a>🔬 10. 源码级解读：Event Loop 如何分配给 Verticle</h1><p>当你调用 <code>vertx.deployVerticle()</code> 时，内部发生了什么？</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 简化后的核心逻辑（VertxImpl.java）</span></span><br><span class="line"><span class="keyword">public</span> Future&lt;String&gt; <span class="title function_">deployVerticle</span><span class="params">(Verticle verticle, DeploymentOptions options)</span> &#123;</span><br><span class="line">  <span class="comment">// 1. 选择一个 Event Loop（Round-Robin）</span></span><br><span class="line">  <span class="type">EventLoop</span> <span class="variable">eventLoop</span> <span class="operator">=</span> eventLoopGroup.next();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 创建 Context，绑定到这个 Event Loop</span></span><br><span class="line">  <span class="type">ContextImpl</span> <span class="variable">context</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">EventLoopContext</span>(<span class="built_in">this</span>, eventLoop, ...);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 3. 在这个 Context（即这个 Event Loop 线程）上执行 verticle.start()</span></span><br><span class="line">  context.runOnContext(v -&gt; &#123;</span><br><span class="line">    verticle.init(<span class="built_in">this</span>, context);</span><br><span class="line">    verticle.start(startPromise);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>分配策略是 <strong>Round-Robin</strong>：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Deploy V1 → EL-0</span><br><span class="line">Deploy V2 → EL-1</span><br><span class="line">Deploy V3 → EL-2</span><br><span class="line">Deploy V4 → EL-3</span><br><span class="line">Deploy V5 → EL-0  (循环回来)</span><br><span class="line">Deploy V6 → EL-1</span><br><span class="line">...</span><br></pre></td></tr></table></figure></div>
+
+<p>所以如果你部署 100 个 Verticle 实例，它们会<strong>均匀分布</strong>在所有 Event Loop 线程上。</p>
+<h1 id="🛠-11-调优参数"><a href="#🛠-11-调优参数" class="headerlink" title="🛠 11. 调优参数"></a>🛠 11. 调优参数</h1><h2 id="Event-Loop-线程数"><a href="#Event-Loop-线程数" class="headerlink" title="Event Loop 线程数"></a>Event Loop 线程数</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">VertxOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">  .setEventLoopPoolSize(<span class="number">16</span>);  <span class="comment">// 默认 CPU × 2</span></span><br></pre></td></tr></table></figure></div>
+
+<p>调优建议：</p>
+<ul>
+<li>CPU 密集型（大量 JSON 解析&#x2F;计算）→ 可适当增大</li>
+<li>IO 密集型（纯转发&#x2F;代理）→ 默认值即可</li>
+<li>一般不需要改，默认的 CPU × 2 覆盖大部分场景</li>
+</ul>
+<h2 id="Worker-Pool-大小"><a href="#Worker-Pool-大小" class="headerlink" title="Worker Pool 大小"></a>Worker Pool 大小</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">VertxOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">  .setWorkerPoolSize(<span class="number">40</span>);  <span class="comment">// 默认 20</span></span><br></pre></td></tr></table></figure></div>
+
+<p>如果 executeBlocking 调用很多且耗时较长，可以增大。但更好的做法是用异步客户端消除阻塞。</p>
+<h2 id="自定义-Worker-Pool"><a href="#自定义-Worker-Pool" class="headerlink" title="自定义 Worker Pool"></a>自定义 Worker Pool</h2><p>为不同业务隔离线程资源：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 为 CPU 密集任务创建独立线程池</span></span><br><span class="line"><span class="type">WorkerExecutor</span> <span class="variable">imageProcessor</span> <span class="operator">=</span> vertx.createSharedWorkerExecutor(</span><br><span class="line">  <span class="string">&quot;image-pool&quot;</span>,   <span class="comment">// 名称</span></span><br><span class="line">  <span class="number">4</span>,              <span class="comment">// 线程数</span></span><br><span class="line">  <span class="number">60</span>,             <span class="comment">// 最大执行时间（秒）</span></span><br><span class="line">  TimeUnit.SECONDS</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">imageProcessor.executeBlocking(() -&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> processImage(rawData);  <span class="comment">// 不影响默认 Worker Pool</span></span><br><span class="line">&#125;).onSuccess(result -&gt; &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用完记得关闭</span></span><br><span class="line">imageProcessor.close();</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="Verticle-实例数"><a href="#Verticle-实例数" class="headerlink" title="Verticle 实例数"></a>Verticle 实例数</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vertx.deployVerticle(MyVerticle.class.getName(),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setInstances(<span class="number">8</span>));</span><br></pre></td></tr></table></figure></div>
+
+<p>多实例的作用：</p>
+<ul>
+<li>充分利用所有 Event Loop 线程</li>
+<li>如果单个 Verticle 处理不过来（CPU 饱和），增加实例数</li>
+</ul>
+<p>经验法则：<strong>实例数 &#x3D; Event Loop 线程数</strong>，让每个线程分到一个实例。</p>
+<h1 id="🧪-12-诊断工具"><a href="#🧪-12-诊断工具" class="headerlink" title="🧪 12. 诊断工具"></a>🧪 12. 诊断工具</h1><h2 id="①-打印当前线程（快速判断是否在-Event-Loop-上）"><a href="#①-打印当前线程（快速判断是否在-Event-Loop-上）" class="headerlink" title="① 打印当前线程（快速判断是否在 Event Loop 上）"></a>① 打印当前线程（快速判断是否在 Event Loop 上）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">checkThread</span><span class="params">(String label)</span> &#123;</span><br><span class="line">  <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> Thread.currentThread().getName();</span><br><span class="line">  <span class="type">boolean</span> <span class="variable">isEventLoop</span> <span class="operator">=</span> name.contains(<span class="string">&quot;eventloop&quot;</span>);</span><br><span class="line">  System.out.println(<span class="string">&quot;[&quot;</span> + label + <span class="string">&quot;] Thread: &quot;</span> + name + <span class="string">&quot; (EventLoop: &quot;</span> + isEventLoop + <span class="string">&quot;)&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="②-Vert-x-Metrics（Micrometer）"><a href="#②-Vert-x-Metrics（Micrometer）" class="headerlink" title="② Vert.x Metrics（Micrometer）"></a>② Vert.x Metrics（Micrometer）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">VertxOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxOptions</span>()</span><br><span class="line">  .setMetricsOptions(<span class="keyword">new</span> <span class="title class_">MicrometerMetricsOptions</span>()</span><br><span class="line">    .setEnabled(<span class="literal">true</span>)</span><br><span class="line">    .setPrometheusOptions(<span class="keyword">new</span> <span class="title class_">VertxPrometheusOptions</span>().setEnabled(<span class="literal">true</span>)));</span><br></pre></td></tr></table></figure></div>
+
+<p>关注的指标：</p>
+<ul>
+<li><code>vertx.eventbus.pending</code> — Event Bus 积压消息数</li>
+<li><code>vertx.pool.queue.size</code> — Worker Pool 排队任务数</li>
+<li><code>vertx.pool.usage</code> — 线程池利用率</li>
+</ul>
+<h2 id="③-火焰图定位瓶颈"><a href="#③-火焰图定位瓶颈" class="headerlink" title="③ 火焰图定位瓶颈"></a>③ 火焰图定位瓶颈</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用 async-profiler 生成火焰图</span></span><br><span class="line">./profiler.sh -d 30 -f flamegraph.html &lt;pid&gt;</span><br></pre></td></tr></table></figure></div>
+
+<p>火焰图能直观看出：</p>
+<ul>
+<li>Event Loop 线程在哪里花了时间</li>
+<li>是否有意外的阻塞调用</li>
+<li>哪个回调是性能热点</li>
+</ul>
+<h1 id="🎯-13-常见误区与纠正"><a href="#🎯-13-常见误区与纠正" class="headerlink" title="🎯 13. 常见误区与纠正"></a>🎯 13. 常见误区与纠正</h1><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>真相</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>“Event Loop 只有一个线程”</td>
+<td>默认有 CPU×2 个 Event Loop 线程</td>
+</tr>
+<tr>
+<td>“异步一定比同步快”</td>
+<td>单次请求延迟可能一样，优势在高并发下的吞吐量</td>
+</tr>
+<tr>
+<td>“Worker Verticle 能随便阻塞”</td>
+<td>Worker 也有超时限制（默认 60s），且线程有限</td>
+</tr>
+<tr>
+<td>“多部署几个实例就能提升性能”</td>
+<td>如果瓶颈在下游（DB&#x2F;网络），加实例无用</td>
+</tr>
+<tr>
+<td>“Event Loop 数调大点总没错”</td>
+<td>线程太多反而增加切换开销，一般不超过 CPU 核数 × 2</td>
+</tr>
+<tr>
+<td>“executeBlocking 等于异步”</td>
+<td>不是！它只是把阻塞挪到另一个线程，本质还是阻塞</td>
+</tr>
+</tbody></table>
+<h1 id="📌-14-本章总结"><a href="#📌-14-本章总结" class="headerlink" title="📌 14. 本章总结"></a>📌 14. 本章总结</h1><p>本章你彻底理解了：</p>
+<ul>
+<li><strong>Event Loop 的工作原理</strong>：epoll&#x2F;kqueue 多路复用，一个线程管理数千连接</li>
+<li><strong>三类线程池</strong>：Event Loop、Worker、Internal 的职责划分</li>
+<li><strong>黄金法则</strong>：阻塞 1ms &#x3D; 吞吐量暴跌 94%</li>
+<li><strong>Context 机制</strong>：保证 Verticle 回调的线程亲和性</li>
+<li><strong>BlockedThreadChecker</strong>：及时发现阻塞问题</li>
+<li><strong>正确处理阻塞</strong>：异步客户端 &gt; executeBlocking &gt; Worker Verticle</li>
+<li><strong>调优参数</strong>：Event Loop 数、Worker Pool、自定义线程池</li>
+<li><strong>诊断工具</strong>：Metrics、火焰图</li>
+</ul>
+<p>现在你对 Vert.x 的底层有了透彻的认识。接下来我们把所有知识综合起来——<strong>用 Vert.x 手写一个高性能 API Gateway</strong>，你会看到 Event Loop + Event Bus + Future 如何协同工作，构建出一个生产级的基础设施组件。</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-07-04 18:00:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-07-04 13:46:44
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/2026/07/04/vertx-series-7/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Vert-x/">#Vert.x</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/NIO/">#NIO</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Netty/">#Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Distribution/">#Distribution</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Java/">#Java</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2026/07/04/vertx-series-6/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E7%81%B5%E9%AD%82%E6%8B%B7%E9%97%AE%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-Vert-x-%E5%8F%AA%E7%94%A8%E5%87%A0%E4%B8%AA%E7%BA%BF%E7%A8%8B%E5%B0%B1%E8%83%BD%E5%A4%84%E7%90%86%E6%95%B0%E4%B8%87%E5%B9%B6%E5%8F%91%EF%BC%9F"><span class="nav-text">🌟 1. 灵魂拷问：为什么 Vert.x 只用几个线程就能处理数万并发？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-2-%E4%BC%A0%E7%BB%9F%E6%A8%A1%E5%9E%8B-vs-Event-Loop-%E6%A8%A1%E5%9E%8B"><span class="nav-text">🎯 2. 传统模型 vs Event Loop 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F-BIO%EF%BC%9A%E4%B8%80%E4%B8%AA%E8%BF%9E%E6%8E%A5%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B"><span class="nav-text">传统 BIO：一个连接一个线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-Loop%EF%BC%9A%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B%E6%9C%8D%E5%8A%A1%E6%89%80%E6%9C%89%E8%BF%9E%E6%8E%A5"><span class="nav-text">Event Loop：一个线程服务所有连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E7%B1%BB%E6%AF%94"><span class="nav-text">一个类比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8F%97-3-Vert-x-%E7%BA%BF%E7%A8%8B%E6%9E%B6%E6%9E%84%E5%85%A8%E6%99%AF"><span class="nav-text">🏗 3. Vert.x 线程架构全景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8D-4-Event-Loop-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%BE%AA%E7%8E%AF"><span class="nav-text">🔍 4. Event Loop 的工作循环</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%9A%A1-5-%E9%BB%84%E9%87%91%E6%B3%95%E5%88%99%EF%BC%9A%E6%B0%B8%E8%BF%9C%E4%B8%8D%E8%A6%81%E9%98%BB%E5%A1%9E-Event-Loop"><span class="nav-text">⚡ 5. 黄金法则：永远不要阻塞 Event Loop</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E7%AE%97%E2%80%9D%E9%98%BB%E5%A1%9E%E2%80%9D%EF%BC%9F"><span class="nav-text">什么算”阻塞”？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%BB%E5%A1%9E%E7%9A%84%E5%90%8E%E6%9E%9C"><span class="nav-text">阻塞的后果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9C%9F%E5%AE%9E%E8%B8%A9%E5%9D%91%E6%A1%88%E4%BE%8B"><span class="nav-text">真实踩坑案例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9A%A8-6-BlockedThreadChecker%EF%BC%9A%E4%BD%A0%E7%9A%84%E4%BF%9D%E5%91%BD%E5%B7%A5%E5%85%B7"><span class="nav-text">🚨 6. BlockedThreadChecker：你的保命工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E9%98%88%E5%80%BC"><span class="nav-text">默认阈值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E9%98%88%E5%80%BC"><span class="nav-text">自定义阈值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%BB%BA%E8%AE%AE"><span class="nav-text">生产环境建议</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%A7-7-%E6%AD%A3%E7%A1%AE%E5%A4%84%E7%90%86%E9%98%BB%E5%A1%9E%E6%93%8D%E4%BD%9C"><span class="nav-text">🔧 7. 正确处理阻塞操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9AexecuteBlocking"><span class="nav-text">方案一：executeBlocking</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9AWorker-Verticle"><span class="nav-text">方案二：Worker Verticle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E4%BD%BF%E7%94%A8%E5%BC%82%E6%AD%A5%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-text">方案三：使用异步客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="nav-text">三种方案对比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A0-8-Context%EF%BC%9A%E7%BA%BF%E7%A8%8B%E4%B8%8E-Verticle-%E7%9A%84%E6%A1%A5%E6%A2%81"><span class="nav-text">🧠 8. Context：线程与 Verticle 的桥梁</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Context%EF%BC%9F"><span class="nav-text">什么是 Context？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Context-%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-text">Context 的类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#runOnContext%EF%BC%9A%E5%AE%89%E5%85%A8%E5%9C%B0%E5%88%87%E5%9B%9E-Event-Loop"><span class="nav-text">runOnContext：安全地切回 Event Loop</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8A-9-%E6%80%A7%E8%83%BD%E5%AE%9E%E9%AA%8C%EF%BC%9A%E6%95%B0%E6%8D%AE%E8%AF%B4%E8%AF%9D"><span class="nav-text">📊 9. 性能实验：数据说话</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%AE%BE%E7%BD%AE"><span class="nav-text">实验设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-1ms-%E9%98%BB%E5%A1%9E%E5%BD%B1%E5%93%8D%E8%BF%99%E4%B9%88%E5%A4%A7%EF%BC%9F"><span class="nav-text">为什么 1ms 阻塞影响这么大？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%AC-10-%E6%BA%90%E7%A0%81%E7%BA%A7%E8%A7%A3%E8%AF%BB%EF%BC%9AEvent-Loop-%E5%A6%82%E4%BD%95%E5%88%86%E9%85%8D%E7%BB%99-Verticle"><span class="nav-text">🔬 10. 源码级解读：Event Loop 如何分配给 Verticle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%9B%A0-11-%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0"><span class="nav-text">🛠 11. 调优参数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-Loop-%E7%BA%BF%E7%A8%8B%E6%95%B0"><span class="nav-text">Event Loop 线程数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker-Pool-%E5%A4%A7%E5%B0%8F"><span class="nav-text">Worker Pool 大小</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89-Worker-Pool"><span class="nav-text">自定义 Worker Pool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Verticle-%E5%AE%9E%E4%BE%8B%E6%95%B0"><span class="nav-text">Verticle 实例数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%AA-12-%E8%AF%8A%E6%96%AD%E5%B7%A5%E5%85%B7"><span class="nav-text">🧪 12. 诊断工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-%E6%89%93%E5%8D%B0%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%EF%BC%88%E5%BF%AB%E9%80%9F%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E5%9C%A8-Event-Loop-%E4%B8%8A%EF%BC%89"><span class="nav-text">① 打印当前线程（快速判断是否在 Event Loop 上）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-Vert-x-Metrics%EF%BC%88Micrometer%EF%BC%89"><span class="nav-text">② Vert.x Metrics（Micrometer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-%E7%81%AB%E7%84%B0%E5%9B%BE%E5%AE%9A%E4%BD%8D%E7%93%B6%E9%A2%88"><span class="nav-text">③ 火焰图定位瓶颈</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-13-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA%E4%B8%8E%E7%BA%A0%E6%AD%A3"><span class="nav-text">🎯 13. 常见误区与纠正</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-14-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 14. 本章总结</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        8 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>

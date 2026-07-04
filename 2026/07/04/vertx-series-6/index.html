@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2026/07/04/vertx-series-6/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统">
+<meta property="og:url" content="http://example.com/2026/07/04/vertx-series-6/index.html">
+<meta property="og:site_name" content="Elvis&#39; Guraden">
+<meta property="og:description" content="Hexo Theme Redefine, Redefine Your Hexo Journey.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-07-04T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T05:38:20.180Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="Distribution">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Vert.x">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/redefine-favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/redefine-favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/redefine-favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统 | Elvis&#39; Guraden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"en"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Hexo Theme Redefine, Redefine Your Hexo Journey."},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Tags":{"icon":"fa-solid fa-tags","path":"/tags/"},"About":{"icon":"fa-regular fa-user","path":"/about/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Guraden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    TAGS
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    ABOUT
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                TAGS
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                ABOUT
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">8</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">8</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-07-04 14:00</span>
+        <span class="mobile">2026-07-04 14:00</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-07-04 13:38:20</span>
+            <span class="mobile">2026-07-04 13:38:20</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/NIO/">NIO</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Netty/">Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Distribution/">Distribution</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<h1 id="🌟-1-从-Future-到-Actor：为什么还需要更高层的抽象？"><a href="#🌟-1-从-Future-到-Actor：为什么还需要更高层的抽象？" class="headerlink" title="🌟 1. 从 Future 到 Actor：为什么还需要更高层的抽象？"></a>🌟 1. 从 Future 到 Actor：为什么还需要更高层的抽象？</h1><p>上一篇我们掌握了 Future 编排——能把多个异步步骤串联或并行。但真实系统中，你常常面对这样的问题：</p>
+<ul>
+<li>一个”游戏房间”有自己的状态（玩家列表、当前回合、倒计时），多个请求并发操作它，怎么保证一致性？</li>
+<li>一个”订单”有生命周期（创建 → 支付 → 发货 → 完成），状态流转需要被保护。</li>
+<li>多个”设备连接”各自独立运行，互不干扰。</li>
+</ul>
+<p>传统做法：加锁、用 ConcurrentHashMap、synchronized。</p>
+<p>但在 Vert.x 的世界里，有更优雅的答案——<strong>Actor 模型</strong>。</p>
+<p>而且你已经用过了：<strong>Verticle + Event Bus 天然就是 Actor。</strong></p>
+<h1 id="🎯-2-Actor-模型简介"><a href="#🎯-2-Actor-模型简介" class="headerlink" title="🎯 2. Actor 模型简介"></a>🎯 2. Actor 模型简介</h1><h2 id="什么是-Actor？"><a href="#什么是-Actor？" class="headerlink" title="什么是 Actor？"></a>什么是 Actor？</h2><p>Actor 模型是一种并发计算模型，核心思想极其简单：</p>
+<blockquote>
+<p>每个 Actor 是一个独立的计算单元，拥有<strong>私有状态</strong>，只通过<strong>消息</strong>与外界交互。</p>
+</blockquote>
+<p>三条铁律：</p>
+<ol>
+<li><strong>状态私有</strong>：Actor 的内部状态只有自己能访问</li>
+<li><strong>消息驱动</strong>：Actor 之间只通过发消息通信，不共享内存</li>
+<li><strong>顺序处理</strong>：每个 Actor 一次只处理一条消息</li>
+</ol>
+<p>这意味着——<strong>无锁、无竞争、天然线程安全。</strong></p>
+<h2 id="Verticle-就是-Actor"><a href="#Verticle-就是-Actor" class="headerlink" title="Verticle 就是 Actor"></a>Verticle 就是 Actor</h2><p>对比一下：</p>
+<table>
+<thead>
+<tr>
+<th>Actor 模型概念</th>
+<th>Vert.x 对应</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Actor</td>
+<td>Verticle</td>
+</tr>
+<tr>
+<td>邮箱（Mailbox）</td>
+<td>Event Bus 地址上的消息队列</td>
+</tr>
+<tr>
+<td>消息</td>
+<td>Event Bus Message</td>
+</tr>
+<tr>
+<td>私有状态</td>
+<td>Verticle 的成员变量</td>
+</tr>
+<tr>
+<td>顺序处理</td>
+<td>Event Loop 单线程保证</td>
+</tr>
+<tr>
+<td>创建子 Actor</td>
+<td>vertx.deployVerticle()</td>
+</tr>
+</tbody></table>
+<p>你不需要引入 Akka 或 Proto.Actor——<strong>Vert.x 本身就是一个轻量级 Actor 运行时。</strong></p>
+<h1 id="🏗-3-设计模式：Verticle-per-Entity"><a href="#🏗-3-设计模式：Verticle-per-Entity" class="headerlink" title="🏗 3. 设计模式：Verticle-per-Entity"></a>🏗 3. 设计模式：Verticle-per-Entity</h1><p>传统服务架构是这样的：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────┐</span><br><span class="line">│  OrderService    │  ← 一个单例处理所有订单</span><br><span class="line">│  (加锁保护状态)    │</span><br><span class="line">└──────────────────┘</span><br></pre></td></tr></table></figure></div>
+
+<p>Actor 架构是这样的：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────┐  ┌──────────────┐  ┌──────────────┐</span><br><span class="line">│ Order-001    │  │ Order-002    │  │ Order-003    │</span><br><span class="line">│ (独立状态)    │  │ (独立状态)    │  │ (独立状态)    │</span><br><span class="line">└──────────────┘  └──────────────┘  └──────────────┘</span><br><span class="line">       ↑                 ↑                 ↑</span><br><span class="line">       └─────── Event Bus Messages ────────┘</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>每个实体一个 Verticle 实例，各自管理自己的状态，互不干扰。</strong></p>
+<p>这就是 <strong>Verticle-per-Entity</strong> 模式。</p>
+<h1 id="🎮-4-实战：多人游戏房间管理器"><a href="#🎮-4-实战：多人游戏房间管理器" class="headerlink" title="🎮 4. 实战：多人游戏房间管理器"></a>🎮 4. 实战：多人游戏房间管理器</h1><p>我们来构建一个具体的系统：一个多人游戏中的”房间管理器”。</p>
+<p>需求：</p>
+<ul>
+<li>玩家可以创建房间、加入房间、离开房间</li>
+<li>每个房间有独立状态（玩家列表、房间状态、最大人数）</li>
+<li>多个玩家可能同时操作同一个房间</li>
+<li>房间满员后自动开始游戏</li>
+<li>空房间超时自动销毁</li>
+</ul>
+<h2 id="4-1-房间-Actor（RoomVerticle）"><a href="#4-1-房间-Actor（RoomVerticle）" class="headerlink" title="4.1 房间 Actor（RoomVerticle）"></a>4.1 房间 Actor（RoomVerticle）</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RoomVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> String roomId;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> List&lt;String&gt; players = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> maxPlayers;</span><br><span class="line">  <span class="keyword">private</span> <span class="type">RoomState</span> <span class="variable">state</span> <span class="operator">=</span> RoomState.WAITING;</span><br><span class="line">  <span class="keyword">private</span> <span class="type">long</span> <span class="variable">destroyTimerId</span> <span class="operator">=</span> -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">RoomState</span> &#123;</span><br><span class="line">    WAITING,    <span class="comment">// 等待玩家加入</span></span><br><span class="line">    PLAYING,    <span class="comment">// 游戏进行中</span></span><br><span class="line">    FINISHED    <span class="comment">// 游戏结束</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">RoomVerticle</span><span class="params">(String roomId, <span class="type">int</span> maxPlayers)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.roomId = roomId;</span><br><span class="line">    <span class="built_in">this</span>.maxPlayers = maxPlayers;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">address</span> <span class="operator">=</span> <span class="string">&quot;room.&quot;</span> + roomId;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 监听针对这个房间的所有消息</span></span><br><span class="line">    vertx.eventBus().&lt;JsonObject&gt;consumer(address, <span class="built_in">this</span>::handleMessage);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 启动空房间自毁定时器</span></span><br><span class="line">    resetDestroyTimer();</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;[Room-&quot;</span> + roomId + <span class="string">&quot;] Created, waiting for players...&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleMessage</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">action</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;action&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (action) &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;join&quot;</span> -&gt; handleJoin(msg);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;leave&quot;</span> -&gt; handleLeave(msg);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;status&quot;</span> -&gt; handleStatus(msg);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;action&quot;</span> -&gt; handleGameAction(msg);</span><br><span class="line">      <span class="keyword">default</span> -&gt; msg.fail(<span class="number">400</span>, <span class="string">&quot;Unknown action: &quot;</span> + action);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleJoin</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">playerId</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;playerId&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (state != RoomState.WAITING) &#123;</span><br><span class="line">      msg.fail(<span class="number">403</span>, <span class="string">&quot;Room is not accepting players, current state: &quot;</span> + state);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (players.size() &gt;= maxPlayers) &#123;</span><br><span class="line">      msg.fail(<span class="number">403</span>, <span class="string">&quot;Room is full&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (players.contains(playerId)) &#123;</span><br><span class="line">      msg.fail(<span class="number">409</span>, <span class="string">&quot;Player already in room&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    players.add(playerId);</span><br><span class="line">    resetDestroyTimer();  <span class="comment">// 有人加入，重置自毁定时器</span></span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;[Room-&quot;</span> + roomId + <span class="string">&quot;] Player &quot;</span> + playerId + <span class="string">&quot; joined (&quot;</span></span><br><span class="line">        + players.size() + <span class="string">&quot;/&quot;</span> + maxPlayers + <span class="string">&quot;)&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 广播给房间内所有人</span></span><br><span class="line">    vertx.eventBus().publish(<span class="string">&quot;room.&quot;</span> + roomId + <span class="string">&quot;.events&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;event&quot;</span>, <span class="string">&quot;player_joined&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;playerId&quot;</span>, playerId)</span><br><span class="line">        .put(<span class="string">&quot;currentPlayers&quot;</span>, players.size()));</span><br><span class="line"></span><br><span class="line">    msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;joined&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;currentPlayers&quot;</span>, players.size()));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 满员自动开始</span></span><br><span class="line">    <span class="keyword">if</span> (players.size() == maxPlayers) &#123;</span><br><span class="line">      startGame();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleLeave</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">playerId</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;playerId&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!players.remove(playerId)) &#123;</span><br><span class="line">      msg.fail(<span class="number">404</span>, <span class="string">&quot;Player not in room&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;[Room-&quot;</span> + roomId + <span class="string">&quot;] Player &quot;</span> + playerId + <span class="string">&quot; left&quot;</span>);</span><br><span class="line"></span><br><span class="line">    vertx.eventBus().publish(<span class="string">&quot;room.&quot;</span> + roomId + <span class="string">&quot;.events&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;event&quot;</span>, <span class="string">&quot;player_left&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;playerId&quot;</span>, playerId));</span><br><span class="line"></span><br><span class="line">    msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;left&quot;</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 空房间启动自毁</span></span><br><span class="line">    <span class="keyword">if</span> (players.isEmpty()) &#123;</span><br><span class="line">      resetDestroyTimer();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleStatus</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;roomId&quot;</span>, roomId)</span><br><span class="line">        .put(<span class="string">&quot;state&quot;</span>, state.name())</span><br><span class="line">        .put(<span class="string">&quot;players&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonArray</span>(players))</span><br><span class="line">        .put(<span class="string">&quot;maxPlayers&quot;</span>, maxPlayers));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleGameAction</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (state != RoomState.PLAYING) &#123;</span><br><span class="line">      msg.fail(<span class="number">403</span>, <span class="string">&quot;Game not started&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理游戏内操作（出牌、移动等）</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">playerId</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;playerId&quot;</span>);</span><br><span class="line">    <span class="type">JsonObject</span> <span class="variable">actionData</span> <span class="operator">=</span> msg.body().getJsonObject(<span class="string">&quot;data&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ... 游戏逻辑处理 ...</span></span><br><span class="line"></span><br><span class="line">    msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;ok&quot;</span>));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">startGame</span><span class="params">()</span> &#123;</span><br><span class="line">    state = RoomState.PLAYING;</span><br><span class="line">    cancelDestroyTimer();</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;[Room-&quot;</span> + roomId + <span class="string">&quot;] Game started with &quot;</span> + players.size() + <span class="string">&quot; players!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    vertx.eventBus().publish(<span class="string">&quot;room.&quot;</span> + roomId + <span class="string">&quot;.events&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;event&quot;</span>, <span class="string">&quot;game_started&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;players&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonArray</span>(players)));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">resetDestroyTimer</span><span class="params">()</span> &#123;</span><br><span class="line">    cancelDestroyTimer();</span><br><span class="line">    <span class="comment">// 30 秒无人则自动销毁</span></span><br><span class="line">    destroyTimerId = vertx.setTimer(<span class="number">30_000</span>, id -&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (players.isEmpty()) &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;[Room-&quot;</span> + roomId + <span class="string">&quot;] Empty room, self-destructing...&quot;</span>);</span><br><span class="line">        vertx.undeploy(deploymentID());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">cancelDestroyTimer</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (destroyTimerId != -<span class="number">1</span>) &#123;</span><br><span class="line">      vertx.cancelTimer(destroyTimerId);</span><br><span class="line">      destroyTimerId = -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;[Room-&quot;</span> + roomId + <span class="string">&quot;] Destroyed&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="4-2-房间管理器（RoomManagerVerticle）"><a href="#4-2-房间管理器（RoomManagerVerticle）" class="headerlink" title="4.2 房间管理器（RoomManagerVerticle）"></a>4.2 房间管理器（RoomManagerVerticle）</h2><p>管理器负责创建和查找房间——它本身也是一个 Actor：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RoomManagerVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 房间ID -&gt; deploymentID 的映射</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, String&gt; rooms = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">  <span class="keyword">private</span> <span class="type">int</span> <span class="variable">roomCounter</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">EventBus</span> <span class="variable">eb</span> <span class="operator">=</span> vertx.eventBus();</span><br><span class="line"></span><br><span class="line">    eb.&lt;JsonObject&gt;consumer(<span class="string">&quot;room.manager&quot;</span>, <span class="built_in">this</span>::handleMessage);</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;[RoomManager] Ready&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleMessage</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">action</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;action&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (action) &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;create&quot;</span> -&gt; handleCreate(msg);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;list&quot;</span> -&gt; handleList(msg);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;destroy&quot;</span> -&gt; handleDestroy(msg);</span><br><span class="line">      <span class="keyword">default</span> -&gt; msg.fail(<span class="number">400</span>, <span class="string">&quot;Unknown action: &quot;</span> + action);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleCreate</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">maxPlayers</span> <span class="operator">=</span> msg.body().getInteger(<span class="string">&quot;maxPlayers&quot;</span>, <span class="number">4</span>);</span><br><span class="line">    <span class="type">String</span> <span class="variable">roomId</span> <span class="operator">=</span> <span class="string">&quot;room_&quot;</span> + (++roomCounter);</span><br><span class="line"></span><br><span class="line">    <span class="type">RoomVerticle</span> <span class="variable">roomVerticle</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RoomVerticle</span>(roomId, maxPlayers);</span><br><span class="line"></span><br><span class="line">    vertx.deployVerticle(roomVerticle)</span><br><span class="line">      .onSuccess(deploymentId -&gt; &#123;</span><br><span class="line">        rooms.put(roomId, deploymentId);</span><br><span class="line">        System.out.println(<span class="string">&quot;[RoomManager] Created room: &quot;</span> + roomId);</span><br><span class="line"></span><br><span class="line">        msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">            .put(<span class="string">&quot;roomId&quot;</span>, roomId)</span><br><span class="line">            .put(<span class="string">&quot;address&quot;</span>, <span class="string">&quot;room.&quot;</span> + roomId));</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(err -&gt; msg.fail(<span class="number">500</span>, <span class="string">&quot;Failed to create room: &quot;</span> + err.getMessage()));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleList</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">JsonArray</span> <span class="variable">roomList</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JsonArray</span>();</span><br><span class="line">    rooms.keySet().forEach(roomList::add);</span><br><span class="line">    msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;rooms&quot;</span>, roomList));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleDestroy</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">roomId</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;roomId&quot;</span>);</span><br><span class="line">    <span class="type">String</span> <span class="variable">deploymentId</span> <span class="operator">=</span> rooms.get(roomId);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (deploymentId == <span class="literal">null</span>) &#123;</span><br><span class="line">      msg.fail(<span class="number">404</span>, <span class="string">&quot;Room not found: &quot;</span> + roomId);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    vertx.undeploy(deploymentId)</span><br><span class="line">      .onSuccess(v -&gt; &#123;</span><br><span class="line">        rooms.remove(roomId);</span><br><span class="line">        msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;destroyed&quot;</span>));</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(err -&gt; msg.fail(<span class="number">500</span>, <span class="string">&quot;Failed to destroy room&quot;</span>));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="4-3-使用示例"><a href="#4-3-使用示例" class="headerlink" title="4.3 使用示例"></a>4.3 使用示例</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GameApp</span> &#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    <span class="type">Vertx</span> <span class="variable">vertx</span> <span class="operator">=</span> Vertx.vertx();</span><br><span class="line">    <span class="type">EventBus</span> <span class="variable">eb</span> <span class="operator">=</span> vertx.eventBus();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 部署管理器</span></span><br><span class="line">    vertx.deployVerticle(<span class="keyword">new</span> <span class="title class_">RoomManagerVerticle</span>())</span><br><span class="line">      .compose(v -&gt; &#123;</span><br><span class="line">        <span class="comment">// 创建一个 2 人房间</span></span><br><span class="line">        <span class="keyword">return</span> eb.&lt;JsonObject&gt;request(<span class="string">&quot;room.manager&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">            .put(<span class="string">&quot;action&quot;</span>, <span class="string">&quot;create&quot;</span>)</span><br><span class="line">            .put(<span class="string">&quot;maxPlayers&quot;</span>, <span class="number">2</span>));</span><br><span class="line">      &#125;)</span><br><span class="line">      .compose(reply -&gt; &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">roomId</span> <span class="operator">=</span> reply.body().getString(<span class="string">&quot;roomId&quot;</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">address</span> <span class="operator">=</span> reply.body().getString(<span class="string">&quot;address&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Room created: &quot;</span> + roomId);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 玩家 1 加入</span></span><br><span class="line">        <span class="keyword">return</span> eb.&lt;JsonObject&gt;request(address, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">            .put(<span class="string">&quot;action&quot;</span>, <span class="string">&quot;join&quot;</span>)</span><br><span class="line">            .put(<span class="string">&quot;playerId&quot;</span>, <span class="string">&quot;player_alice&quot;</span>));</span><br><span class="line">      &#125;)</span><br><span class="line">      .compose(reply -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Alice joined: &quot;</span> + reply.body().encode());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 玩家 2 加入（满员将自动开始游戏）</span></span><br><span class="line">        <span class="keyword">return</span> eb.&lt;JsonObject&gt;request(<span class="string">&quot;room.room_1&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">            .put(<span class="string">&quot;action&quot;</span>, <span class="string">&quot;join&quot;</span>)</span><br><span class="line">            .put(<span class="string">&quot;playerId&quot;</span>, <span class="string">&quot;player_bob&quot;</span>));</span><br><span class="line">      &#125;)</span><br><span class="line">      .onSuccess(reply -&gt; &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Bob joined: &quot;</span> + reply.body().encode());</span><br><span class="line">        <span class="comment">// 此时房间满员，game_started 事件已广播</span></span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(err -&gt; System.err.println(<span class="string">&quot;Error: &quot;</span> + err.getMessage()));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>输出：</p>
+<div class="code-container" data-rel="Plaintext"><figure class="iseeu highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[RoomManager] Ready</span><br><span class="line">[RoomManager] Created room: room_1</span><br><span class="line">[Room-room_1] Created, waiting for players...</span><br><span class="line">Room created: room_1</span><br><span class="line">[Room-room_1] Player player_alice joined (1/2)</span><br><span class="line">Alice joined: &#123;&quot;status&quot;:&quot;joined&quot;,&quot;currentPlayers&quot;:1&#125;</span><br><span class="line">[Room-room_1] Player player_bob joined (2/2)</span><br><span class="line">[Room-room_1] Game started with 2 players!</span><br><span class="line">Bob joined: &#123;&quot;status&quot;:&quot;joined&quot;,&quot;currentPlayers&quot;:2&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🔄-5-用-Actor-实现状态机"><a href="#🔄-5-用-Actor-实现状态机" class="headerlink" title="🔄 5. 用 Actor 实现状态机"></a>🔄 5. 用 Actor 实现状态机</h1><p>Actor 模型天然适合实现<strong>有限状态机（FSM）</strong>。每个 Actor 在不同状态下对相同消息有不同的响应。</p>
+<h2 id="订单状态机示例"><a href="#订单状态机示例" class="headerlink" title="订单状态机示例"></a>订单状态机示例</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderActor</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> String orderId;</span><br><span class="line">  <span class="keyword">private</span> <span class="type">OrderState</span> <span class="variable">state</span> <span class="operator">=</span> OrderState.CREATED;</span><br><span class="line">  <span class="keyword">private</span> JsonObject orderData;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">OrderState</span> &#123;</span><br><span class="line">    CREATED, PAID, SHIPPED, DELIVERED, CANCELLED</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">OrderActor</span><span class="params">(String orderId, JsonObject orderData)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.orderId = orderId;</span><br><span class="line">    <span class="built_in">this</span>.orderData = orderData;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    vertx.eventBus().&lt;JsonObject&gt;consumer(<span class="string">&quot;order.&quot;</span> + orderId, <span class="built_in">this</span>::handleMessage);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleMessage</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">action</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;action&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (action) &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;pay&quot;</span> -&gt; transition(msg, OrderState.CREATED, OrderState.PAID);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;ship&quot;</span> -&gt; transition(msg, OrderState.PAID, OrderState.SHIPPED);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;deliver&quot;</span> -&gt; transition(msg, OrderState.SHIPPED, OrderState.DELIVERED);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;cancel&quot;</span> -&gt; handleCancel(msg);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;status&quot;</span> -&gt; msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">          .put(<span class="string">&quot;orderId&quot;</span>, orderId)</span><br><span class="line">          .put(<span class="string">&quot;state&quot;</span>, state.name())</span><br><span class="line">          .put(<span class="string">&quot;data&quot;</span>, orderData));</span><br><span class="line">      <span class="keyword">default</span> -&gt; msg.fail(<span class="number">400</span>, <span class="string">&quot;Unknown action&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">transition</span><span class="params">(Message&lt;JsonObject&gt; msg, OrderState from, OrderState to)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (state != from) &#123;</span><br><span class="line">      msg.fail(<span class="number">409</span>, <span class="string">&quot;Cannot &quot;</span> + msg.body().getString(<span class="string">&quot;action&quot;</span>)</span><br><span class="line">          + <span class="string">&quot; from state &quot;</span> + state + <span class="string">&quot;, expected &quot;</span> + from);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">OrderState</span> <span class="variable">oldState</span> <span class="operator">=</span> state;</span><br><span class="line">    state = to;</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;[Order-&quot;</span> + orderId + <span class="string">&quot;] &quot;</span> + oldState + <span class="string">&quot; -&gt; &quot;</span> + state);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 广播状态变更事件</span></span><br><span class="line">    vertx.eventBus().publish(<span class="string">&quot;order.events&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;orderId&quot;</span>, orderId)</span><br><span class="line">        .put(<span class="string">&quot;from&quot;</span>, oldState.name())</span><br><span class="line">        .put(<span class="string">&quot;to&quot;</span>, state.name()));</span><br><span class="line"></span><br><span class="line">    msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;ok&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;newState&quot;</span>, state.name()));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleCancel</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (state == OrderState.DELIVERED) &#123;</span><br><span class="line">      msg.fail(<span class="number">409</span>, <span class="string">&quot;Cannot cancel delivered order&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (state == OrderState.CANCELLED) &#123;</span><br><span class="line">      msg.fail(<span class="number">409</span>, <span class="string">&quot;Already cancelled&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">OrderState</span> <span class="variable">oldState</span> <span class="operator">=</span> state;</span><br><span class="line">    state = OrderState.CANCELLED;</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;[Order-&quot;</span> + orderId + <span class="string">&quot;] &quot;</span> + oldState + <span class="string">&quot; -&gt; CANCELLED&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 取消可能需要退款</span></span><br><span class="line">    <span class="keyword">if</span> (oldState == OrderState.PAID || oldState == OrderState.SHIPPED) &#123;</span><br><span class="line">      vertx.eventBus().send(<span class="string">&quot;payment.refund&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">          .put(<span class="string">&quot;orderId&quot;</span>, orderId)</span><br><span class="line">          .put(<span class="string">&quot;amount&quot;</span>, orderData.getDouble(<span class="string">&quot;amount&quot;</span>)));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">        .put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;cancelled&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;refund&quot;</span>, oldState == OrderState.PAID || oldState == OrderState.SHIPPED));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>关键点：</strong> 状态转换逻辑完全不需要加锁——因为 Event Loop 保证消息是顺序处理的。即使 100 个客户端同时发 “pay” 请求，只有第一个会成功，后续的都会收到 “expected CREATED” 的错误。</p>
+<h1 id="📊-6-Actor-层级与监督策略"><a href="#📊-6-Actor-层级与监督策略" class="headerlink" title="📊 6. Actor 层级与监督策略"></a>📊 6. Actor 层级与监督策略</h1><p>在成熟的 Actor 系统（如 Akka）中，Actor 形成树状层级结构，父 Actor 负责监督子 Actor 的生命周期。Vert.x 没有内置监督机制，但我们可以轻松实现：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SupervisorVerticle</span> <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, String&gt; children = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  <span class="comment">// name -&gt; deploymentId</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Integer&gt; restartCounts = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">MAX_RESTARTS</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    vertx.eventBus().&lt;JsonObject&gt;consumer(<span class="string">&quot;supervisor&quot;</span>, <span class="built_in">this</span>::handleMessage);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleMessage</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">action</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;action&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (action) &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;spawn&quot;</span> -&gt; spawnChild(msg);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;restart&quot;</span> -&gt; restartChild(msg);</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&quot;status&quot;</span> -&gt; msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>()</span><br><span class="line">          .put(<span class="string">&quot;children&quot;</span>, children.keySet().stream().collect(JsonArray::<span class="keyword">new</span>, JsonArray::add, JsonArray::addAll))</span><br><span class="line">          .put(<span class="string">&quot;restartCounts&quot;</span>, JsonObject.mapFrom(restartCounts)));</span><br><span class="line">      <span class="keyword">default</span> -&gt; msg.fail(<span class="number">400</span>, <span class="string">&quot;Unknown action&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">spawnChild</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;name&quot;</span>);</span><br><span class="line">    <span class="type">String</span> <span class="variable">verticleClass</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;class&quot;</span>);</span><br><span class="line">    <span class="type">JsonObject</span> <span class="variable">config</span> <span class="operator">=</span> msg.body().getJsonObject(<span class="string">&quot;config&quot;</span>, <span class="keyword">new</span> <span class="title class_">JsonObject</span>());</span><br><span class="line"></span><br><span class="line">    <span class="type">DeploymentOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DeploymentOptions</span>().setConfig(config);</span><br><span class="line"></span><br><span class="line">    vertx.deployVerticle(verticleClass, options)</span><br><span class="line">      .onSuccess(deploymentId -&gt; &#123;</span><br><span class="line">        children.put(name, deploymentId);</span><br><span class="line">        restartCounts.put(name, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;[Supervisor] Spawned child: &quot;</span> + name);</span><br><span class="line">        msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;spawned&quot;</span>).put(<span class="string">&quot;name&quot;</span>, name));</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(err -&gt; msg.fail(<span class="number">500</span>, <span class="string">&quot;Failed to spawn: &quot;</span> + err.getMessage()));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">restartChild</span><span class="params">(Message&lt;JsonObject&gt; msg)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;name&quot;</span>);</span><br><span class="line">    <span class="type">String</span> <span class="variable">deploymentId</span> <span class="operator">=</span> children.get(name);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (deploymentId == <span class="literal">null</span>) &#123;</span><br><span class="line">      msg.fail(<span class="number">404</span>, <span class="string">&quot;Unknown child: &quot;</span> + name);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="variable">count</span> <span class="operator">=</span> restartCounts.getOrDefault(name, <span class="number">0</span>) + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (count &gt; MAX_RESTARTS) &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;[Supervisor] Child &quot;</span> + name + <span class="string">&quot; exceeded max restarts, giving up&quot;</span>);</span><br><span class="line">      children.remove(name);</span><br><span class="line">      msg.fail(<span class="number">503</span>, <span class="string">&quot;Max restarts exceeded for: &quot;</span> + name);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    restartCounts.put(name, count);</span><br><span class="line"></span><br><span class="line">    vertx.undeploy(deploymentId)</span><br><span class="line">      .compose(v -&gt; vertx.deployVerticle(name))  <span class="comment">// 重新部署</span></span><br><span class="line">      .onSuccess(newId -&gt; &#123;</span><br><span class="line">        children.put(name, newId);</span><br><span class="line">        System.out.println(<span class="string">&quot;[Supervisor] Restarted child: &quot;</span> + name + <span class="string">&quot; (attempt &quot;</span> + count + <span class="string">&quot;)&quot;</span>);</span><br><span class="line">        msg.reply(<span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;restarted&quot;</span>).put(<span class="string">&quot;attempts&quot;</span>, count));</span><br><span class="line">      &#125;)</span><br><span class="line">      .onFailure(err -&gt; msg.fail(<span class="number">500</span>, <span class="string">&quot;Restart failed: &quot;</span> + err.getMessage()));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🆚-7-与-Akka-Actor-的对比"><a href="#🆚-7-与-Akka-Actor-的对比" class="headerlink" title="🆚 7. 与 Akka Actor 的对比"></a>🆚 7. 与 Akka Actor 的对比</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Vert.x Verticle</th>
+<th>Akka Actor</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>语言</td>
+<td>Java &#x2F; Kotlin &#x2F; JS &#x2F; …</td>
+<td>Scala &#x2F; Java</td>
+</tr>
+<tr>
+<td>消息投递</td>
+<td>Event Bus（地址路由）</td>
+<td>ActorRef（直接引用）</td>
+</tr>
+<tr>
+<td>监督策略</td>
+<td>手动实现</td>
+<td>内置完善</td>
+</tr>
+<tr>
+<td>集群</td>
+<td>Event Bus Cluster</td>
+<td>Akka Cluster</td>
+</tr>
+<tr>
+<td>持久化</td>
+<td>自行实现</td>
+<td>Akka Persistence</td>
+</tr>
+<tr>
+<td>状态恢复</td>
+<td>自行实现</td>
+<td>Event Sourcing 内置</td>
+</tr>
+<tr>
+<td>学习成本</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>IO 密集 + 中等并发实体</td>
+<td>大规模分布式 + 复杂状态</td>
+</tr>
+<tr>
+<td>依赖大小</td>
+<td>~7MB</td>
+<td>~30MB+</td>
+</tr>
+</tbody></table>
+<p><strong>选择建议：</strong></p>
+<ul>
+<li>实体数在几千到几万级别，业务逻辑为主 → Vert.x Verticle 足够</li>
+<li>需要百万级 Actor、Event Sourcing、CQRS → 考虑 Akka</li>
+<li>已经在用 Vert.x 技术栈 → 不要为了 Actor 引入 Akka，用 Verticle 即可</li>
+</ul>
+<h1 id="🧠-8-Actor-模式的适用场景"><a href="#🧠-8-Actor-模式的适用场景" class="headerlink" title="🧠 8. Actor 模式的适用场景"></a>🧠 8. Actor 模式的适用场景</h1><h2 id="适合用-Actor-的场景"><a href="#适合用-Actor-的场景" class="headerlink" title="适合用 Actor 的场景"></a>适合用 Actor 的场景</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>为什么适合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>游戏房间 &#x2F; 匹配大厅</td>
+<td>每个房间独立状态，互不干扰</td>
+</tr>
+<tr>
+<td>用户会话管理</td>
+<td>每个用户一个 Actor，处理登录态</td>
+</tr>
+<tr>
+<td>IoT 设备管理</td>
+<td>每个设备一个 Actor，独立心跳</td>
+</tr>
+<tr>
+<td>订单&#x2F;工单状态机</td>
+<td>状态流转需要保护，Actor 天然顺序</td>
+</tr>
+<tr>
+<td>购物车</td>
+<td>每个用户的购物车独立操作</td>
+</tr>
+<tr>
+<td>聊天会话</td>
+<td>每个对话一个 Actor，消息有序</td>
+</tr>
+</tbody></table>
+<h2 id="不适合用-Actor-的场景"><a href="#不适合用-Actor-的场景" class="headerlink" title="不适合用 Actor 的场景"></a>不适合用 Actor 的场景</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>为什么不适合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无状态 API</td>
+<td>没有需要保护的状态，Actor 过重</td>
+</tr>
+<tr>
+<td>批量数据处理</td>
+<td>Actor 粒度太细，不如批量管道</td>
+</tr>
+<tr>
+<td>简单 CRUD</td>
+<td>数据库已保证一致性，没必要</td>
+</tr>
+<tr>
+<td>全局统计&#x2F;聚合</td>
+<td>需要跨 Actor 汇总，违背隔离原则</td>
+</tr>
+</tbody></table>
+<h1 id="🔧-9-实用技巧"><a href="#🔧-9-实用技巧" class="headerlink" title="🔧 9. 实用技巧"></a>🔧 9. 实用技巧</h1><h2 id="①-动态地址注册"><a href="#①-动态地址注册" class="headerlink" title="① 动态地址注册"></a>① 动态地址注册</h2><p>让外界能通过统一入口路由到正确的 Actor：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 通用路由器：根据 entityId 转发到对应 Actor</span></span><br><span class="line">vertx.eventBus().&lt;JsonObject&gt;consumer(<span class="string">&quot;orders&quot;</span>, msg -&gt; &#123;</span><br><span class="line">  <span class="type">String</span> <span class="variable">orderId</span> <span class="operator">=</span> msg.body().getString(<span class="string">&quot;orderId&quot;</span>);</span><br><span class="line">  <span class="type">String</span> <span class="variable">targetAddress</span> <span class="operator">=</span> <span class="string">&quot;order.&quot;</span> + orderId;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 转发到具体的 Order Actor</span></span><br><span class="line">  vertx.eventBus().request(targetAddress, msg.body())</span><br><span class="line">    .onSuccess(reply -&gt; msg.reply(reply.body()))</span><br><span class="line">    .onFailure(err -&gt; msg.fail(<span class="number">500</span>, err.getMessage()));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="②-Actor-池（限制最大实例数）"><a href="#②-Actor-池（限制最大实例数）" class="headerlink" title="② Actor 池（限制最大实例数）"></a>② Actor 池（限制最大实例数）</h2><p>防止无限创建 Actor 耗尽资源：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ActorPool</span>&lt;T <span class="keyword">extends</span> <span class="title class_">AbstractVerticle</span>&gt; &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Vertx vertx;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> LinkedHashMap&lt;String, String&gt; actors;  <span class="comment">// LRU</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> maxSize;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">ActorPool</span><span class="params">(Vertx vertx, <span class="type">int</span> maxSize)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.vertx = vertx;</span><br><span class="line">    <span class="built_in">this</span>.maxSize = maxSize;</span><br><span class="line">    <span class="built_in">this</span>.actors = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;(maxSize, <span class="number">0.75f</span>, <span class="literal">true</span>) &#123;</span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="keyword">protected</span> <span class="type">boolean</span> <span class="title function_">removeEldestEntry</span><span class="params">(Map.Entry&lt;String, String&gt; eldest)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (size() &gt; maxSize) &#123;</span><br><span class="line">          vertx.undeploy(eldest.getValue());</span><br><span class="line">          System.out.println(<span class="string">&quot;Evicted actor: &quot;</span> + eldest.getKey());</span><br><span class="line">          <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> Future&lt;String&gt; <span class="title function_">getOrCreate</span><span class="params">(String id, Supplier&lt;AbstractVerticle&gt; factory)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (actors.containsKey(id)) &#123;</span><br><span class="line">      <span class="keyword">return</span> Future.succeededFuture(actors.get(id));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> vertx.deployVerticle(factory.get())</span><br><span class="line">      .map(deploymentId -&gt; &#123;</span><br><span class="line">        actors.put(id, deploymentId);</span><br><span class="line">        <span class="keyword">return</span> deploymentId;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h2 id="③-优雅停机：通知所有-Actor-保存状态"><a href="#③-优雅停机：通知所有-Actor-保存状态" class="headerlink" title="③ 优雅停机：通知所有 Actor 保存状态"></a>③ 优雅停机：通知所有 Actor 保存状态</h2><div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Future&lt;Void&gt; <span class="title function_">gracefulShutdown</span><span class="params">(List&lt;String&gt; actorAddresses)</span> &#123;</span><br><span class="line">  List&lt;Future&lt;Message&lt;JsonObject&gt;&gt;&gt; futures = actorAddresses.stream()</span><br><span class="line">    .map(addr -&gt; vertx.eventBus().&lt;JsonObject&gt;request(addr,</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">JsonObject</span>().put(<span class="string">&quot;action&quot;</span>, <span class="string">&quot;save_state&quot;</span>)))</span><br><span class="line">    .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> CompositeFuture.join(<span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(futures))</span><br><span class="line">    .mapEmpty();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="🎯-10-最佳实践"><a href="#🎯-10-最佳实践" class="headerlink" title="🎯 10. 最佳实践"></a>🎯 10. 最佳实践</h1><table>
+<thead>
+<tr>
+<th>实践</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>一个实体一个 Verticle 实例</td>
+<td>保证状态隔离，避免并发冲突</td>
+</tr>
+<tr>
+<td>消息定义清晰的 action 字段</td>
+<td>类似 REST 的动词，易于理解</td>
+</tr>
+<tr>
+<td>Actor 内部不要调用外部同步 API</td>
+<td>阻塞 Event Loop &#x3D; 整个 Actor 系统卡住</td>
+</tr>
+<tr>
+<td>用 publish 广播事件，request 做命令</td>
+<td>命令需要确认，事件只通知</td>
+</tr>
+<tr>
+<td>控制 Actor 数量</td>
+<td>用 LRU 池或超时销毁，防止内存泄漏</td>
+</tr>
+<tr>
+<td>状态变更时发布事件</td>
+<td>方便其他系统订阅（审计、统计、通知）</td>
+</tr>
+</tbody></table>
+<h1 id="📌-11-本章总结"><a href="#📌-11-本章总结" class="headerlink" title="📌 11. 本章总结"></a>📌 11. 本章总结</h1><p>本章你学到了：</p>
+<ul>
+<li><strong>Actor 模型的三条铁律</strong>：私有状态、消息驱动、顺序处理</li>
+<li><strong>Verticle &#x3D; Actor</strong>：Event Loop 保证顺序性，Event Bus 提供消息通信</li>
+<li><strong>Verticle-per-Entity 模式</strong>：每个业务实体一个 Actor 实例</li>
+<li><strong>状态机实现</strong>：利用 Actor 的顺序性保护状态转换</li>
+<li><strong>监督策略</strong>：手动实现重启和错误处理</li>
+<li><strong>Actor 池</strong>：控制资源使用，LRU 淘汰冷 Actor</li>
+<li><strong>适用场景判断</strong>：有状态 + 需要并发保护 &#x3D; 用 Actor</li>
+</ul>
+<p>现在你已经理解了 Vert.x 从 Event Bus 到 Future 到 Actor 的完整编程模型。但你是否好奇——<strong>底层到底是怎么运转的？为什么单线程的 Event Loop 能扛住高并发？</strong> 下一篇，我们深入 Vert.x 的线程模型，从源码级别揭秘它的高性能秘密。</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-07-04 14:00:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-07-04 13:38:20
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/2026/07/04/vertx-series-6/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Vert-x/">#Vert.x</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/NIO/">#NIO</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Netty/">#Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Distribution/">#Distribution</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Java/">#Java</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="prev" rel="prev" href="/2026/07/04/vertx-series-7/">
+					<span class="left arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-left"></i>
+					</span>
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发</span>
+						<span class="post-nav-item">Prev posts</span>
+					</span>
+				</a>
+			</div>
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2026/07/04/vertx-series-5/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">Vert.x从入门到放弃第五弹：Future组合与异步编排</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统</div>
+		<ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8C%9F-1-%E4%BB%8E-Future-%E5%88%B0-Actor%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%98%E9%9C%80%E8%A6%81%E6%9B%B4%E9%AB%98%E5%B1%82%E7%9A%84%E6%8A%BD%E8%B1%A1%EF%BC%9F"><span class="nav-text">🌟 1. 从 Future 到 Actor：为什么还需要更高层的抽象？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-2-Actor-%E6%A8%A1%E5%9E%8B%E7%AE%80%E4%BB%8B"><span class="nav-text">🎯 2. Actor 模型简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Actor%EF%BC%9F"><span class="nav-text">什么是 Actor？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Verticle-%E5%B0%B1%E6%98%AF-Actor"><span class="nav-text">Verticle 就是 Actor</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8F%97-3-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%9AVerticle-per-Entity"><span class="nav-text">🏗 3. 设计模式：Verticle-per-Entity</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AE-4-%E5%AE%9E%E6%88%98%EF%BC%9A%E5%A4%9A%E4%BA%BA%E6%B8%B8%E6%88%8F%E6%88%BF%E9%97%B4%E7%AE%A1%E7%90%86%E5%99%A8"><span class="nav-text">🎮 4. 实战：多人游戏房间管理器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E6%88%BF%E9%97%B4-Actor%EF%BC%88RoomVerticle%EF%BC%89"><span class="nav-text">4.1 房间 Actor（RoomVerticle）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E6%88%BF%E9%97%B4%E7%AE%A1%E7%90%86%E5%99%A8%EF%BC%88RoomManagerVerticle%EF%BC%89"><span class="nav-text">4.2 房间管理器（RoomManagerVerticle）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">4.3 使用示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%84-5-%E7%94%A8-Actor-%E5%AE%9E%E7%8E%B0%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="nav-text">🔄 5. 用 Actor 实现状态机</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A2%E5%8D%95%E7%8A%B6%E6%80%81%E6%9C%BA%E7%A4%BA%E4%BE%8B"><span class="nav-text">订单状态机示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8A-6-Actor-%E5%B1%82%E7%BA%A7%E4%B8%8E%E7%9B%91%E7%9D%A3%E7%AD%96%E7%95%A5"><span class="nav-text">📊 6. Actor 层级与监督策略</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%86%9A-7-%E4%B8%8E-Akka-Actor-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-text">🆚 7. 与 Akka Actor 的对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%A7%A0-8-Actor-%E6%A8%A1%E5%BC%8F%E7%9A%84%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-text">🧠 8. Actor 模式的适用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E5%90%88%E7%94%A8-Actor-%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="nav-text">适合用 Actor 的场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8D%E9%80%82%E5%90%88%E7%94%A8-Actor-%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="nav-text">不适合用 Actor 的场景</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%A7-9-%E5%AE%9E%E7%94%A8%E6%8A%80%E5%B7%A7"><span class="nav-text">🔧 9. 实用技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-%E5%8A%A8%E6%80%81%E5%9C%B0%E5%9D%80%E6%B3%A8%E5%86%8C"><span class="nav-text">① 动态地址注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-Actor-%E6%B1%A0%EF%BC%88%E9%99%90%E5%88%B6%E6%9C%80%E5%A4%A7%E5%AE%9E%E4%BE%8B%E6%95%B0%EF%BC%89"><span class="nav-text">② Actor 池（限制最大实例数）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-%E4%BC%98%E9%9B%85%E5%81%9C%E6%9C%BA%EF%BC%9A%E9%80%9A%E7%9F%A5%E6%89%80%E6%9C%89-Actor-%E4%BF%9D%E5%AD%98%E7%8A%B6%E6%80%81"><span class="nav-text">③ 优雅停机：通知所有 Actor 保存状态</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%8E%AF-10-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-text">🎯 10. 最佳实践</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8C-11-%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="nav-text">📌 11. 本章总结</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        8 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+            <script data-swup-reload-script src="https://cn.vercount.one/js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>
