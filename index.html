@@ -532,7 +532,7 @@
         <div class="label text-third-text-color text-sm">Categories</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">15</div>
         <div class="label text-third-text-color text-sm">Posts</div>
     </a>
 </div>
@@ -572,7 +572,7 @@
         <div class="label text-third-text-color text-sm">Categories</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">15</div>
         <div class="label text-third-text-color text-sm">Posts</div>
     </a>
 </div>
@@ -598,8 +598,79 @@
 
                 
                     <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
+                        <a href="/2026/07/08/vertx-series-14/">
+                            <img src="https://images.unsplash.com/photo-1516822003754-cca485356ecb?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&w=3600" alt="Vert.x从入门到放弃第十四弹：容错与韧性——用Circuit Breaker构建不倒翁系统" class="w-full h-full object-cover dark:brightness-75 transition-all" />
+                        </a>
+                    </div>
+                
+                <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
+                    <h3 class="home-article-title">
+                        <a href="/2026/07/08/vertx-series-14/">
+                            Vert.x从入门到放弃第十四弹：容错与韧性——用Circuit Breaker构建不倒翁系统
+                        </a>
+                    </h3>
+
+                    <div class="home-article-content markdown-body">
+                        
+                            
+                            🌟 1. 分布式系统的”连锁雪崩”一个真实场景：
+123456789用户请求 → API Gateway → 订单服务 → 库存服务 (挂了!)                                    ↓                              连接超时 30s                                    ↓            ...
+                        
+                    </div>
+
+                    <div class="home-article-meta-info-container">
+    <div class="home-article-meta-info">
+        <span><i class="fa-solid fa-calendars"></i>&nbsp;
+            <span class="home-article-date" data-date="Wed Jul 08 2026 10:00:00 GMT+0800">
+                
+                    2026-07-08
+                
+            </span>
+        </span>
+        
+        
+            <span class="home-article-tag">
+                <i class="fa-solid fa-tags"></i>&nbsp;
+                <ul>
+                    
+                        <li>
+                            
+                            <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                        </li>
+                    
+                        <li>
+                            | 
+                            <a href="/tags/NIO/">NIO</a>&nbsp;
+                        </li>
+                    
+                        <li>
+                            | 
+                            <a href="/tags/Netty/">Netty</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            </span>
+        
+    </div>
+
+    <a href="/2026/07/08/vertx-series-14/">Read more<span class="seo-reader-text">Vert.x从入门到放弃第十四弹：容错与韧性——用Circuit Breaker构建不倒翁系统</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
+</div>
+
+                </div>
+            </li>
+        
+            <li class="home-article-item">
+
+                
+
+                
+                    
+                
+
+                
+                    <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
                         <a href="/2026/07/06/vertx-series-13/">
-                            <img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第十三弹：GraalVM Native Image——毫秒级启动" class="w-full h-full object-cover dark:brightness-75 transition-all" />
+                            <img src="https://www.notion.so/images/page-cover/usda_pear.png" alt="Vert.x从入门到放弃第十三弹：GraalVM Native Image——毫秒级启动" class="w-full h-full object-cover dark:brightness-75 transition-all" />
                         </a>
                     </div>
                 
@@ -1322,85 +1393,6 @@ HT...
                 </div>
             </li>
         
-            <li class="home-article-item">
-
-                
-
-                
-                    
-                
-
-                
-                    <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2025/12/06/vertx-series-4/">
-                            <img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第四弹：Event Bus入门" class="w-full h-full object-cover dark:brightness-75 transition-all" />
-                        </a>
-                    </div>
-                
-                <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
-                    <h3 class="home-article-title">
-                        <a href="/2025/12/06/vertx-series-4/">
-                            Vert.x从入门到放弃第四弹：Event Bus入门
-                        </a>
-                    </h3>
-
-                    <div class="home-article-content markdown-body">
-                        
-                            
-                            🌟 1. 什么是 Event Bus？Vert.x Event Bus 是一个轻量级的消息总线，用于 Verticle 之间乃至应用之间的通信。它具有以下特性：
-
-进程内通信（Local）
-跨 Verticle 通信
-跨 JVM 通信（Cluster 模式）
-浏览器通信（SockJS&#x2F;WebSocket Bridge）
-
-也就是说：
-
-Event Bus 不只是内部通信总线，它是...
-                        
-                    </div>
-
-                    <div class="home-article-meta-info-container">
-    <div class="home-article-meta-info">
-        <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Sat Dec 06 2025 10:23:14 GMT+0800">
-                
-                    2025-12-06
-                
-            </span>
-        </span>
-        
-        
-            <span class="home-article-tag">
-                <i class="fa-solid fa-tags"></i>&nbsp;
-                <ul>
-                    
-                        <li>
-                            
-                            <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
-                        </li>
-                    
-                </ul>
-            </span>
-        
-    </div>
-
-    <a href="/2025/12/06/vertx-series-4/">Read more<span class="seo-reader-text">Vert.x从入门到放弃第四弹：Event Bus入门</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
-</div>
-
-                </div>
-            </li>
-        
     </ul>
 
     <div class="home-paginator px-7 py-5">
@@ -1431,7 +1423,7 @@ Event Bus 不只是内部通信总线，它是...
                 
                 <p class="post-count space-x-0.5">
                     <span>
-                        14 posts in total
+                        15 posts in total
                     </span>
                     
                 </p>
