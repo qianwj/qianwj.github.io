@@ -598,15 +598,15 @@
 
         <div class="statistics flex justify-around my-2.5">
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">11</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">12</div>
         <div class="label text-third-text-color text-sm">标签</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">3</div>
         <div class="label text-third-text-color text-sm">分类</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">15</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">6</div>
         <div class="label text-third-text-color text-sm">文章</div>
     </a>
 </div>
@@ -633,20 +633,20 @@
                 <div class="author flex flex-col justify-center my-2.5 mx-0">
     <div class="name">Elvis</div>
     
-        <div class="label">Lv2</div>
+        <div class="label">Lv1</div>
     
 </div>
                 <div class="statistics flex justify-around my-2.5">
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">11</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">12</div>
         <div class="label text-third-text-color text-sm">标签</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">0</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">3</div>
         <div class="label text-third-text-color text-sm">分类</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">15</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">6</div>
         <div class="label text-third-text-color text-sm">文章</div>
     </a>
 </div>
@@ -672,34 +672,51 @@
 
                 
                     <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/08/vertx-series-14/">
-                            <img src="https://images.unsplash.com/photo-1516822003754-cca485356ecb?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&w=3600" alt="Vert.x从入门到放弃第十四弹：容错与韧性——用Circuit Breaker构建不倒翁系统" class="w-full h-full object-cover dark:brightness-75 transition-all" />
+                        <a href="/2026/05/05/vertx-series-5/">
+                            <img src="https://app.notion.com/images/page-cover/met_henri_tl_1892.jpg" alt="Vert.x 实战（五）：性能验证、Native Image 与故障隔离" class="w-full h-full object-cover dark:brightness-75 transition-all" />
                         </a>
                     </div>
                 
                 <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
                     <h3 class="home-article-title">
-                        <a href="/2026/07/08/vertx-series-14/">
-                            Vert.x从入门到放弃第十四弹：容错与韧性——用Circuit Breaker构建不倒翁系统
+                        <a href="/2026/05/05/vertx-series-5/">
+                            Vert.x 实战（五）：性能验证、Native Image 与故障隔离
                         </a>
                     </h3>
 
                     <div class="home-article-content markdown-body">
                         
                             
-                            🌟 1. 分布式系统的”连锁雪崩”一个真实场景：
-123456789用户请求 → API Gateway → 订单服务 → 库存服务 (挂了!)                                    ↓                              连接超时 30s                                    ↓            ...
+                            旧文标题声称“从 5 万到 20 万 QPS”，但仓库没有对应版本、原始输出和硬件记录。这类数字无法复核，也会误导读者，所以本章改为性能测试方法，不保留结论。
+固定请求模型先准备 create-order.lua：
+123wrk.method = &quot;POST&quot;wrk.headers[&quot;Content-Type&quot;] = &quot;application...
                         
                     </div>
 
                     <div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
         <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Wed Jul 08 2026 10:00:00 GMT+0800">
+            <span class="home-article-date" data-date="Tue May 05 2026 22:00:00 GMT+0800">
                 
-                    2026-07-08
+                    2026-05-05
                 
             </span>
+        </span>
+        
+            <span class="home-article-category">
+                <i class="fa-solid fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/%E6%80%A7%E8%83%BD%E8%AF%8A%E6%96%AD/">性能诊断</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
         </span>
         
         
@@ -714,12 +731,12 @@
                     
                         <li>
                             | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
+                            <a href="/tags/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/">性能测试</a>&nbsp;
                         </li>
                     
                         <li>
                             | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
+                            <a href="/tags/wrk/">wrk</a>&nbsp;
                         </li>
                     
                 </ul>
@@ -727,7 +744,7 @@
         
     </div>
 
-    <a href="/2026/07/08/vertx-series-14/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第十四弹：容错与韧性——用Circuit Breaker构建不倒翁系统</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
+    <a href="/2026/05/05/vertx-series-5/">阅读全文<span class="seo-reader-text">Vert.x 实战（五）：性能验证、Native Image 与故障隔离</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
 </div>
 
                 </div>
@@ -743,45 +760,50 @@
 
                 
                     <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/06/vertx-series-13/">
-                            <img src="https://www.notion.so/images/page-cover/usda_pear.png" alt="Vert.x从入门到放弃第十三弹：GraalVM Native Image——毫秒级启动" class="w-full h-full object-cover dark:brightness-75 transition-all" />
+                        <a href="/2026/03/05/vertx-series-4/">
+                            <img src="https://images.unsplash.com/photo-1516822003754-cca485356ecb?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&w=3600" alt="Vert.x 实战（四）：WebSocket 通知与多实例部署边界" class="w-full h-full object-cover dark:brightness-75 transition-all" />
                         </a>
                     </div>
                 
                 <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
                     <h3 class="home-article-title">
-                        <a href="/2026/07/06/vertx-series-13/">
-                            Vert.x从入门到放弃第十三弹：GraalVM Native Image——毫秒级启动
+                        <a href="/2026/03/05/vertx-series-4/">
+                            Vert.x 实战（四）：WebSocket 通知与多实例部署边界
                         </a>
                     </h3>
 
                     <div class="home-article-content markdown-body">
                         
                             
-                            🌟 1. Java 的”原罪”：启动太慢12345# 一个普通 Vert.x 应用的启动时间$ time java -jar app.jarServer started on port 8080real    0m2.847s   # 接近 3 秒
-
-3 秒启动在传统服务中不是问题。但在这些场景下就是致命伤：
-
-
-
-场景
-要求
-3 秒启动的问题
-
-
-
-Serverless &#x2F; F...
+                            订单创建后，管理界面希望立即看到新订单。轮询可以工作，但会产生固定延迟和大量空请求。本章在同一个 HTTP Server 上增加 /events WebSocket，并把订单事件推送给已连接客户端。
+业务层只发布事件123orders.put(id, order);vertx.eventBus().publish(OrderVerticle.CREATED_ADDRESS, order);m...
                         
                     </div>
 
                     <div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
         <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Mon Jul 06 2026 10:00:00 GMT+0800">
+            <span class="home-article-date" data-date="Thu Mar 05 2026 14:00:00 GMT+0800">
                 
-                    2026-07-06
+                    2026-03-05
                 
             </span>
+        </span>
+        
+            <span class="home-article-category">
+                <i class="fa-solid fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/%E5%AE%9E%E6%97%B6%E9%80%9A%E4%BF%A1/">实时通信</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
         </span>
         
         
@@ -796,12 +818,12 @@ Serverless &#x2F; F...
                     
                         <li>
                             | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
+                            <a href="/tags/Event-Bus/">Event Bus</a>&nbsp;
                         </li>
                     
                         <li>
                             | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
+                            <a href="/tags/WebSocket/">WebSocket</a>&nbsp;
                         </li>
                     
                 </ul>
@@ -809,7 +831,7 @@ Serverless &#x2F; F...
         
     </div>
 
-    <a href="/2026/07/06/vertx-series-13/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第十三弹：GraalVM Native Image——毫秒级启动</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
+    <a href="/2026/03/05/vertx-series-4/">阅读全文<span class="seo-reader-text">Vert.x 实战（四）：WebSocket 通知与多实例部署边界</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
 </div>
 
                 </div>
@@ -825,38 +847,50 @@ Serverless &#x2F; F...
 
                 
                     <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/05/vertx-series-12/">
-                            <img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS" class="w-full h-full object-cover dark:brightness-75 transition-all" />
+                        <a href="/2026/03/04/vertx-series-3/">
+                            <img src="https://app.notion.com/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x 实战（三）：Event Loop、HTTP 边界与异步测试" class="w-full h-full object-cover dark:brightness-75 transition-all" />
                         </a>
                     </div>
                 
                 <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
                     <h3 class="home-article-title">
-                        <a href="/2026/07/05/vertx-series-12/">
-                            Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS
+                        <a href="/2026/03/04/vertx-series-3/">
+                            Vert.x 实战（三）：Event Loop、HTTP 边界与异步测试
                         </a>
                     </h3>
 
                     <div class="home-article-content markdown-body">
                         
                             
-                            🌟 1. 性能调优的正确姿势很多人做性能优化的方式是：凭感觉改参数 → 压测 → 没效果 → 再猜。
-正确的方法论是：
-1测量 → 定位瓶颈 → 优化瓶颈 → 验证 → 重复
-
-不要猜，用数据说话。 本篇带你走完从基准测试、瓶颈定位到逐步优化的全过程。
-实验环境1234服务器：4 核 8G（JDK 21，Vert.x 5.0）压测机：独立机器，避免与服务端争抢资源场景：HTTP JSON ...
+                            订单项目目前所有 Handler 都只操作内存并发送异步消息，很快就会返回。但一旦接入同步 JDBC、文件读取或旧 SDK，最容易出现的错误就是把阻塞调用直接放进路由 Handler。
+1234router.post(&quot;/orders&quot;).handler(ctx -&gt; &#123;  legacyClient.createOrder(ctx.body().asStr...
                         
                     </div>
 
                     <div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
         <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Sun Jul 05 2026 22:00:00 GMT+0800">
+            <span class="home-article-date" data-date="Wed Mar 04 2026 18:00:00 GMT+0800">
                 
-                    2026-07-05
+                    2026-03-04
                 
             </span>
+        </span>
+        
+            <span class="home-article-category">
+                <i class="fa-solid fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/%E6%80%A7%E8%83%BD%E8%AF%8A%E6%96%AD/">性能诊断</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
         </span>
         
         
@@ -871,12 +905,12 @@ Serverless &#x2F; F...
                     
                         <li>
                             | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
+                            <a href="/tags/Event-Loop/">Event Loop</a>&nbsp;
                         </li>
                     
                         <li>
                             | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
+                            <a href="/tags/JFR/">JFR</a>&nbsp;
                         </li>
                     
                 </ul>
@@ -884,7 +918,7 @@ Serverless &#x2F; F...
         
     </div>
 
-    <a href="/2026/07/05/vertx-series-12/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第十二弹：性能调优实战——从5万到20万QPS</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
+    <a href="/2026/03/04/vertx-series-3/">阅读全文<span class="seo-reader-text">Vert.x 实战（三）：Event Loop、HTTP 边界与异步测试</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
 </div>
 
                 </div>
@@ -900,56 +934,51 @@ Serverless &#x2F; F...
 
                 
                     <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/05/vertx-series-11/">
-                            <img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息" class="w-full h-full object-cover dark:brightness-75 transition-all" />
+                        <a href="/2025/12/06/vertx-series-2/">
+                            <img src="https://app.notion.com/images/page-cover/woodcuts_14.jpg" alt="Vert.x 实战（二）：Event Bus、Future 与订单状态编排" class="w-full h-full object-cover dark:brightness-75 transition-all" />
                         </a>
                     </div>
                 
                 <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
                     <h3 class="home-article-title">
-                        <a href="/2026/07/05/vertx-series-11/">
-                            Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息
+                        <a href="/2025/12/06/vertx-series-2/">
+                            Vert.x 实战（二）：Event Bus、Future 与订单状态编排
                         </a>
                     </h3>
 
                     <div class="home-article-content markdown-body">
                         
                             
-                            🌟 1. 为什么需要集群？到目前为止，我们所有代码都跑在单个 JVM 里。Event Bus 消息在进程内流转，Verticle 共享同一个 Vertx 实例。
-但生产环境中，你会遇到这些问题：
-
-
-
-问题
-单机方案的局限
-
-
-
-单机扛不住
-CPU&#x2F;内存&#x2F;连接数到顶了
-
-
-高可用
-进程挂了，服务全停
-
-
-地理分布
-用户在不同地域，需要就近部署
-
-
-服务拆分
-不同团队负责...
+                            第一篇完成了工程和 Verticle 生命周期。本篇把 HTTP、订单与库存连接成一条可以成功、拒绝或超时的异步链路。
+用 request&#x2F;reply 表达订单命令创建订单必须得到明确结果，因此使用 Event Bus 的 request/reply，而不是不等待结果的 send 或广播用的 publish：
+12public static final String CREATE_...
                         
                     </div>
 
                     <div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
         <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Sun Jul 05 2026 18:00:00 GMT+0800">
+            <span class="home-article-date" data-date="Sat Dec 06 2025 10:23:14 GMT+0800">
                 
-                    2026-07-05
+                    2025-12-06
                 
             </span>
+        </span>
+        
+            <span class="home-article-category">
+                <i class="fa-solid fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/%E5%90%8E%E7%AB%AF%E5%B7%A5%E7%A8%8B/">后端工程</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
         </span>
         
         
@@ -964,12 +993,12 @@ CPU&#x2F;内存&#x2F;连接数到顶了
                     
                         <li>
                             | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
+                            <a href="/tags/Event-Bus/">Event Bus</a>&nbsp;
                         </li>
                     
                         <li>
                             | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
+                            <a href="/tags/Future/">Future</a>&nbsp;
                         </li>
                     
                 </ul>
@@ -977,7 +1006,7 @@ CPU&#x2F;内存&#x2F;连接数到顶了
         
     </div>
 
-    <a href="/2026/07/05/vertx-series-11/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第十一弹：集群模式——跨JVM的分布式消息</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
+    <a href="/2025/12/06/vertx-series-2/">阅读全文<span class="seo-reader-text">Vert.x 实战（二）：Event Bus、Future 与订单状态编排</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
 </div>
 
                 </div>
@@ -993,41 +1022,50 @@ CPU&#x2F;内存&#x2F;连接数到顶了
 
                 
                     <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/05/vertx-series-10/">
-                            <img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第十弹：WebSocket实时推送引擎" class="w-full h-full object-cover dark:brightness-75 transition-all" />
+                        <a href="/2025/11/16/vertx-series-1/">
+                            <img src="https://app.notion.com/images/page-cover/met_emanuel_leutze.jpg" alt="Vert.x 实战（一）：从技术选型到可运行的订单服务" class="w-full h-full object-cover dark:brightness-75 transition-all" />
                         </a>
                     </div>
                 
                 <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
                     <h3 class="home-article-title">
-                        <a href="/2026/07/05/vertx-series-10/">
-                            Vert.x从入门到放弃第十弹：WebSocket实时推送引擎
+                        <a href="/2025/11/16/vertx-series-1/">
+                            Vert.x 实战（一）：从技术选型到可运行的订单服务
                         </a>
                     </h3>
 
                     <div class="home-article-content markdown-body">
                         
                             
-                            🌟 1. 从请求-响应到实时推送前几篇我们处理的都是”客户端发请求、服务端回响应”的模式——无论是 HTTP 还是 gRPC 一元调用。但有些场景天然不适合这个模型：
-
-股票行情：服务端要主动推送价格变化
-聊天消息：消息到达时立即送达，不能靠客户端轮询
-协同编辑：多个用户的操作要实时同步给所有人
-游戏状态：帧同步数据需要低延迟双向通信
-IoT 设备：设备持续上报数据，服务端随时下发指令
-
-...
+                            这套教程最初的问题是：怎样用 Java 写一个需要同时等待库存、支付等下游结果的订单接入层？请求处理期间大部分时间不在计算，而在等待网络 I&#x2F;O。如果为每个请求长期占用一个平台线程，线程数量、上下文切换和内存都会逐渐成为成本。
+本系列用一个简化的订单服务验证 Vert.x 的编程模型。项目固定使用 JDK 21、Vert.x 5.0.0 和 Gradle 9.2.1。它是可运行的教...
                         
                     </div>
 
                     <div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
         <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Sun Jul 05 2026 14:00:00 GMT+0800">
+            <span class="home-article-date" data-date="Sun Nov 16 2025 17:40:05 GMT+0800">
                 
-                    2026-07-05
+                    2025-11-16
                 
             </span>
+        </span>
+        
+            <span class="home-article-category">
+                <i class="fa-solid fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/%E5%90%8E%E7%AB%AF%E5%B7%A5%E7%A8%8B/">后端工程</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
         </span>
         
         
@@ -1042,12 +1080,12 @@ IoT 设备：设备持续上报数据，服务端随时下发指令
                     
                         <li>
                             | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
+                            <a href="/tags/Java/">Java</a>&nbsp;
                         </li>
                     
                         <li>
                             | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
+                            <a href="/tags/Event-Loop/">Event Loop</a>&nbsp;
                         </li>
                     
                 </ul>
@@ -1055,7 +1093,7 @@ IoT 设备：设备持续上报数据，服务端随时下发指令
         
     </div>
 
-    <a href="/2026/07/05/vertx-series-10/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第十弹：WebSocket实时推送引擎</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
+    <a href="/2025/11/16/vertx-series-1/">阅读全文<span class="seo-reader-text">Vert.x 实战（一）：从技术选型到可运行的订单服务</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
 </div>
 
                 </div>
@@ -1071,53 +1109,38 @@ IoT 设备：设备持续上报数据，服务端随时下发指令
 
                 
                     <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/05/vertx-series-9/">
-                            <img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding" class="w-full h-full object-cover dark:brightness-75 transition-all" />
+                        <a href="/2025/11/14/postgres_partition/">
+                            <img src="https://www.notion.so/images/page-cover/met_william_morris_1878.jpg" alt="PostgreSQL 分区表的原理、实践与 MySQL 对比" class="w-full h-full object-cover dark:brightness-75 transition-all" />
                         </a>
                     </div>
                 
                 <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
                     <h3 class="home-article-title">
-                        <a href="/2026/07/05/vertx-series-9/">
-                            Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding
+                        <a href="/2025/11/14/postgres_partition/">
+                            PostgreSQL 分区表的原理、实践与 MySQL 对比
                         </a>
                     </h3>
 
                     <div class="home-article-content markdown-body">
                         
                             
-                            🌟 1. 为什么在 Vert.x 里用 gRPC？上一篇我们构建了一个 HTTP Gateway。但在内部微服务通信中，HTTP&#x2F;JSON 有明显的短板：
+                            一、背景需要对AI调用进行记录，并对失败过高的情况进行告警。但是目前每天的AI调用量在百万级，对应的数据量也在百万级，单表存储显然是不可靠的。单表过大带来的问题包括：
 
+查询、插入、更新性能下降；
+索引膨胀，维护困难；
+清理历史数据成本高；
+统计与聚合操作耗时。在这种情况下，表分区（Partitioning） 是一种非常有效的优化手段。
 
-
-痛点
-说明
-
-
-
-序列化开销大
-JSON 文本解析比二进制慢 5-10 倍
-
-
-没有强类型契约
-接口变更容易出错，靠文档约束
-
-
-不支持流式通信
-HTTP&#x2F;1.1 天生请求-响应，双向流很难
-
-
-代码生成弱
-O...
+二、什么是分区表分区表（Partitioned Ta...
                         
                     </div>
 
                     <div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
         <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Sun Jul 05 2026 10:00:00 GMT+0800">
+            <span class="home-article-date" data-date="Fri Nov 14 2025 10:00:00 GMT+0800">
                 
-                    2026-07-05
+                    2025-11-14
                 
             </span>
         </span>
@@ -1129,17 +1152,17 @@ O...
                     
                         <li>
                             
-                            <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
+                            <a href="/tags/PostgreSQL/">PostgreSQL</a>&nbsp;
                         </li>
                     
                         <li>
                             | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
+                            <a href="/tags/Partition/">Partition</a>&nbsp;
                         </li>
                     
                         <li>
                             | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
+                            <a href="/tags/Database/">Database</a>&nbsp;
                         </li>
                     
                 </ul>
@@ -1147,321 +1170,7 @@ O...
         
     </div>
 
-    <a href="/2026/07/05/vertx-series-9/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第九弹：gRPC原生实现与Transcoding</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
-</div>
-
-                </div>
-            </li>
-        
-            <li class="home-article-item">
-
-                
-
-                
-                    
-                
-
-                
-                    <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/04/vertx-series-8/">
-                            <img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第八弹：手写高性能API Gateway" class="w-full h-full object-cover dark:brightness-75 transition-all" />
-                        </a>
-                    </div>
-                
-                <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
-                    <h3 class="home-article-title">
-                        <a href="/2026/07/04/vertx-series-8/">
-                            Vert.x从入门到放弃第八弹：手写高性能API Gateway
-                        </a>
-                    </h3>
-
-                    <div class="home-article-content markdown-body">
-                        
-                            
-                            🌟 1. 为什么要自研 Gateway？市面上有 Nginx、Kong、Spring Cloud Gateway、APISIX……为什么还要自己写？
-
-
-
-场景
-现有方案的痛点
-
-
-
-定制路由逻辑
-Nginx 用 Lua 写复杂逻辑很痛苦
-
-
-与内部 Event Bus 打通
-外部网关无法直接接入 Vert.x 集群
-
-
-动态路由热更新
-很多网关改配置需要 reload
-
-
-协议转换
-HT...
-                        
-                    </div>
-
-                    <div class="home-article-meta-info-container">
-    <div class="home-article-meta-info">
-        <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Sat Jul 04 2026 22:00:00 GMT+0800">
-                
-                    2026-07-04
-                
-            </span>
-        </span>
-        
-        
-            <span class="home-article-tag">
-                <i class="fa-solid fa-tags"></i>&nbsp;
-                <ul>
-                    
-                        <li>
-                            
-                            <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
-                        </li>
-                    
-                </ul>
-            </span>
-        
-    </div>
-
-    <a href="/2026/07/04/vertx-series-8/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第八弹：手写高性能API Gateway</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
-</div>
-
-                </div>
-            </li>
-        
-            <li class="home-article-item">
-
-                
-
-                
-                    
-                
-
-                
-                    <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/04/vertx-series-7/">
-                            <img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发" class="w-full h-full object-cover dark:brightness-75 transition-all" />
-                        </a>
-                    </div>
-                
-                <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
-                    <h3 class="home-article-title">
-                        <a href="/2026/07/04/vertx-series-7/">
-                            Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发
-                        </a>
-                    </h3>
-
-                    <div class="home-article-content markdown-body">
-                        
-                            
-                            🌟 1. 灵魂拷问：为什么 Vert.x 只用几个线程就能处理数万并发？前面几篇我们一直在说：
-
-“不要阻塞 Event Loop”
-“Verticle 在同一个 Event Loop 上运行”
-“Worker Verticle 用另一个线程池”
-
-但你是否真正理解——Event Loop 到底在做什么？为什么一个线程能同时服务几千个连接？
-本篇从底层彻底讲清楚 Vert.x 的线程模型。...
-                        
-                    </div>
-
-                    <div class="home-article-meta-info-container">
-    <div class="home-article-meta-info">
-        <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Sat Jul 04 2026 18:00:00 GMT+0800">
-                
-                    2026-07-04
-                
-            </span>
-        </span>
-        
-        
-            <span class="home-article-tag">
-                <i class="fa-solid fa-tags"></i>&nbsp;
-                <ul>
-                    
-                        <li>
-                            
-                            <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
-                        </li>
-                    
-                </ul>
-            </span>
-        
-    </div>
-
-    <a href="/2026/07/04/vertx-series-7/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第七弹：线程模型揭秘——为什么少量线程扛住高并发</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
-</div>
-
-                </div>
-            </li>
-        
-            <li class="home-article-item">
-
-                
-
-                
-                    
-                
-
-                
-                    <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/04/vertx-series-6/">
-                            <img src="https://www.notion.so/images/page-cover/met_silk_kashan_carpet.jpg" alt="Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统" class="w-full h-full object-cover dark:brightness-75 transition-all" />
-                        </a>
-                    </div>
-                
-                <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
-                    <h3 class="home-article-title">
-                        <a href="/2026/07/04/vertx-series-6/">
-                            Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统
-                        </a>
-                    </h3>
-
-                    <div class="home-article-content markdown-body">
-                        
-                            
-                            🌟 1. 从 Future 到 Actor：为什么还需要更高层的抽象？上一篇我们掌握了 Future 编排——能把多个异步步骤串联或并行。但真实系统中，你常常面对这样的问题：
-
-一个”游戏房间”有自己的状态（玩家列表、当前回合、倒计时），多个请求并发操作它，怎么保证一致性？
-一个”订单”有生命周期（创建 → 支付 → 发货 → 完成），状态流转需要被保护。
-多个”设备连接”各自独立运行，互...
-                        
-                    </div>
-
-                    <div class="home-article-meta-info-container">
-    <div class="home-article-meta-info">
-        <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Sat Jul 04 2026 14:00:00 GMT+0800">
-                
-                    2026-07-04
-                
-            </span>
-        </span>
-        
-        
-            <span class="home-article-tag">
-                <i class="fa-solid fa-tags"></i>&nbsp;
-                <ul>
-                    
-                        <li>
-                            
-                            <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
-                        </li>
-                    
-                </ul>
-            </span>
-        
-    </div>
-
-    <a href="/2026/07/04/vertx-series-6/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第六弹：用Verticle构建轻量级Actor系统</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
-</div>
-
-                </div>
-            </li>
-        
-            <li class="home-article-item">
-
-                
-
-                
-                    
-                
-
-                
-                    <div id="home-article-thumbnail" class="home-article-thumbnail relative h-[150px] overflow-hidden rounded-t-large">
-                        <a href="/2026/07/04/vertx-series-5/">
-                            <img src="https://www.notion.so/images/page-cover/met_william_morris_1875.jpg" alt="Vert.x从入门到放弃第五弹：Future组合与异步编排" class="w-full h-full object-cover dark:brightness-75 transition-all" />
-                        </a>
-                    </div>
-                
-                <div class="flex flex-col gap-5 px-7 pb-7 pt-5">
-                    <h3 class="home-article-title">
-                        <a href="/2026/07/04/vertx-series-5/">
-                            Vert.x从入门到放弃第五弹：Future组合与异步编排
-                        </a>
-                    </h3>
-
-                    <div class="home-article-content markdown-body">
-                        
-                            
-                            🌟 1. 从 Event Bus 的 reply 说起上一篇我们学了 Event Bus 的 request&#x2F;reply 模式：
-1234567vertx.eventBus().&lt;String&gt;request(&quot;order.create&quot;, orderJson)  .onSuccess(reply -&gt; &#123;    System.ou...
-                        
-                    </div>
-
-                    <div class="home-article-meta-info-container">
-    <div class="home-article-meta-info">
-        <span><i class="fa-solid fa-calendars"></i>&nbsp;
-            <span class="home-article-date" data-date="Sat Jul 04 2026 10:00:00 GMT+0800">
-                
-                    2026-07-04
-                
-            </span>
-        </span>
-        
-        
-            <span class="home-article-tag">
-                <i class="fa-solid fa-tags"></i>&nbsp;
-                <ul>
-                    
-                        <li>
-                            
-                            <a href="/tags/Vert-x/">Vert.x</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/NIO/">NIO</a>&nbsp;
-                        </li>
-                    
-                        <li>
-                            | 
-                            <a href="/tags/Netty/">Netty</a>&nbsp;
-                        </li>
-                    
-                </ul>
-            </span>
-        
-    </div>
-
-    <a href="/2026/07/04/vertx-series-5/">阅读全文<span class="seo-reader-text">Vert.x从入门到放弃第五弹：Future组合与异步编排</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
+    <a href="/2025/11/14/postgres_partition/">阅读全文<span class="seo-reader-text">PostgreSQL 分区表的原理、实践与 MySQL 对比</span>&nbsp;<i class="fa-solid fa-angle-right"></i></a>
 </div>
 
                 </div>
@@ -1471,7 +1180,7 @@ HT...
 
     <div class="home-paginator px-7 py-5">
         <div class="paginator">
-	<span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa-regular fa-angle-right"></i></a>
+	<span class="page-number current">1</span>
 </div>
   
     </div>
@@ -1497,7 +1206,7 @@ HT...
                 
                 <p class="post-count space-x-0.5">
                     <span>
-                        共撰写了 15 篇文章
+                        共撰写了 6 篇文章
                     </span>
                     
                 </p>
