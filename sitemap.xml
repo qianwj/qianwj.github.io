@@ -56,6 +56,15 @@
   </url>
   
   <url>
+    <loc>https://qianwj.github.io/2026/06/01/grpc-reactor-series-1/</loc>
+    
+    <lastmod>2026-06-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://qianwj.github.io/2026/03/04/vertx-series-3/</loc>
     
     <lastmod>2026-04-01</lastmod>
@@ -198,6 +207,27 @@
     <priority>0.2</priority>
   </url>
   
+  <url>
+    <loc>https://qianwj.github.io/tags/gRPC/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://qianwj.github.io/tags/Reactor-Netty/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://qianwj.github.io/tags/HTTP-2/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
 
   
   <url>
@@ -216,6 +246,13 @@
   
   <url>
     <loc>https://qianwj.github.io/categories/%E5%AE%9E%E6%97%B6%E9%80%9A%E4%BF%A1/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://qianwj.github.io/categories/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
