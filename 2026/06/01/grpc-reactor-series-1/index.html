@@ -639,17 +639,40 @@
 <td><code>Flux&lt;Resp&gt; method(Flux&lt;Req&gt;)</code></td>
 </tr>
 </tbody></table>
+<p>为什么 gRPC 要定义四种而不是只做 unary？本质上这是请求和响应各自独立选择”单值还是流”的 2x2 组合：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>单值响应</th>
+<th>流式响应</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>单值请求</strong></td>
+<td>unary</td>
+<td>server streaming</td>
+</tr>
+<tr>
+<td><strong>流式请求</strong></td>
+<td>client streaming</td>
+<td>bidirectional</td>
+</tr>
+</tbody></table>
+<p>它们解决不同场景：unary 覆盖经典 request-response；server streaming 用于服务端推送（事件订阅、大数据分页拉取）；client streaming 用于客户端批量上传（文件分片、批量写入）；bidirectional streaming 用于实时双向通信（聊天、协同编辑）。这不是凭空发明的四种模式——HTTP&#x2F;2 stream 本身就是全双工的，单个连接可以多路复用数百条并发 stream，请求和响应都可以独立发送多帧数据。gRPC 把这种传输能力提升为一等 API 语义：不是 chunked transfer encoding 的变体，而是让编译器在类型层面检查调用方和实现方是否匹配。</p>
 <p>低层传输只保留一个统一模型：</p>
 <div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Flux&lt;Req&gt; -&gt; HTTP/2 stream -&gt; Flux&lt;Resp&gt;</span><br></pre></td></tr></table></figure></div>
 
 <p>生成代码负责在边界应用 <code>single()</code> 等 cardinality 检查。这样不需要为四种 RPC 分别实现四套网络逻辑，也能明确拒绝 unary 空请求、重复请求或重复响应。</p>
-<h2 id="兼容的是-wire-protocol"><a href="#兼容的是-wire-protocol" class="headerlink" title="兼容的是 wire protocol"></a>兼容的是 wire protocol</h2><p>项目的兼容目标是公开的 gRPC over HTTP&#x2F;2 协议，不是 grpc-java 内部 API：</p>
+<h2 id="兼容的是-wire-protocol"><a href="#兼容的是-wire-protocol" class="headerlink" title="兼容的是 wire protocol"></a>兼容的是 wire protocol</h2><p>项目的兼容目标是公开的 <a class="link"   target="_blank" rel="noopener" href="https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md" >gRPC over HTTP&#x2F;2 协议规范<i class="fa-solid fa-arrow-up-right ml-[0.2em] font-light align-text-top text-[0.7em] link-icon"></i></a>，不是 grpc-java 内部 API：</p>
 <div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">generated Reactor API</span><br><span class="line">        |</span><br><span class="line">call dispatcher / service registry</span><br><span class="line">        |</span><br><span class="line">marshaller + message framer/deframer</span><br><span class="line">        |</span><br><span class="line">metadata + status + deadline</span><br><span class="line">        |</span><br><span class="line">Reactor Netty HTTP/2 stream</span><br></pre></td></tr></table></figure></div>
 
-<p>每个 RPC 对应一个 HTTP&#x2F;2 stream。请求至少包含：</p>
-<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">:method      POST</span><br><span class="line">:path        /&lt;package.Service&gt;/&lt;Method&gt;</span><br><span class="line">content-type application/grpc+proto</span><br><span class="line">te           trailers</span><br><span class="line">grpc-timeout &lt;optional&gt;</span><br></pre></td></tr></table></figure></div>
+<p>每个 RPC 对应一个 HTTP&#x2F;2 stream。请求以 HEADERS frame 开始，至少包含：</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">:method      POST</span><br><span class="line">:path        /&lt;package.Service&gt;/&lt;Method&gt;</span><br><span class="line">content-type application/grpc+proto</span><br><span class="line">te           trailers</span><br><span class="line">grpc-timeout &lt;相对超时，如 100m 表示 100ms&gt;</span><br></pre></td></tr></table></figure></div>
 
-<p>HTTP 状态与 RPC 状态不是一回事。正常 gRPC 响应通常先返回 HTTP 200，最终结果由 trailers 中的 <code>grpc-status</code> 决定。HTTP 200 如果缺少最终 <code>grpc-status</code>，反而应该视为协议错误。</p>
+<p>消息体使用 Length-Prefixed-Message 格式封装在 DATA frame 中——每条 Protobuf 消息前有五字节 envelope（1 字节压缩标志 + 4 字节大端长度）。一个 DATA frame 可能包含多条 gRPC 消息，一条大消息也可能跨越多个 DATA frame。</p>
+<p><strong>为什么 gRPC 必须依赖 HTTP trailers？</strong> 这是协议最反直觉的设计之一。HTTP status code 对 gRPC 来说几乎无用——协议要求 HTTP 层始终返回 200，真正的调用结果（<code>grpc-status</code> 和 <code>grpc-message</code>）放在 trailers 中。原因在于：streaming 场景下，server 可能已经发送了数千条消息，最终成功还是失败只有处理完最后一条数据后才能确定。HTTP headers 在 body 之前发送，无法承载这个后验结果。trailers 是 HTTP&#x2F;2 中唯一可以在 body 之后附加 metadata 的机制。</p>
+<p>协议还定义了 <strong>trailers-only</strong> 模式：当 server 在读取 body 之前就能判定失败（比如路径不存在、认证失败），<code>grpc-status</code> 直接放在 response headers 中返回，不发送 body，节省一次 round-trip。Client 必须同时检查 headers 和 trailers 两个位置才能正确提取最终状态。</p>
 <h2 id="按协议边界拆模块"><a href="#按协议边界拆模块" class="headerlink" title="按协议边界拆模块"></a>按协议边界拆模块</h2><p>项目目前有五个模块：</p>
 <div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">grpc-reactor-protocol      → 与传输无关的协议原语</span><br><span class="line">grpc-reactor-transport     → Reactor Netty HTTP/2 映射</span><br><span class="line">grpc-reactor-codegen       → Protoc 插件，生成 Reactor stub</span><br><span class="line">grpc-reactor-gradle-plugin → Gradle 集成</span><br><span class="line">grpc-reactor-interop-test  → grpc-java 兼容性测试</span><br></pre></td></tr></table></figure></div>
 
