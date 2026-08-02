@@ -142,6 +142,8 @@
 <meta property="article:published_time" content="2026-05-05T14:00:00.000Z">
 <meta property="article:modified_time" content="2026-07-13T06:20:00.000Z">
 <meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="GraalVM">
+<meta property="article:tag" content="Native Image">
 <meta property="article:tag" content="Vert.x">
 <meta property="article:tag" content="wrk">
 <meta property="article:tag" content="性能测试">
@@ -475,7 +477,7 @@
 
         <div class="statistics flex justify-around my-2.5">
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">12</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
         <div class="label text-third-text-color text-sm">标签</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
@@ -578,6 +580,14 @@
                         | <a href="/tags/wrk/">wrk</a>&nbsp;
                     </li>
                 
+                    <li>
+                        | <a href="/tags/GraalVM/">GraalVM</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Native-Image/">Native Image</a>&nbsp;
+                    </li>
+                
             </ul>
         </span>
     
@@ -601,7 +611,7 @@
 
 
 		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
-			<p>旧文标题声称“从 5 万到 20 万 QPS”，但仓库没有对应版本、原始输出和硬件记录。这类数字无法复核，也会误导读者，所以本章改为性能测试方法，不保留结论。</p>
+			<p>性能数字只有与代码版本、测试环境、请求模型和原始输出放在一起才有意义。当前项目还不具备稳定、隔离的压测环境，因此本章先建立可复现的测试方法，不预设吞吐结论。</p>
 <h2 id="固定请求模型"><a href="#固定请求模型" class="headerlink" title="固定请求模型"></a>固定请求模型</h2><p>先准备 <code>create-order.lua</code>：</p>
 <div class="code-container" data-rel="Lua"><figure class="iseeu highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wrk.method = <span class="string">&quot;POST&quot;</span></span><br><span class="line">wrk.headers[<span class="string">&quot;Content-Type&quot;</span>] = <span class="string">&quot;application/json&quot;</span></span><br><span class="line">wrk.body = <span class="string">&#x27;&#123;&quot;customerId&quot;:&quot;load-test&quot;,&quot;sku&quot;:&quot;book&quot;,&quot;quantity&quot;:1&#125;&#x27;</span></span><br></pre></td></tr></table></figure></div>
 
@@ -613,19 +623,56 @@
 
 <p>优化必须一次只改变一个变量，并保留优化前后原始输出。JFR 或 async-profiler 用来定位热点，不能先猜“JSON 慢”就替换序列化库。</p>
 <p>本章没有给出新的 QPS，是因为当前教学实现包含有限库存、内存存储且没有稳定压测环境。缺少这些条件时，诚实地不下结论比漂亮数字更有价值。</p>
-<h2 id="Native-Image-先审计再承诺"><a href="#Native-Image-先审计再承诺" class="headerlink" title="Native Image 先审计再承诺"></a>Native Image 先审计再承诺</h2><p>Native Image 通常能缩短启动时间并降低部分场景的常驻内存，但代价包括构建时间、闭世界分析限制以及与 JVM 不同的峰值性能特征。没有构建产物时不能先写“毫秒启动”或“镜像只有几十 MB”。</p>
-<p>当前订单项目使用 Vert.x Core、Web、Web Client、Circuit Breaker、JDK 集合和 <code>JsonObject</code>，没有运行时扫描业务类，也没有动态代理框架。这使它成为较小的 Native Image 候选，但不等于已经兼容。</p>
-<p>接入固定版本的 GraalVM Build Tools 后，应执行：</p>
-<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">./gradlew nativeCompile</span><br><span class="line">./build/native/nativeCompile/vertx-serials</span><br><span class="line">curl -i http://localhost:8080/health</span><br></pre></td></tr></table></figure></div>
+<h2 id="用子项目构建-Native-Image"><a href="#用子项目构建-Native-Image" class="headerlink" title="用子项目构建 Native Image"></a>用子项目构建 Native Image</h2><p>Native Image 通常能缩短启动时间并降低部分场景的常驻内存，但代价包括更慢的构建、闭世界分析限制，以及与 JVM 不同的峰值性能特征。要讨论这些取舍，第一步是让同一份业务代码真正生成并运行原生二进制。</p>
+<p>项目新增 <code>native-image-demo</code> 子项目。它依赖根项目，不复制订单代码：</p>
+<div class="code-container" data-rel="Kotlin"><figure class="iseeu highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">plugins &#123;</span><br><span class="line">    application</span><br><span class="line">    id(<span class="string">&quot;org.graalvm.buildtools.native&quot;</span>) version <span class="string">&quot;0.11.1&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">repositories &#123;</span><br><span class="line">    mavenCentral()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    implementation(project(<span class="string">&quot;:&quot;</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
 
-<p>验证不能停在健康检查，还应覆盖创建订单、库存不足、WebSocket 通知和熔断路径。JVM 与 Native 的比较必须使用同一提交、配置和请求集，并分别记录：</p>
-<ul>
-<li>构建时间和产物大小；</li>
-<li>冷启动时间与空闲 RSS；</li>
-<li>稳定负载下的吞吐、延迟分位和错误率；</li>
-<li>JVM 预热前后的差异。</li>
-</ul>
-<p>当前仓库尚未提交 Native Build 插件和成功构建记录，因此这里保留审计步骤，不宣称兼容，也不提供估算数字。</p>
+<p>多项目构建中，子项目不会自动继承根项目的 <code>repositories</code>。第一次执行时正是因为缺少这段配置，Gradle 无法解析根项目传递来的 Vert.x 依赖，构建在进入闭世界分析之前失败。</p>
+<p>原生二进制配置为：</p>
+<div class="code-container" data-rel="Kotlin"><figure class="iseeu highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">graalvmNative &#123;</span><br><span class="line">    toolchainDetection = <span class="literal">true</span></span><br><span class="line">    binaries &#123;</span><br><span class="line">        named(<span class="string">&quot;main&quot;</span>) &#123;</span><br><span class="line">            imageName = <span class="string">&quot;vertx-order-native&quot;</span></span><br><span class="line">            mainClass = <span class="string">&quot;dev.elvis.orders.nativeimage.NativeOrderApplication&quot;</span></span><br><span class="line">            buildArgs.add(<span class="string">&quot;-H:+ReportExceptionStackTraces&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>构建命令从根目录执行：</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew :native-image-demo:nativeCompile</span><br></pre></td></tr></table></figure></div>
+
+<p>本次实际环境和结果如下：</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GraalVM CE：25.0.3</span><br><span class="line">架构：macOS arm64</span><br><span class="line">Native Image 阶段：23.0 秒</span><br><span class="line">可达类型：7,562</span><br><span class="line">可达方法：39,049</span><br><span class="line">反射注册类型：413</span><br><span class="line">峰值构建 RSS：1.85 GiB</span><br><span class="line">二进制大小：27.68 MiB</span><br></pre></td></tr></table></figure></div>
+
+<p>这些是当前机器、依赖和提交下的一次构建记录，不是对其他项目的尺寸或速度承诺。</p>
+<h2 id="处理-Netty-allocator-的运行时问题"><a href="#处理-Netty-allocator-的运行时问题" class="headerlink" title="处理 Netty allocator 的运行时问题"></a>处理 Netty allocator 的运行时问题</h2><p>第一次生成的二进制可以监听端口，但请求建立连接后立即被重置。增加 HTTP Server 异常日志后得到堆栈：</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">java.lang.NullPointerException</span><br><span class="line">  at io.netty.util.internal.PlatformDependent0.safeConstructPutInt(...)</span><br><span class="line">  at io.netty.buffer.AdaptivePoolingAllocator$Chunk.&lt;init&gt;(...)</span><br></pre></td></tr></table></figure></div>
+
+<p>问题发生在 Netty 的 adaptive allocator，而不是路由或 JSON 反射。使用运行参数验证 <code>pooled</code> allocator 后，健康检查恢复 200。为了不要求部署者记住额外参数，子项目提供专用入口：</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">NativeOrderApplication</span> &#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    System.setProperty(<span class="string">&quot;io.netty.allocator.type&quot;</span>, <span class="string">&quot;pooled&quot;</span>);</span><br><span class="line">    OrderApplication.main(args);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>这个入口只属于 Native 子项目，不会改变 JVM 主项目。它也记录了明确的兼容原因，后续升级 Netty 或 GraalVM 时可以删除属性重测，而不是永久保留一个来源不明的系统参数。</p>
+<h2 id="验证原生服务的业务路径"><a href="#验证原生服务的业务路径" class="headerlink" title="验证原生服务的业务路径"></a>验证原生服务的业务路径</h2><div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">HTTP_PORT=18081 \</span><br><span class="line">  ./native-image-demo/build/native/nativeCompile/vertx-order-native</span><br></pre></td></tr></table></figure></div>
+
+<p>本次验证了三条请求：</p>
+<table>
+<thead>
+<tr>
+<th>请求</th>
+<th>预期</th>
+<th>实际</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GET /health</code></td>
+<td>服务可用</td>
+<td>200，<code>{&quot;status&quot;:&quot;UP&quot;}</code></td>
+</tr>
+<tr>
+<td><code>POST /orders</code>，购买 2 本书</td>
+<td>创建并预留库存</td>
+<td>201，剩余库存 8</td>
+</tr>
+<tr>
+<td><code>POST /orders</code>，购买 4 个键盘</td>
+<td>库存不足</td>
+<td>409，返回明确错误</td>
+</tr>
+</tbody></table>
+<p>这说明 HTTP Router、JSON、Event Bus、Future 编排和内存状态在当前 Native Image 中能工作。WebSocket 长连接和熔断恢复计时仍应增加原生进程级自动化测试；健康检查成功本身不足以证明完整兼容。</p>
 <h2 id="用-Circuit-Breaker-隔离支付故障"><a href="#用-Circuit-Breaker-隔离支付故障" class="headerlink" title="用 Circuit Breaker 隔离支付故障"></a>用 Circuit Breaker 隔离支付故障</h2><p>支付下游不可用时，新请求不应该持续冲击已经故障的服务。项目使用一个可以注入真实 WebClient 或测试实现的 <code>ResilientPaymentClient</code>：</p>
 <div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span>.breaker = CircuitBreaker.create(</span><br><span class="line">    <span class="string">&quot;payment&quot;</span>,</span><br><span class="line">    vertx,</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">CircuitBreakerOptions</span>()</span><br><span class="line">        .setTimeout(<span class="number">800</span>)</span><br><span class="line">        .setMaxFailures(<span class="number">3</span>)</span><br><span class="line">        .setResetTimeout(<span class="number">5_000</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> Future&lt;JsonObject&gt; <span class="title function_">authorize</span><span class="params">(JsonObject payment)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> breaker.execute(() -&gt; delegate.apply(payment));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
 
@@ -637,7 +684,7 @@
 <p>支付请求不能随意自动重试。超时不代表支付方没有成功处理，缺少幂等键时重试可能重复扣款。降级也不能伪造支付成功；更合理的状态通常是 <code>PAYMENT_PENDING</code> 或明确失败，再通过查询与对账恢复。</p>
 <p>Circuit Breaker 只负责故障隔离，不等于分布式事务、限流或监控。生产接入仍需记录开路状态、失败原因和半开探测，并为订单状态设计可靠恢复流程。</p>
 <h2 id="当前系列的验证边界"><a href="#当前系列的验证边界" class="headerlink" title="当前系列的验证边界"></a>当前系列的验证边界</h2><p>截至本文更新，配套项目执行 <code>./gradlew test</code>，订单创建查询、库存不足和连续支付失败后三个场景均通过。Hexo 站点也可以完整生成。</p>
-<p>仍未验证的内容会保持明确：没有可靠数据库、没有消息代理、没有稳定压测结果、没有 Native Image 构建记录，也没有多节点部署。后续补充这些能力时，应同时提交代码、测试命令和原始结果，而不是只扩写结论。</p>
+<p>仍未验证的内容会保持明确：没有可靠数据库、没有消息代理、没有稳定压测结果，也没有多节点部署。Native Image 已完成构建和三条 HTTP 路径验证，但还没有 WebSocket 与熔断恢复的原生进程级测试。后续补充时仍应同时提交代码、命令和原始结果。</p>
 
 		</div>
 
@@ -689,6 +736,14 @@
 				<a href="/tags/wrk/">#wrk</a>&nbsp;
 			</li>
 			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/GraalVM/">#GraalVM</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Native-Image/">#Native Image</a>&nbsp;
+			</li>
+			
 		</ul>
 		
 
@@ -723,7 +778,7 @@
 	<div class="post-toc">
 		<div class="toc-title">目录</div>
 		<div class="page-title">Vert.x 实战（五）：性能验证、Native Image 与故障隔离</div>
-		<ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E8%AF%B7%E6%B1%82%E6%A8%A1%E5%9E%8B"><span class="nav-text">固定请求模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AF%8F%E6%AC%A1%E5%BF%85%E9%A1%BB%E8%AE%B0%E5%BD%95%E7%9A%84%E5%86%85%E5%AE%B9"><span class="nav-text">每次必须记录的内容</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Native-Image-%E5%85%88%E5%AE%A1%E8%AE%A1%E5%86%8D%E6%89%BF%E8%AF%BA"><span class="nav-text">Native Image 先审计再承诺</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8-Circuit-Breaker-%E9%9A%94%E7%A6%BB%E6%94%AF%E4%BB%98%E6%95%85%E9%9A%9C"><span class="nav-text">用 Circuit Breaker 隔离支付故障</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%93%E5%89%8D%E7%B3%BB%E5%88%97%E7%9A%84%E9%AA%8C%E8%AF%81%E8%BE%B9%E7%95%8C"><span class="nav-text">当前系列的验证边界</span></a></li></ol>
+		<ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E8%AF%B7%E6%B1%82%E6%A8%A1%E5%9E%8B"><span class="nav-text">固定请求模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AF%8F%E6%AC%A1%E5%BF%85%E9%A1%BB%E8%AE%B0%E5%BD%95%E7%9A%84%E5%86%85%E5%AE%B9"><span class="nav-text">每次必须记录的内容</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E5%AD%90%E9%A1%B9%E7%9B%AE%E6%9E%84%E5%BB%BA-Native-Image"><span class="nav-text">用子项目构建 Native Image</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86-Netty-allocator-%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E9%97%AE%E9%A2%98"><span class="nav-text">处理 Netty allocator 的运行时问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E5%8E%9F%E7%94%9F%E6%9C%8D%E5%8A%A1%E7%9A%84%E4%B8%9A%E5%8A%A1%E8%B7%AF%E5%BE%84"><span class="nav-text">验证原生服务的业务路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8-Circuit-Breaker-%E9%9A%94%E7%A6%BB%E6%94%AF%E4%BB%98%E6%95%85%E9%9A%9C"><span class="nav-text">用 Circuit Breaker 隔离支付故障</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%93%E5%89%8D%E7%B3%BB%E5%88%97%E7%9A%84%E9%AA%8C%E8%AF%81%E8%BE%B9%E7%95%8C"><span class="nav-text">当前系列的验证边界</span></a></li></ol>
 
 	</div>
 </div>

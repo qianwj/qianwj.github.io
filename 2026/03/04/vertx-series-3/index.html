@@ -475,7 +475,7 @@
 
         <div class="statistics flex justify-around my-2.5">
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">12</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
         <div class="label text-third-text-color text-sm">标签</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
@@ -617,7 +617,7 @@
 
 <p>录制期间执行稳定、可重复的请求，再用 JDK Mission Control 查看线程状态、Socket I&#x2F;O、锁等待和分配热点。文章不会给出“JFR 固定小于 2%”之类脱离工作负载的承诺；开销应在自己的环境中测量。</p>
 <p>本章也不声称当前示例能达到某个 QPS。没有独立压测机、请求模型、延迟分位和错误率的单个吞吐数字没有参考意义。</p>
-<h2 id="HTTP-层只承担协议职责"><a href="#HTTP-层只承担协议职责" class="headerlink" title="HTTP 层只承担协议职责"></a>HTTP 层只承担协议职责</h2><p>原系列曾计划“手写生产级 API Gateway”，但一个教学项目无法覆盖网关的协议安全、连接池、限流、动态配置和可观测性。当前项目只实现自己真正需要的 HTTP 接入层：</p>
+<h2 id="HTTP-层只承担协议职责"><a href="#HTTP-层只承担协议职责" class="headerlink" title="HTTP 层只承担协议职责"></a>HTTP 层只承担协议职责</h2><p>一个教学项目无法完整覆盖网关所需的协议安全、连接池、限流、动态配置和可观测性，因此当前项目只实现订单服务真正需要的 HTTP 接入层：</p>
 <div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Router</span> <span class="variable">router</span> <span class="operator">=</span> Router.router(vertx);</span><br><span class="line">router.route().handler(BodyHandler.create());</span><br><span class="line">router.get(<span class="string">&quot;/health&quot;</span>).handler(<span class="built_in">this</span>::health);</span><br><span class="line">router.post(<span class="string">&quot;/orders&quot;</span>).handler(<span class="built_in">this</span>::createOrder);</span><br><span class="line">router.get(<span class="string">&quot;/orders/:id&quot;</span>).handler(<span class="built_in">this</span>::findOrder);</span><br></pre></td></tr></table></figure></div>
 
 <p><code>HttpVerticle</code> 把 JSON 转成 Event Bus 消息，再将回复转换为 HTTP 响应。订单规则仍留在 <code>OrderVerticle</code>，以后增加其他协议入口时不需要复制业务校验。</p>

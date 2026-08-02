@@ -598,7 +598,7 @@
 
         <div class="statistics flex justify-around my-2.5">
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">12</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
         <div class="label text-third-text-color text-sm">标签</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
@@ -638,7 +638,7 @@
 </div>
                 <div class="statistics flex justify-around my-2.5">
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">12</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">14</div>
         <div class="label text-third-text-color text-sm">标签</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
@@ -687,9 +687,9 @@
                     <div class="home-article-content markdown-body">
                         
                             
-                            旧文标题声称“从 5 万到 20 万 QPS”，但仓库没有对应版本、原始输出和硬件记录。这类数字无法复核，也会误导读者，所以本章改为性能测试方法，不保留结论。
+                            性能数字只有与代码版本、测试环境、请求模型和原始输出放在一起才有意义。当前项目还不具备稳定、隔离的压测环境，因此本章先建立可复现的测试方法，不预设吞吐结论。
 固定请求模型先准备 create-order.lua：
-123wrk.method = &quot;POST&quot;wrk.headers[&quot;Content-Type&quot;] = &quot;application...
+123wrk.method = &quot;POST&quot;wrk.headers[&quot;Content-Type&quot;] = &quot;application/...
                         
                     </div>
 
