@@ -140,7 +140,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://qianwj.github.io/images/redefine-og.webp">
 <meta property="article:published_time" content="2026-06-01T07:30:00.000Z">
-<meta property="article:modified_time" content="2026-06-02T09:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T12:00:00.000Z">
 <meta property="article:author" content="Elvis Qian">
 <meta property="article:tag" content="HTTP&#x2F;2">
 <meta property="article:tag" content="Java">
@@ -481,7 +481,7 @@
 
         <div class="statistics flex justify-around my-2.5">
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">20</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">21</div>
         <div class="label text-third-text-color text-sm">标签</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
@@ -489,7 +489,7 @@
         <div class="label text-third-text-color text-sm">分类</div>
     </a>
     <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
-        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">8</div>
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">9</div>
         <div class="label text-third-text-color text-sm">文章</div>
     </a>
 </div>
@@ -544,8 +544,8 @@
     
         <span class="article-date article-meta-item">
             <i class="fa-regular fa-wrench"></i>&nbsp;
-            <span class="desktop">2026-06-02 17:00</span>
-            <span class="mobile">2026-06-02 17:00</span>
+            <span class="desktop">2026-08-03 20:00</span>
+            <span class="mobile">2026-08-03 20:00</span>
             <span class="hover-info">更新</span>
         </span>
     
@@ -613,7 +613,7 @@
 		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
 			<p>最近我开始开发 <a class="link"   target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor" >grpc-reactor<i class="fa-solid fa-arrow-up-right ml-[0.2em] font-light align-text-top text-[0.7em] link-icon"></i></a>：一个直接构建在 Reactor Netty HTTP&#x2F;2 之上的实验性 gRPC 实现。项目使用 Protobuf，但运行时不依赖 grpc-java transport、<code>ClientCall</code>、<code>ServerCall</code> 或 <code>StreamObserver</code>。</p>
 <p>这不是为了证明 grpc-java 不好。grpc-java 已经成熟、稳定，并覆盖负载均衡、NameResolver、重试和丰富的可观测性。这个项目要回答的是另一个问题：如果应用的编程模型本来就是 Reactor，能否让 <code>Mono</code> 和 <code>Flux</code> 从生成 API 一直贯穿到 HTTP&#x2F;2 stream，而不是在两套异步抽象之间适配？</p>
-<p>本文基于 JDK 25、Gradle 9.2.1、Reactor 3.8.6、Reactor Netty 1.3.6 和 Netty 4.2.15.Final。<code>main</code> 已完成 Stage 0 到 Stage 6：在协议基础和四种 RPC cardinality 之外，Stage 5 补齐 TLS、gzip、deadline、GOAWAY、连接池、keepalive 与 transport diagnostics，Stage 6 又加入 DNS name resolution、per-endpoint subchannel、<code>pick_first</code> 和 <code>round_robin</code>。</p>
+<p>本文基于 JDK 25、Gradle 9.2.1、Reactor 3.8.6、Reactor Netty 1.3.6 和 Netty 4.2.15.Final。<code>main</code> 已完成 Stage 0 到 Stage 8：在协议基础和四种 RPC cardinality 之外，Stage 5 补齐生产传输能力，Stage 6 加入 DNS 与客户端负载均衡，Stage 7 完成代码生成工具链，Stage 8 又通过可选模块提供 Reactor 原生的 Health v1、Reflection v1 和 Channelz v1 标准服务。</p>
 <h2 id="API-目标不是包装-StreamObserver"><a href="#API-目标不是包装-StreamObserver" class="headerlink" title="API 目标不是包装 StreamObserver"></a>API 目标不是包装 StreamObserver</h2><p>Protobuf 方法有四种 cardinality，目标 API 直接映射为：</p>
 <table>
 <thead>
@@ -673,12 +673,13 @@
 <p>消息体使用 Length-Prefixed-Message 格式封装在 DATA frame 中——每条 Protobuf 消息前有五字节 envelope（1 字节压缩标志 + 4 字节大端长度）。一个 DATA frame 可能包含多条 gRPC 消息，一条大消息也可能跨越多个 DATA frame。</p>
 <p><strong>为什么 gRPC 必须依赖 HTTP trailers？</strong> 这是协议最反直觉的设计之一。HTTP status code 对 gRPC 来说几乎无用——协议要求 HTTP 层始终返回 200，真正的调用结果（<code>grpc-status</code> 和 <code>grpc-message</code>）放在 trailers 中。原因在于：streaming 场景下，server 可能已经发送了数千条消息，最终成功还是失败只有处理完最后一条数据后才能确定。HTTP headers 在 body 之前发送，无法承载这个后验结果。trailers 是 HTTP&#x2F;2 中唯一可以在 body 之后附加 metadata 的机制。</p>
 <p>协议还定义了 <strong>trailers-only</strong> 模式：当 server 在读取 body 之前就能判定失败（比如路径不存在、认证失败），<code>grpc-status</code> 直接放在 response headers 中返回，不发送 body，节省一次 round-trip。Client 必须同时检查 headers 和 trailers 两个位置才能正确提取最终状态。</p>
-<h2 id="按协议边界拆模块"><a href="#按协议边界拆模块" class="headerlink" title="按协议边界拆模块"></a>按协议边界拆模块</h2><p>项目目前有五个模块：</p>
-<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">grpc-reactor-protocol      → 与传输无关的协议原语</span><br><span class="line">grpc-reactor-transport     → Reactor Netty HTTP/2 映射</span><br><span class="line">grpc-reactor-codegen       → Protoc 插件，生成 Reactor stub</span><br><span class="line">grpc-reactor-gradle-plugin → Gradle 集成</span><br><span class="line">grpc-reactor-interop-test  → grpc-java 兼容性测试</span><br></pre></td></tr></table></figure></div>
+<h2 id="按协议边界拆模块"><a href="#按协议边界拆模块" class="headerlink" title="按协议边界拆模块"></a>按协议边界拆模块</h2><p>项目目前有七个模块：</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">grpc-reactor-protocol      → 与传输无关的协议原语</span><br><span class="line">grpc-reactor-transport     → Reactor Netty HTTP/2 映射</span><br><span class="line">grpc-reactor-codegen       → Protoc 插件，生成 Reactor stub</span><br><span class="line">grpc-reactor-gradle-plugin → Gradle 集成</span><br><span class="line">grpc-reactor-maven-plugin  → Maven generate-sources 集成</span><br><span class="line">grpc-reactor-services      → 可选 Health、Reflection 与 Channelz 标准服务</span><br><span class="line">grpc-reactor-interop-test  → grpc-java 兼容性测试</span><br></pre></td></tr></table></figure></div>
 
 <p><code>protocol</code> 只处理与传输无关的值和编解码：消息帧、metadata、status、timeout、compression 和 protobuf marshaller。它依赖 Reactor Core 与 Netty Buffer，但不依赖 Reactor Netty——这意味着协议层可以独立测试而不需要真实的 HTTP&#x2F;2 连接。</p>
 <p><code>transport</code> 把协议映射到 Reactor Netty HTTP&#x2F;2，负责 client、server、service registry 和 per-call context。</p>
 <p><code>codegen</code> 消费 Protobuf <code>CodeGeneratorRequest</code>，生成类型安全的 Reactor client 和 service binder。</p>
+<p><code>services</code> 使用同一套 codegen 生成 canonical gRPC service binding，并在 transport 的 immutable descriptor&#x2F;diagnostics snapshot 之上实现 Health v1、Reflection v1 和 Channelz v1。该模块需要显式注册，不会因为加入依赖就自动暴露管理端点。</p>
 <p><code>interop-test</code> 在测试作用域引入 grpc-java。grpc-java 在这里是兼容性判定器，不进入项目运行时。</p>
 <h2 id="依赖选型与版本锁定"><a href="#依赖选型与版本锁定" class="headerlink" title="依赖选型与版本锁定"></a>依赖选型与版本锁定</h2><p>运行时依赖链刻意保持短小：</p>
 <table>
@@ -710,7 +711,7 @@
 <td>消息序列化</td>
 </tr>
 </tbody></table>
-<p>项目不引入 Spring、Micrometer 或任何 DI 框架。测试使用 JUnit 5.13.3 与 Reactor Test 的 <code>StepVerifier</code>。grpc-java 1.73.0 仅出现在 <code>interop-test</code> 的 test classpath，运行时零侵入。</p>
+<p>项目不引入 Spring、Micrometer 或任何 DI 框架。测试使用 JUnit 6.1.2 与 Reactor Test 的 <code>StepVerifier</code>。grpc-java 1.82.2 仅出现在 <code>interop-test</code> 的 test classpath，运行时零侵入。</p>
 <p>版本通过 <code>gradle/libs.versions.toml</code> 集中管理，配合 Gradle dependency locking 生成锁文件，确保不同机器的构建完全可复现。</p>
 <h2 id="为什么协议层必须先完成"><a href="#为什么协议层必须先完成" class="headerlink" title="为什么协议层必须先完成"></a>为什么协议层必须先完成</h2><p>直接从”启动一个 HTTP&#x2F;2 Server”开始很容易得到一个能 echo 的演示，却会把真正困难的问题推迟：</p>
 <ul>
@@ -782,17 +783,27 @@
 <td>DNS、subchannel、pick_first、round_robin</td>
 </tr>
 <tr>
-<td>7+</td>
-<td>Codegen 与生态</td>
-<td>protoc 插件、标准 proto 支持</td>
+<td>7</td>
+<td>Codegen 与构建集成</td>
+<td>protoc 插件、描述符注册表、Gradle&#x2F;Maven 插件</td>
+</tr>
+<tr>
+<td>8</td>
+<td>标准服务</td>
+<td>Health v1、Reflection v1、Channelz v1</td>
+</tr>
+<tr>
+<td>9+</td>
+<td>运行面与生态</td>
+<td>interceptor、可观测性、协议扩展与加固</td>
 </tr>
 </tbody></table>
 <p>每个 Stage 完成时必须满足：<code>./gradlew clean spotlessCheck test --no-daemon</code> 全量通过，且前序 Stage 的测试作为回归继续运行。这意味着 Stage 4 完成时，Stage 2 的 unary 测试仍然是绿的。</p>
 <h2 id="当前验证结果"><a href="#当前验证结果" class="headerlink" title="当前验证结果"></a>当前验证结果</h2><p>项目统一使用下面的完整门禁，同时检查格式、编译、协议测试、transport 测试和 grpc-java 互操作测试：</p>
 <div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew clean spotlessCheck <span class="built_in">test</span> --no-daemon</span><br></pre></td></tr></table></figure></div>
 
-<p>本文更新时该命令已经通过。JDK 25 仍会报告依赖调用受限 API：<code>Unsafe</code> 警告来自 Protobuf 4.31.1 和测试使用的 grpc-java shaded Netty 1.73.0，native access 警告来自 Gradle native-platform 与 Netty 4.2.15.Final。它们不影响本次测试结果，但需要在依赖和后续 JDK 版本升级时持续跟踪。</p>
-<p>后续文章将继续讨论五字节 gRPC message envelope、任意网络分片下的 ByteBuf 所有权、四种 RPC cardinality、生产传输能力，以及 DNS 与客户端负载均衡。</p>
+<p>本文更新时该命令已经通过。当前依赖基线是 Protobuf 4.35.1、grpc-java 1.82.2 和 JUnit 6.1.2；JDK 25 下第三方库仍可能输出 <code>Unsafe</code>、native access 与 Gradle deprecated feature 提示。它们不影响本次测试结果，但需要在后续 JDK 和 Gradle 升级时持续跟踪。</p>
+<p>后续文章将继续讨论五字节 gRPC message envelope、任意网络分片下的 ByteBuf 所有权、四种 RPC cardinality、生产传输能力、DNS 与客户端负载均衡、代码生成，以及标准管理服务如何接入 Reactor transport。</p>
 
 		</div>
 
@@ -807,7 +818,7 @@
         
             <li>
                 <strong>更新于
-                    :</strong> 2026-06-02 17:00:00
+                    :</strong> 2026-08-03 20:00:00
             </li>
         
         <li>
@@ -921,7 +932,7 @@
                 
                 <p class="post-count space-x-0.5">
                     <span>
-                        共撰写了 8 篇文章
+                        共撰写了 9 篇文章
                     </span>
                     
                 </p>
