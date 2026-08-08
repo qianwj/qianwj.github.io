@@ -140,7 +140,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://qianwj.github.io/images/redefine-og.webp">
 <meta property="article:published_time" content="2026-06-02T07:40:00.000Z">
-<meta property="article:modified_time" content="2026-08-08T05:30:00.000Z">
+<meta property="article:modified_time" content="2026-08-08T06:20:00.000Z">
 <meta property="article:author" content="Elvis Qian">
 <meta property="article:tag" content="ByteBuf">
 <meta property="article:tag" content="Netty">
@@ -549,8 +549,8 @@
     
         <span class="article-date article-meta-item">
             <i class="fa-regular fa-wrench"></i>&nbsp;
-            <span class="desktop">2026-08-08 13:30</span>
-            <span class="mobile">2026-08-08 13:30</span>
+            <span class="desktop">2026-08-08 14:20</span>
+            <span class="mobile">2026-08-08 14:20</span>
             <span class="hover-info">Updated</span>
         </span>
     
@@ -644,6 +644,16 @@
 <div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">StepVerifier.create(GrpcFrameCodec.decode(Flux.just(source)), <span class="number">0</span>)</span><br><span class="line">        .thenRequest(<span class="number">1</span>)</span><br><span class="line">        .assertNext(message -&gt; assertMessage(message, <span class="string">&quot;one&quot;</span>))</span><br><span class="line">        .thenRequest(<span class="number">1</span>)</span><br><span class="line">        .assertNext(message -&gt; assertMessage(message, <span class="string">&quot;two&quot;</span>))</span><br><span class="line">        .thenCancel()</span><br><span class="line">        .verify();</span><br><span class="line"></span><br><span class="line">assertEquals(<span class="number">0</span>, source.refCnt());</span><br></pre></td></tr></table></figure></div>
 
 <p>That assertion is more important than a happy-path content check. Network code often behaves correctly under normal completion; leaks tend to appear during cancellation, size-limit failures, truncated frames, or competing terminal signals.</p>
+<p>Cancellation can also arrive before a complete message exists. In that case there is no decoded value for the subscriber to release, so the decoder itself must release the partially accumulated source buffer:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">releasesPartialFrameInputWhenCancelled</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">ByteBuf</span> <span class="variable">partial</span> <span class="operator">=</span> Unpooled.buffer(<span class="number">8</span>)</span><br><span class="line">            .writeByte(<span class="number">0</span>)</span><br><span class="line">            .writeInt(<span class="number">16</span>)</span><br><span class="line">            .writeBytes(<span class="keyword">new</span> <span class="title class_">byte</span>[]&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;);</span><br><span class="line"></span><br><span class="line">    StepVerifier.create(</span><br><span class="line">                    GrpcFrameCodec.decode(</span><br><span class="line">                            Flux.just(partial).concatWith(Flux.never())),</span><br><span class="line">                    <span class="number">0</span>)</span><br><span class="line">            .thenRequest(<span class="number">1</span>)</span><br><span class="line">            .thenAwait(java.time.Duration.ofMillis(<span class="number">10</span>))</span><br><span class="line">            .thenCancel()</span><br><span class="line">            .verify();</span><br><span class="line"></span><br><span class="line">    assertEquals(<span class="number">0</span>, partial.refCnt());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>The full executable case is <a target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor/blob/main/grpc-reactor-protocol/src/test/java/io/github/qianwj/grpc/reactor/protocol/GrpcFrameCodecTest.java"><code>releasesPartialFrameInputWhenCancelled</code></a>. It covers the lifecycle edge that a normal decode-complete test cannot exercise.</p>
+<p>Run only the frame codec suite from the repository root:</p>
+<div class="code-container" data-rel="Bash"><figure class="iseeu highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">./gradlew :grpc-reactor-protocol:<span class="built_in">test</span> \</span><br><span class="line">  --tests io.github.qianwj.grpc.reactor.protocol.GrpcFrameCodecTest \</span><br><span class="line">  --no-daemon</span><br></pre></td></tr></table></figure></div>
+
+<p>On JDK 25, the Gradle build and generated JUnit report produced:</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GrpcFrameCodecTest: 15 tests, 0 failures, 0 errors, 0 skipped</span><br><span class="line">BUILD SUCCESSFUL in 3s</span><br></pre></td></tr></table></figure></div>
+
 <p>At the Stage 1 boundary, the frame decoder verifies message-level demand but does not yet implement the two-level flow-control problem of the streaming transport. Reactive Streams counts messages, while HTTP&#x2F;2 flow control counts bytes. They cannot be treated as the same quantity. Stage 3 later adds bounded inbound buffering and demand-aware delivery, and Stage 4 extends those rules to bidirectional streaming. Those transport and stress tests are covered in later posts.</p>
 <h2 id="Metadata-Ordering-Duplicates-and-Binary-Values"><a href="#Metadata-Ordering-Duplicates-and-Binary-Values" class="headerlink" title="Metadata: Ordering, Duplicates, and Binary Values"></a>Metadata: Ordering, Duplicates, and Binary Values</h2><p>gRPC metadata is not a simple <code>Map&lt;String, String&gt;</code>. It must satisfy all of these rules:</p>
 <ul>
@@ -715,7 +725,7 @@
         
             <li>
                 <strong>Updated at
-                    :</strong> 2026-08-08 13:30:00
+                    :</strong> 2026-08-08 14:20:00
             </li>
         
         <li>
