@@ -133,14 +133,14 @@
         
         <meta name="description" content="Elvis 的技术博客，记录后端开发中的实践、问题定位与技术思考。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding">
+<meta property="og:title" content="Building a Leak-Safe gRPC Frame Decoder on Reactor Netty">
 <meta property="og:url" content="https://qianwj.github.io/en/2026/06/02/grpc-reactor-series-2/index.html">
 <meta property="og:site_name" content="Elvis&#39; Garden">
 <meta property="og:description" content="Elvis 的技术博客，记录后端开发中的实践、问题定位与技术思考。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://qianwj.github.io/images/redefine-og.webp">
 <meta property="article:published_time" content="2026-06-02T07:40:00.000Z">
-<meta property="article:modified_time" content="2026-08-08T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-08T05:30:00.000Z">
 <meta property="article:author" content="Elvis Qian">
 <meta property="article:tag" content="ByteBuf">
 <meta property="article:tag" content="Netty">
@@ -159,7 +159,7 @@
     
     <title>
         
-            grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding | Elvis&#39; Garden
+            Building a Leak-Safe gRPC Frame Decoder on Reactor Netty | Elvis&#39; Garden
         
     </title>
 
@@ -518,10 +518,10 @@
 			
 			
 			
-			<img src="https://app.notion.com/images/page-cover/usda_pear.png" alt="grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			<img src="https://app.notion.com/images/page-cover/usda_pear.png" alt="Building a Leak-Safe gRPC Frame Decoder on Reactor Netty" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
 			
 			<div class="w-full flex items-center absolute bottom-0 justify-start">
-				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding</h1>
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Building a Leak-Safe gRPC Frame Decoder on Reactor Netty</h1>
 			</div>
 			
 		</div>
@@ -549,8 +549,8 @@
     
         <span class="article-date article-meta-item">
             <i class="fa-regular fa-wrench"></i>&nbsp;
-            <span class="desktop">2026-08-08 12:00</span>
-            <span class="mobile">2026-08-08 12:00</span>
+            <span class="desktop">2026-08-08 13:30</span>
+            <span class="mobile">2026-08-08 13:30</span>
             <span class="hover-info">Updated</span>
         </span>
     
@@ -612,7 +612,8 @@
 
 
 		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
-			<p>gRPC protobuf messages are not written directly as raw bytes into HTTP&#x2F;2 DATA frames. Every message starts with a five-byte envelope:</p>
+			<p>This is the second article in my <a class="link"   target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor" >grpc-reactor<i class="fa-solid fa-arrow-up-right ml-[0.2em] font-light align-text-top text-[0.7em] link-icon"></i></a> series. The <a href="https://qianwj.github.io/en/2026/06/01/grpc-reactor-series-1/">first article</a> explains why I chose to build the runtime directly on Reactor Netty and where its compatibility boundary sits. This article moves one layer down into the Stage 1 protocol implementation: the frame decoder that every RPC shape relies on.</p>
+<p>gRPC protobuf messages are not written directly as raw bytes into HTTP&#x2F;2 DATA frames. Every message starts with a five-byte envelope:</p>
 <div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">byte 0      bit 0 indicates compression; bits 1-7 must be zero</span><br><span class="line">bytes 1-4   unsigned big-endian payload length</span><br><span class="line">byte 5..n   protobuf message, or its compressed representation</span><br></pre></td></tr></table></figure></div>
 
 <p>Encoding this envelope is straightforward. The difficult part is decoding it without assuming that one input buffer contains one complete frame. HTTP&#x2F;2, TCP, and Reactor Netty do not promise that buffer boundaries will line up with gRPC message boundaries.</p>
@@ -707,14 +708,14 @@
 		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
 			<div class="article-copyright-info-container">
     <ul>
-        <li><strong>Title:</strong> grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding</li>
+        <li><strong>Title:</strong> Building a Leak-Safe gRPC Frame Decoder on Reactor Netty</li>
         <li><strong>Author:</strong> Elvis</li>
         <li><strong>Created at
                 :</strong> 2026-06-02 15:40:00</li>
         
             <li>
                 <strong>Updated at
-                    :</strong> 2026-08-08 12:00:00
+                    :</strong> 2026-08-08 13:30:00
             </li>
         
         <li>
@@ -800,7 +801,7 @@
 		<div class="post-toc-wrap">
 	<div class="post-toc">
 		<div class="toc-title">On this page</div>
-		<div class="page-title">grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding</div>
+		<div class="page-title">Building a Leak-Safe gRPC Frame Decoder on Reactor Netty</div>
 		<ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Encoding-Must-Define-Ownership"><span class="nav-text">Encoding Must Define Ownership</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Decoder-Is-a-Per-Subscription-State-Machine"><span class="nav-text">The Decoder Is a Per-Subscription State Machine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Validate-Peer-Input-Before-Allocating"><span class="nav-text">Validate Peer Input Before Allocating</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Test-Every-Header-Split-Point"><span class="nav-text">Test Every Header Split Point</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cancellation-Must-Release-Undelivered-Data"><span class="nav-text">Cancellation Must Release Undelivered Data</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Metadata-Ordering-Duplicates-and-Binary-Values"><span class="nav-text">Metadata: Ordering, Duplicates, and Binary Values</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Status-17-Codes-and-Percent-Encoding"><span class="nav-text">Status: 17 Codes and Percent-Encoding</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Timeout-Eight-Digits-and-a-Unit"><span class="nav-text">Timeout: Eight Digits and a Unit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Compression-Identity-by-Default-Gzip-Built-In"><span class="nav-text">Compression: Identity by Default, Gzip Built In</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GrpcMethod-One-Description-for-Four-Cardinalities"><span class="nav-text">GrpcMethod: One Description for Four Cardinalities</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ProtobufMarshaller-Serialization-Does-Not-Own-the-Input"><span class="nav-text">ProtobufMarshaller: Serialization Does Not Own the Input</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stage-1-Exit-Criteria"><span class="nav-text">Stage 1 Exit Criteria</span></a></li></ol>
 
 	</div>
