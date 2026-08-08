@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Vert.x,Netty,NIO,Java,PostgreSQL,后端开发,技术博客">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="https://qianwj.github.io/en/2026/06/02/grpc-reactor-series-2/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Elvis 的技术博客，记录后端开发中的实践、问题定位与技术思考。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding">
+<meta property="og:url" content="https://qianwj.github.io/en/2026/06/02/grpc-reactor-series-2/index.html">
+<meta property="og:site_name" content="Elvis&#39; Garden">
+<meta property="og:description" content="Elvis 的技术博客，记录后端开发中的实践、问题定位与技术思考。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://qianwj.github.io/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-06-02T07:40:00.000Z">
+<meta property="article:modified_time" content="2026-08-08T04:00:00.000Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="ByteBuf">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="Reactive Streams">
+<meta property="article:tag" content="gRPC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qianwj.github.io/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding | Elvis&#39; Garden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+        
+            
+    
+            
+    
+            
+                
+                    <meta name="google-site-verification" content="Mmy9W_rOQFDWiuM_4YB-Ztjo34Ji-s6-BXmivtyXD_Y" />
+                
+    
+            
+                
+                    <script data-swup-reload-script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6168787364036154" crossorigin="anonymous"></script>
+                
+    
+            
+                
+                    <style>.lang-toggle{cursor:pointer;opacity:.7;transition:opacity .2s}.lang-toggle:hover{opacity:1}</style>
+                
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"qianwj.github.io","root":"/","language":"zh-CN"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":false,"site_pv":false,"site_uv":false,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Elvis 的技术博客，记录后端开发中的实践、问题定位与技术思考。"},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"标签":{"icon":"fa-solid fa-tags","path":"/tags/"},"关于":{"icon":"fa-regular fa-user","path":"/about/"},"联系":{"icon":"fa-regular fa-envelope","path":"/contact/"},"隐私":{"icon":"fa-solid fa-shield-halved","path":"/privacy/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Elvis' Garden" type="application/atom+xml">
+</head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Garden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    标签
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    关于
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/contact/"
+                                        >
+                                    <i class="fa-regular fa-envelope fa-fw"></i>
+                                    联系
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/privacy/"
+                                        >
+                                    <i class="fa-solid fa-shield-halved fa-fw"></i>
+                                    隐私
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                标签
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                关于
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/contact/"
+                        >
+                            <span>
+                                联系
+                            </span>
+                            
+                                <i class="fa-regular fa-envelope fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/privacy/"
+                        >
+                            <span>
+                                隐私
+                            </span>
+                            
+                                <i class="fa-solid fa-shield-halved fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">21</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">5</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">11</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://app.notion.com/images/page-cover/usda_pear.png" alt="grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-06-02 15:40</span>
+        <span class="mobile">2026-06-02 15:40</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-08-08 12:00</span>
+            <span class="mobile">2026-08-08 12:00</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+        <span class="article-categories article-meta-item">
+            <i class="fa-regular fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/Open-Source/">Open Source</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/gRPC/">gRPC</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Netty/">Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/ByteBuf/">ByteBuf</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Reactive-Streams/">Reactive Streams</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<p>gRPC protobuf messages are not written directly as raw bytes into HTTP&#x2F;2 DATA frames. Every message starts with a five-byte envelope:</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">byte 0      bit 0 indicates compression; bits 1-7 must be zero</span><br><span class="line">bytes 1-4   unsigned big-endian payload length</span><br><span class="line">byte 5..n   protobuf message, or its compressed representation</span><br></pre></td></tr></table></figure></div>
+
+<p>Encoding this envelope is straightforward. The difficult part is decoding it without assuming that one input buffer contains one complete frame. HTTP&#x2F;2, TCP, and Reactor Netty do not promise that buffer boundaries will line up with gRPC message boundaries.</p>
+<p>This post describes the Stage 1 protocol layer. The project has since progressed beyond it, but the ownership and bounded-decoding rules introduced here remain the foundation for the later transport stages.</p>
+<h2 id="Encoding-Must-Define-Ownership"><a href="#Encoding-Must-Define-Ownership" class="headerlink" title="Encoding Must Define Ownership"></a>Encoding Must Define Ownership</h2><p>The contract of <a target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor/blob/main/grpc-reactor-protocol/src/main/java/io/github/qianwj/grpc/reactor/protocol/GrpcFrameCodec.java"><code>GrpcFrameCodec.encode</code></a> is deliberately explicit: the returned frame and the input message have independent lifetimes. Encoding must not move the input reader index or release the input buffer.</p>
+<p>The implementation currently copies the readable bytes into a byte array before applying compression:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> ByteBuf <span class="title function_">encode</span><span class="params">(</span></span><br><span class="line"><span class="params">        ByteBufAllocator allocator,</span></span><br><span class="line"><span class="params">        ByteBuf message,</span></span><br><span class="line"><span class="params">        GrpcCompression.Codec compression)</span> &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">compressed</span> <span class="operator">=</span> !compression.name().equals(<span class="string">&quot;identity&quot;</span>);</span><br><span class="line">    <span class="type">byte</span>[] payload = <span class="keyword">new</span> <span class="title class_">byte</span>[message.readableBytes()];</span><br><span class="line">    message.getBytes(message.readerIndex(), payload);</span><br><span class="line">    <span class="keyword">if</span> (compressed) &#123;</span><br><span class="line">        payload = compression.compress(payload);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> allocator.buffer(GrpcFrameCodec.HEADER_SIZE + payload.length)</span><br><span class="line">            .writeByte(compressed ? <span class="number">1</span> : <span class="number">0</span>)</span><br><span class="line">            .writeInt(payload.length)</span><br><span class="line">            .writeBytes(payload);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>This is not a zero-copy implementation, and it should not be presented as the fastest possible design. The copy makes the ownership boundary easy to reason about first. If a later optimization uses a slice or a composite buffer, cancellation and exception paths must be re-proven instead of assuming that the old ownership rules still hold.</p>
+<h2 id="The-Decoder-Is-a-Per-Subscription-State-Machine"><a href="#The-Decoder-Is-a-Per-Subscription-State-Machine" class="headerlink" title="The Decoder Is a Per-Subscription State Machine"></a>The Decoder Is a Per-Subscription State Machine</h2><p><code>decode</code> uses <code>Flux.defer</code> so every subscription receives an independent decoder instance:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> Flux.defer(() -&gt; &#123;</span><br><span class="line">    <span class="type">var</span> <span class="variable">decoder</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Decoder</span>(</span><br><span class="line">            maxWireMessageSize,</span><br><span class="line">            maxDecompressedMessageSize,</span><br><span class="line">            compression,</span><br><span class="line">            maxBufferedBytesPerStream);</span><br><span class="line">    <span class="keyword">return</span> input.concatMap(decoder::accept, <span class="number">1</span>)</span><br><span class="line">            .concatWith(Flux.defer(decoder::finish))</span><br><span class="line">            .publishOn(Schedulers.immediate(), <span class="number">1</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<p>The state is intentionally small: either the five-byte header is incomplete, or the header is complete and the decoder is collecting a payload of a known length. One input <code>ByteBuf</code> may contain one byte of a header, or three complete messages back-to-back.</p>
+<p><code>concatMap(..., 1)</code> preserves source order and limits the number of source buffers being processed at once. The decoder still has to respect downstream demand when it emits decoded messages. Every source buffer is released in <code>doFinally</code>, including success, failure, and cancellation:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Flux&lt;ByteBuf&gt; <span class="title function_">accept</span><span class="params">(ByteBuf source)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> Flux.&lt;ByteBuf&gt;generate(sink -&gt; &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (source.isReadable()) &#123;</span><br><span class="line">                <span class="comment">// read the header, allocate a bounded payload,</span></span><br><span class="line">                <span class="comment">// and emit a complete message when available</span></span><br><span class="line">            &#125;</span><br><span class="line">            sink.complete();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable error) &#123;</span><br><span class="line">            sink.error(error);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;).doFinally(ignored -&gt; source.release());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>The complete implementation also tracks an explicit per-stream buffered-byte limit. That limit covers an incomplete header, a partial payload, and bytes still present in the current source buffer.</p>
+<h2 id="Validate-Peer-Input-Before-Allocating"><a href="#Validate-Peer-Input-Before-Allocating" class="headerlink" title="Validate Peer Input Before Allocating"></a>Validate Peer Input Before Allocating</h2><p>The length field comes from the peer, so it must be validated before allocating a payload array. The decoder first combines the unsigned big-endian bytes in a <code>long</code>, then checks the wire-size limit:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">length</span> <span class="operator">=</span> ((<span class="type">long</span>) (header[<span class="number">1</span>] &amp; <span class="number">0xff</span>) &lt;&lt; <span class="number">24</span>)</span><br><span class="line">        | ((<span class="type">long</span>) (header[<span class="number">2</span>] &amp; <span class="number">0xff</span>) &lt;&lt; <span class="number">16</span>)</span><br><span class="line">        | ((<span class="type">long</span>) (header[<span class="number">3</span>] &amp; <span class="number">0xff</span>) &lt;&lt; <span class="number">8</span>)</span><br><span class="line">        | (header[<span class="number">4</span>] &amp; <span class="number">0xffL</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (length &gt; maxWireMessageSize) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">GrpcProtocolException</span>(<span class="string">&quot;wire message length exceeds limit&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>Wire size and decompressed size are separate limits. A tiny gzip payload can expand into a huge message, so gzip decompression must enforce a second output limit to defend against decompression bombs.</p>
+<p>Only the lowest compression-flag bit is valid. Any reserved bit is a protocol error. A compressed frame received while the negotiated codec is still <code>identity</code> is also rejected; the decoder must not guess which algorithm the peer intended.</p>
+<h2 id="Test-Every-Header-Split-Point"><a href="#Test-Every-Header-Split-Point" class="headerlink" title="Test Every Header Split Point"></a>Test Every Header Split Point</h2><p>Testing one arbitrary two-buffer split is not enough. A five-byte header has six representative split positions, including before the first byte and after the complete header. The test suite uses a dynamic test for every split from 0 through 5:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">IntStream.rangeClosed(<span class="number">0</span>, GrpcFrameCodec.HEADER_SIZE)</span><br><span class="line">        .mapToObj(split -&gt; DynamicTest.dynamicTest(</span><br><span class="line">                <span class="string">&quot;split after byte &quot;</span> + split,</span><br><span class="line">                () -&gt; &#123;</span><br><span class="line">                    <span class="type">byte</span>[] wire = wireBytes(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">                    Flux&lt;ByteBuf&gt; chunks = Flux.just(</span><br><span class="line">                            wrapped(wire, <span class="number">0</span>, split),</span><br><span class="line">                            wrapped(wire, split, wire.length - split));</span><br><span class="line">                    StepVerifier.create(GrpcFrameCodec.decode(chunks))</span><br><span class="line">                            .assertNext(message -&gt; assertMessage(message, <span class="string">&quot;hello&quot;</span>))</span><br><span class="line">                            .verifyComplete();</span><br><span class="line">                &#125;));</span><br></pre></td></tr></table></figure></div>
+
+<p>The same test class covers arbitrary body fragmentation, multiple messages coalesced into one buffer, empty messages, gzip, reserved flags, truncated frames, wire&#x2F;decompressed limits, and the fact that encoding does not consume the input buffer. See <a target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor/blob/main/grpc-reactor-protocol/src/test/java/io/github/qianwj/grpc/reactor/protocol/GrpcFrameCodecTest.java"><code>GrpcFrameCodecTest</code></a> for the executable cases.</p>
+<h2 id="Cancellation-Must-Release-Undelivered-Data"><a href="#Cancellation-Must-Release-Undelivered-Data" class="headerlink" title="Cancellation Must Release Undelivered Data"></a>Cancellation Must Release Undelivered Data</h2><p>Suppose one source <code>ByteBuf</code> contains three messages: <code>one</code>, <code>two</code>, and <code>three</code>. The downstream requests two messages and then cancels. The test must assert not only the values it received, but also that the source buffer was released:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">StepVerifier.create(GrpcFrameCodec.decode(Flux.just(source)), <span class="number">0</span>)</span><br><span class="line">        .thenRequest(<span class="number">1</span>)</span><br><span class="line">        .assertNext(message -&gt; assertMessage(message, <span class="string">&quot;one&quot;</span>))</span><br><span class="line">        .thenRequest(<span class="number">1</span>)</span><br><span class="line">        .assertNext(message -&gt; assertMessage(message, <span class="string">&quot;two&quot;</span>))</span><br><span class="line">        .thenCancel()</span><br><span class="line">        .verify();</span><br><span class="line"></span><br><span class="line">assertEquals(<span class="number">0</span>, source.refCnt());</span><br></pre></td></tr></table></figure></div>
+
+<p>That assertion is more important than a happy-path content check. Network code often behaves correctly under normal completion; leaks tend to appear during cancellation, size-limit failures, truncated frames, or competing terminal signals.</p>
+<p>At the Stage 1 boundary, the frame decoder verifies message-level demand but does not yet implement the two-level flow-control problem of the streaming transport. Reactive Streams counts messages, while HTTP&#x2F;2 flow control counts bytes. They cannot be treated as the same quantity. Stage 3 later adds bounded inbound buffering and demand-aware delivery, and Stage 4 extends those rules to bidirectional streaming. Those transport and stress tests are covered in later posts.</p>
+<h2 id="Metadata-Ordering-Duplicates-and-Binary-Values"><a href="#Metadata-Ordering-Duplicates-and-Binary-Values" class="headerlink" title="Metadata: Ordering, Duplicates, and Binary Values"></a>Metadata: Ordering, Duplicates, and Binary Values</h2><p>gRPC metadata is not a simple <code>Map&lt;String, String&gt;</code>. It must satisfy all of these rules:</p>
+<ul>
+<li>The same key may occur more than once, and insertion order matters.</li>
+<li>Keys may contain only lowercase letters, digits, <code>_</code>, <code>.</code>, and <code>-</code>, validated by <code>[0-9a-z_.-]+</code>.</li>
+<li>Keys ending in <code>-bin</code> carry binary values and use unpadded Base64 on the wire.</li>
+<li>Applications cannot set reserved fields such as <code>content-type</code>, <code>te</code>, <code>grpc-status</code>, or <code>grpc-timeout</code>.</li>
+</ul>
+<p><code>GrpcMetadata</code> stores an immutable entry list so it can be safely shared across asynchronous boundaries:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">GrpcMetadata</span> <span class="variable">metadata</span> <span class="operator">=</span> GrpcMetadata.builder()</span><br><span class="line">        .addAscii(<span class="string">&quot;trace-id&quot;</span>, <span class="string">&quot;abc123&quot;</span>)</span><br><span class="line">        .addAscii(<span class="string">&quot;trace-id&quot;</span>, <span class="string">&quot;def456&quot;</span>) <span class="comment">// duplicates are allowed</span></span><br><span class="line">        .addBinary(<span class="string">&quot;auth-token-bin&quot;</span>, tokenBytes)</span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Order is preserved when reading.</span></span><br><span class="line">List&lt;GrpcMetadata.Entry&gt; all = metadata.getAll(<span class="string">&quot;trace-id&quot;</span>); <span class="comment">// [abc123, def456]</span></span><br></pre></td></tr></table></figure></div>
+
+<p>When parsing HTTP&#x2F;2 headers, a binary value may be comma-joined by header handling. The implementation splits it on commas and decodes each Base64 segment independently. The total encoded size is bounded at 8 KiB by default, preventing a peer from exhausting memory with oversized headers.</p>
+<h2 id="Status-17-Codes-and-Percent-Encoding"><a href="#Status-17-Codes-and-Percent-Encoding" class="headerlink" title="Status: 17 Codes and Percent-Encoding"></a>Status: 17 Codes and Percent-Encoding</h2><p>gRPC defines <a class="link"   target="_blank" rel="noopener" href="https://github.com/grpc/grpc/blob/HEAD/doc/statuscodes.md" >17 standard status codes<i class="fa-solid fa-arrow-up-right ml-[0.2em] font-light align-text-top text-[0.7em] link-icon"></i></a>, each with a specific meaning for client error handling and future retry policies. <code>GrpcStatus</code> is a record containing a code and a human-readable message:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">record</span> <span class="title class_">GrpcStatus</span><span class="params">(Code code, String message)</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">Code</span> &#123;</span><br><span class="line">        OK(<span class="number">0</span>), CANCELLED(<span class="number">1</span>), UNKNOWN(<span class="number">2</span>), INVALID_ARGUMENT(<span class="number">3</span>),</span><br><span class="line">        DEADLINE_EXCEEDED(<span class="number">4</span>), NOT_FOUND(<span class="number">5</span>), ALREADY_EXISTS(<span class="number">6</span>),</span><br><span class="line">        PERMISSION_DENIED(<span class="number">7</span>), RESOURCE_EXHAUSTED(<span class="number">8</span>),</span><br><span class="line">        FAILED_PRECONDITION(<span class="number">9</span>), ABORTED(<span class="number">10</span>), OUT_OF_RANGE(<span class="number">11</span>),</span><br><span class="line">        UNIMPLEMENTED(<span class="number">12</span>), INTERNAL(<span class="number">13</span>), UNAVAILABLE(<span class="number">14</span>),</span><br><span class="line">        DATA_LOSS(<span class="number">15</span>), UNAUTHENTICATED(<span class="number">16</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>Several details matter in practice:</p>
+<ul>
+<li><code>DEADLINE_EXCEEDED</code> may be returned even after the operation completed successfully. If the successful response crosses the deadline in transit, the client can still observe a timeout.</li>
+<li><code>UNAVAILABLE</code> indicates a transient failure for which a client may later retry safely; <code>INTERNAL</code> generally describes a server-side bug and should not be blindly retried.</li>
+<li><code>UNIMPLEMENTED</code> carries the semantic meaning of an unsupported method, commonly surfaced through an HTTP 404 response at the protocol boundary.</li>
+</ul>
+<p>Text in the <code>grpc-message</code> trailer uses percent-encoding: printable ASCII characters other than <code>%</code> can pass through, while other bytes become <code>%HH</code>. This allows UTF-8 error descriptions to travel through ASCII HTTP&#x2F;2 headers safely.</p>
+<p>Unknown numeric status codes are mapped to <code>UNKNOWN</code> instead of causing a parse failure. That preserves forward compatibility when a peer adopts a newer gRPC specification.</p>
+<h2 id="Timeout-Eight-Digits-and-a-Unit"><a href="#Timeout-Eight-Digits-and-a-Unit" class="headerlink" title="Timeout: Eight Digits and a Unit"></a>Timeout: Eight Digits and a Unit</h2><p>The gRPC <code>grpc-timeout</code> header carries a relative duration, not an absolute timestamp. By the time the server receives a request, part of the caller’s original time budget has already been consumed by transport latency.</p>
+<p>The wire format is compact: at most eight decimal digits followed by a unit suffix:</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">100m       -&gt; 100 milliseconds</span><br><span class="line">2S         -&gt; 2 seconds</span><br><span class="line">99999999H  -&gt; roughly 11,415 years (the maximum value)</span><br></pre></td></tr></table></figure></div>
+
+<p>The six units are <code>H</code> (hours), <code>M</code> (minutes), <code>S</code> (seconds), <code>m</code> (milliseconds), <code>u</code> (microseconds), and <code>n</code> (nanoseconds).</p>
+<p>When formatting a <code>Duration</code>, the implementation rounds upward using ceiling division. The encoded deadline must never be shorter than the caller’s requested duration:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">BigInteger</span> <span class="variable">amount</span> <span class="operator">=</span> nanos.add(unitNanos.subtract(BigInteger.ONE))</span><br><span class="line">        .divide(unitNanos); <span class="comment">// ceiling division</span></span><br></pre></td></tr></table></figure></div>
+
+<p><code>BigInteger</code> avoids overflow during nanosecond arithmetic. The formatter scans from nanoseconds upward and selects the first unit whose value fits within 99,999,999.</p>
+<h2 id="Compression-Identity-by-Default-Gzip-Built-In"><a href="#Compression-Identity-by-Default-Gzip-Built-In" class="headerlink" title="Compression: Identity by Default, Gzip Built In"></a>Compression: Identity by Default, Gzip Built In</h2><p><code>GrpcCompression</code> manages codec registration and negotiation:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GrpcCompression.<span class="type">Registry</span> <span class="variable">registry</span> <span class="operator">=</span> GrpcCompression.Registry.builder()</span><br><span class="line">        .add(GrpcCompression.GZIP)</span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Produces grpc-accept-encoding: gzip</span></span><br><span class="line"><span class="type">String</span> <span class="variable">advertised</span> <span class="operator">=</span> registry.advertisedEncodings();</span><br></pre></td></tr></table></figure></div>
+
+<p><code>identity</code> is always implicit and appears first in the registry. The codec interface has only three operations: a name, byte-array compression, and bounded byte-array decompression.</p>
+<p>Gzip decompression reads in 8 KiB chunks and uses <code>Math.addExact()</code> while accumulating the output size. It can stop immediately after exceeding <code>maxDecompressedSize</code>, and arithmetic overflow cannot silently wrap the counter. A 100-byte gzip payload can expand to gigabytes, so decompression-bomb protection is part of the protocol contract rather than an optional optimization.</p>
+<h2 id="GrpcMethod-One-Description-for-Four-Cardinalities"><a href="#GrpcMethod-One-Description-for-Four-Cardinalities" class="headerlink" title="GrpcMethod: One Description for Four Cardinalities"></a>GrpcMethod: One Description for Four Cardinalities</h2><p>Each RPC is described by one <code>GrpcMethod</code> record:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">var</span> <span class="variable">method</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">GrpcMethod</span>&lt;&gt;(</span><br><span class="line">        <span class="string">&quot;testing.InteropTestService&quot;</span>, <span class="comment">// full service name</span></span><br><span class="line">        <span class="string">&quot;Unary&quot;</span>,                      <span class="comment">// method name</span></span><br><span class="line">        GrpcMethod.Cardinality.UNARY,</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ProtobufMarshaller</span>&lt;&gt;(TestRequest.parser()),</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ProtobufMarshaller</span>&lt;&gt;(TestResponse.parser()));</span><br><span class="line"></span><br><span class="line">method.path();           <span class="comment">// /testing.InteropTestService/Unary</span></span><br><span class="line">method.fullMethodName(); <span class="comment">// testing.InteropTestService/Unary</span></span><br></pre></td></tr></table></figure></div>
+
+<p>The <code>Cardinality</code> enum exposes <code>singleRequest()</code> and <code>singleResponse()</code>. The transport uses those flags to insert <code>single()</code> at the API boundary, turning cardinality violations into explicit errors instead of silently dropping values.</p>
+<h2 id="ProtobufMarshaller-Serialization-Does-Not-Own-the-Input"><a href="#ProtobufMarshaller-Serialization-Does-Not-Own-the-Input" class="headerlink" title="ProtobufMarshaller: Serialization Does Not Own the Input"></a>ProtobufMarshaller: Serialization Does Not Own the Input</h2><p><code>ProtobufMarshaller</code> wraps a protobuf <code>Parser&lt;T&gt;</code>:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> ByteBuf <span class="title function_">serialize</span><span class="params">(ByteBufAllocator allocator, T value)</span> &#123;</span><br><span class="line">    <span class="type">var</span> <span class="variable">result</span> <span class="operator">=</span> allocator.buffer(value.getSerializedSize());</span><br><span class="line">    <span class="keyword">return</span> result.writeBytes(value.toByteArray());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> T <span class="title function_">deserialize</span><span class="params">(ByteBuf message)</span> &#123;</span><br><span class="line">    <span class="type">ByteBuffer</span> <span class="variable">bytes</span> <span class="operator">=</span> message.nioBuffer(message.readerIndex(), message.readableBytes());</span><br><span class="line">    <span class="keyword">return</span> parser.parseFrom(bytes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>The important contract is that <code>deserialize</code> reads through a NIO <code>ByteBuffer</code> view. It does not move the input reader index and does not release the input. Ownership remains with the caller, allowing the frame decoder’s <code>doFinally(release)</code> to manage the buffer lifecycle uniformly whether parsing succeeds or fails.</p>
+<h2 id="Stage-1-Exit-Criteria"><a href="#Stage-1-Exit-Criteria" class="headerlink" title="Stage 1 Exit Criteria"></a>Stage 1 Exit Criteria</h2><p>The protocol module does not need Reactor Netty on its classpath. That dependency boundary is itself part of the verification. The Stage 1 exit criteria are:</p>
+<ul>
+<li>every header and payload split point decodes correctly;</li>
+<li>cancellation leaves no unreleased <code>ByteBuf</code> (<code>refCnt</code> assertions);</li>
+<li>metadata preserves order, supports binary values, and enforces its size limit;</li>
+<li>unknown status codes do not throw;</li>
+<li>all timeout units parse correctly, formatting rounds upward, and arithmetic is overflow-safe;</li>
+<li>gzip decompression limits reject bombs;</li>
+<li>the marshaller does not change the input buffer state.</li>
+</ul>
+<p>These tests use JUnit 5 <code>@TestFactory</code> and <code>DynamicTest</code> for parameterization, together with Reactor Test’s <code>StepVerifier</code> for asynchronous behavior. The protocol layer is the reason the later transport stages can focus on HTTP&#x2F;2 lifecycle instead of rediscovering framing and ownership rules.</p>
+<p>The complete implementation is in <a target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor/blob/main/grpc-reactor-protocol/src/main/java/io/github/qianwj/grpc/reactor/protocol/GrpcFrameCodec.java"><code>GrpcFrameCodec.java</code></a>. The related protocol primitives are <a target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor/blob/main/grpc-reactor-protocol/src/main/java/io/github/qianwj/grpc/reactor/protocol/GrpcMetadata.java"><code>GrpcMetadata</code></a>, <a target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor/blob/main/grpc-reactor-protocol/src/main/java/io/github/qianwj/grpc/reactor/protocol/GrpcStatus.java"><code>GrpcStatus</code></a>, <a target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor/blob/main/grpc-reactor-protocol/src/main/java/io/github/qianwj/grpc/reactor/protocol/GrpcTimeout.java"><code>GrpcTimeout</code></a>, <a target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor/blob/main/grpc-reactor-protocol/src/main/java/io/github/qianwj/grpc/reactor/protocol/GrpcCompression.java"><code>GrpcCompression</code></a>, and <a target="_blank" rel="noopener" href="https://github.com/qianwj/grpc-reactor/blob/main/grpc-reactor-protocol/src/main/java/io/github/qianwj/grpc/reactor/protocol/ProtobufMarshaller.java"><code>ProtobufMarshaller</code></a>.</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-06-02 15:40:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-08-08 12:00:00
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/en/2026/06/02/grpc-reactor-series-2/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/gRPC/">#gRPC</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Netty/">#Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/ByteBuf/">#ByteBuf</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Reactive-Streams/">#Reactive Streams</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			<div class="article-prev border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="prev" rel="prev" href="/2026/06/03/grpc-reactor-series-3/">
+					<span class="left arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-left"></i>
+					</span>
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">grpc-reactor 实战（三）：把 Unary RPC 映射到 Reactor Netty HTTP/2</span>
+						<span class="post-nav-item">Prev posts</span>
+					</span>
+				</a>
+			</div>
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2026/06/02/grpc-reactor-series-2/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">grpc-reactor 实战（二）：五字节消息帧、分片解码与协议原语</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">grpc-reactor in Practice (Part 2): The Five-Byte Message Envelope and Incremental Decoding</div>
+		<ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Encoding-Must-Define-Ownership"><span class="nav-text">Encoding Must Define Ownership</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Decoder-Is-a-Per-Subscription-State-Machine"><span class="nav-text">The Decoder Is a Per-Subscription State Machine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Validate-Peer-Input-Before-Allocating"><span class="nav-text">Validate Peer Input Before Allocating</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Test-Every-Header-Split-Point"><span class="nav-text">Test Every Header Split Point</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cancellation-Must-Release-Undelivered-Data"><span class="nav-text">Cancellation Must Release Undelivered Data</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Metadata-Ordering-Duplicates-and-Binary-Values"><span class="nav-text">Metadata: Ordering, Duplicates, and Binary Values</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Status-17-Codes-and-Percent-Encoding"><span class="nav-text">Status: 17 Codes and Percent-Encoding</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Timeout-Eight-Digits-and-a-Unit"><span class="nav-text">Timeout: Eight Digits and a Unit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Compression-Identity-by-Default-Gzip-Built-In"><span class="nav-text">Compression: Identity by Default, Gzip Built In</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GrpcMethod-One-Description-for-Four-Cardinalities"><span class="nav-text">GrpcMethod: One Description for Four Cardinalities</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ProtobufMarshaller-Serialization-Does-Not-Own-the-Input"><span class="nav-text">ProtobufMarshaller: Serialization Does Not Own the Input</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stage-1-Exit-Criteria"><span class="nav-text">Stage 1 Exit Criteria</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        11 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+            
+                
+        
+                
+        
+                
+
+                    
+                        <script data-swup-reload-script>
+(function(){
+  var path = location.pathname;
+  var isEn = path.startsWith('/en/') || path === '/en';
+  var isArticle = /\/\d{4}\/\d{2}\/\d{2}\//.test(path);
+  function insertBtn() {
+    if (document.querySelector('.lang-toggle')) return;
+    var list = document.querySelector('.navbar-content .desktop .navbar-list');
+    if (!list) return;
+    var li = document.createElement('li');
+    li.className = 'navbar-item';
+    var a = document.createElement('a');
+    a.className = 'lang-toggle';
+    a.href = '#';
+    a.innerHTML = '<i class="fa-solid fa-globe fa-fw"></i> ' + (isEn ? '中文' : 'EN');
+    a.onclick = function(e) {
+      e.preventDefault();
+      if (isEn) {
+        var zhPath = path.replace(/^\/en\/?/, '/') || '/';
+        location.href = isArticle ? zhPath : '/';
+      } else {
+        location.href = isArticle ? '/en' + path : '/en/';
+      }
+    };
+    li.appendChild(a);
+    list.appendChild(li);
+    if (isEn) translateNavbar();
+  }
+  function translateNavbar() {
+    var map = {'HOME':'HOME','标签':'TAGS','关于':'ABOUT','联系':'CONTACT','隐私':'PRIVACY'};
+    var links = document.querySelectorAll('.navbar-content .desktop .navbar-list .navbar-item a:not(.lang-toggle)');
+    links.forEach(function(a) {
+      var text = a.textContent.trim();
+      if (map[text]) a.childNodes[a.childNodes.length - 1].textContent = ' ' + map[text];
+    });
+    var drawer = document.querySelectorAll('.drawer-navbar-list span');
+    var drawerMap = {'HOME':'HOME','标签':'TAGS','关于':'ABOUT','联系':'CONTACT','隐私':'PRIVACY'};
+    drawer.forEach(function(span) {
+      var t = span.textContent.trim();
+      if (drawerMap[t]) span.textContent = drawerMap[t];
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', insertBtn);
+  } else {
+    insertBtn();
+  }
+})();
+</script>
+
+                    
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>
