@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Vert.x,Netty,NIO,Java,PostgreSQL,后端开发,技术博客">
+    
+    <meta name="author" content="Elvis">
+    
+    <!-- Completely eliminate flash of wrong theme -->
+    <script>
+        (function() {
+            const THEME_KEY = "REDEFINE-THEME-STATUS";
+            const DARK = "dark", LIGHT = "light";
+            
+            // Get preferred theme
+            function getTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_KEY);
+                    if (saved) {
+                        const { isDark } = JSON.parse(saved);
+                        return isDark ? DARK : LIGHT;
+                    }
+                } catch (e) {}
+                
+                return matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                const isDark = theme === DARK;
+                const root = document.documentElement;
+                
+                // Set data attribute for CSS variables
+                root.setAttribute("data-theme", theme);
+                
+                // Set classes for compatibility
+                root.classList.add(theme);
+                root.classList.remove(isDark ? LIGHT : DARK);
+                root.style.colorScheme = theme;
+            }
+            
+            // Initial application
+            const theme = getTheme();
+            applyTheme(theme);
+            
+            // Listen for system preference changes
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ({ matches }) => {
+                // Only update if using system preference (no localStorage entry)
+                if (!localStorage.getItem(THEME_KEY)) {
+                    applyTheme(matches ? DARK : LIGHT);
+                }
+            });
+            
+            // Set body classes once DOM is ready
+            if (document.readyState !== "loading") {
+                document.body.classList.add(theme + "-mode");
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.body.classList.add(theme + "-mode");
+                    document.body.classList.remove((theme === DARK ? LIGHT : DARK) + "-mode");
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Critical CSS to prevent flash -->
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #202124;
+            --background-color-transparent: rgba(32, 33, 36, 0.6);
+            --second-background-color: #2d2e32;
+            --third-background-color: #34353a;
+            --third-background-color-transparent: rgba(32, 33, 36, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #ffffff;
+            --second-text-color: #eeeeee;
+            --third-text-color: #bebec6;
+            --fourth-text-color: #999999;
+            --default-text-color: #bebec6;
+            --invert-text-color: #373D3F;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(255, 255, 255, 0.08);
+            --shadow-color-2: rgba(255, 255, 255, 0.05);
+        }
+        
+        :root[data-theme="light"] {
+            --background-color: #fff;
+            --background-color-transparent: rgba(255, 255, 255, 0.6);
+            --second-background-color: #f8f8f8;
+            --third-background-color: #f2f2f2;
+            --third-background-color-transparent: rgba(241, 241, 241, 0.6);
+            --primary-color: #0066CC;
+            --first-text-color: #16171a;
+            --second-text-color: #2f3037;
+            --third-text-color: #5e5e5e;
+            --fourth-text-color: #eeeeee;
+            --default-text-color: #373D3F;
+            --invert-text-color: #bebec6;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --selection-color: #0066CC;
+            --shadow-color-1: rgba(0, 0, 0, 0.08);
+            --shadow-color-2: rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+        
+        /* Apply body classes as soon as DOM is ready */
+        :root[data-theme="dark"] body {
+            background-color: var(--background-color);
+            color: var(--default-text-color);
+        }
+    </style>
+    
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="https://qianwj.github.io/en/2026/06/03/grpc-reactor-series-3/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+    
+    
+        
+        <meta name="description" content="Elvis 的技术博客，记录后端开发中的实践、问题定位与技术思考。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unary gRPC on Reactor Netty: Event Loop Serialization, Trailers, and Cancellation">
+<meta property="og:url" content="https://qianwj.github.io/en/2026/06/03/grpc-reactor-series-3/index.html">
+<meta property="og:site_name" content="Elvis&#39; Garden">
+<meta property="og:description" content="Elvis 的技术博客，记录后端开发中的实践、问题定位与技术思考。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://qianwj.github.io/images/redefine-og.webp">
+<meta property="article:published_time" content="2026-06-03T07:50:00.000Z">
+<meta property="article:modified_time" content="2026-08-08T02:00:00.000Z">
+<meta property="article:author" content="Elvis Qian">
+<meta property="article:tag" content="HTTP&#x2F;2">
+<meta property="article:tag" content="Protobuf">
+<meta property="article:tag" content="Reactor Netty">
+<meta property="article:tag" content="gRPC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qianwj.github.io/images/redefine-og.webp">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/favicon.svg" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.svg">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/favicon.svg">
+    <!--- Page Info-->
+    
+    <title>
+        
+            Unary gRPC on Reactor Netty: Event Loop Serialization, Trailers, and Cancellation | Elvis&#39; Garden
+        
+    </title>
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+
+    <!--- Inject Part-->
+    
+        
+            
+    
+            
+    
+            
+                
+                    <meta name="google-site-verification" content="Mmy9W_rOQFDWiuM_4YB-Ztjo34Ji-s6-BXmivtyXD_Y" />
+                
+    
+            
+                
+                    <script data-swup-reload-script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6168787364036154" crossorigin="anonymous"></script>
+                
+    
+            
+                
+                    <style>.lang-toggle{cursor:pointer;opacity:.7;transition:opacity .2s}.lang-toggle:hover{opacity:1}</style>
+                
+    
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/css/build/tailwind.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/GeistMono/geist-mono.css">
+
+    
+<link rel="stylesheet" href="/fonts/Geist/geist.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+    
+    
+
+    <script id="hexo-configurations">
+    window.config = {"hostname":"qianwj.github.io","root":"/","language":"zh-CN"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"delete_mask":false,"title_alignment":"left","headings_top_spacing":{"h1":"3.2rem","h2":"2.4rem","h3":"1.9rem","h4":"1.6rem","h5":"1.4rem","h6":"1.3rem"}},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","highlight_theme":{"light":"github","dark":"vs2015"},"font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"pangu_js":false,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null,"default_mode":"light"},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null},"title":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://cn.vercount.one/js","enable":false,"site_pv":false,"site_uv":false,"post_pv":true},"single_page":true,"preloader":{"enable":false,"custom_message":null},"side_tools":{"gear_rotation":true,"auto_expand":false},"open_graph":{"enable":true,"image":"/images/redefine-og.webp","description":"Elvis 的技术博客，记录后端开发中的实践、问题定位与技术思考。"},"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Hi, I'm Elvis.","subtitle":{"text":["Life is all about continuous experiences.","Every encounter is a gentle light cast by fate."],"hitokoto":{"enable":false,"show_author":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"style":"default","links":{"github":"https://github.com/qianwj","instagram":null,"zhihu":"https://www.zhihu.com/people/penta-kill-62","twitter":null,"email":"qwjlu@sina.com"},"qrs":{"weixin":"/images/wx_qrcode.JPG"}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null,"lrc":null}]},"mermaid":{"enable":false,"version":"11.4.1"}},"version":"2.8.5","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"width":{"home":"1200px","pages":"1000px"},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"标签":{"icon":"fa-solid fa-tags","path":"/tags/"},"关于":{"icon":"fa-regular fa-user","path":"/about/"},"联系":{"icon":"fa-regular fa-envelope","path":"/contact/"},"隐私":{"icon":"fa-solid fa-shield-halved","path":"/privacy/"}},"search":{"enable":false,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"show_on_mobile":true,"links":null},"article_date_format":"auto","excerpt_length":200,"categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Elvis' Garden" type="application/atom+xml">
+</head>
+
+
+
+<body>
+	<div class="progress-bar-container">
+	
+
+	
+	<span class="pjax-progress-bar"></span>
+	<!--        <span class="swup-progress-icon">-->
+	<!--            <i class="fa-solid fa-circle-notch fa-spin"></i>-->
+	<!--        </span>-->
+	
+</div>
+
+<main class="page-container" id="swup">
+
+	
+
+	<div class="main-content-container flex flex-col justify-between min-h-dvh">
+		<div class="main-content-header">
+			<header class="navbar-container px-6 md:px-12">
+    <div class="navbar-content transition-navbar ">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                
+                Elvis&#39; Garden
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/"
+                                        >
+                                    <i class="fa-regular fa-house fa-fw"></i>
+                                    HOME
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/tags/"
+                                        >
+                                    <i class="fa-solid fa-tags fa-fw"></i>
+                                    标签
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/about/"
+                                        >
+                                    <i class="fa-regular fa-user fa-fw"></i>
+                                    关于
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/contact/"
+                                        >
+                                    <i class="fa-regular fa-envelope fa-fw"></i>
+                                    联系
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            
+
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class=""
+                                   href="/privacy/"
+                                        >
+                                    <i class="fa-solid fa-shield-halved fa-fw"></i>
+                                    隐私
+                                    
+                                </a>
+
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sheet -->
+    <div class="navbar-drawer h-dvh w-full absolute top-0 left-0 bg-background-color flex flex-col justify-between">
+        <ul class="drawer-navbar-list flex flex-col px-4 justify-center items-start">
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/"
+                        >
+                            <span>
+                                HOME
+                            </span>
+                            
+                                <i class="fa-regular fa-house fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/tags/"
+                        >
+                            <span>
+                                标签
+                            </span>
+                            
+                                <i class="fa-solid fa-tags fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/about/"
+                        >
+                            <span>
+                                关于
+                            </span>
+                            
+                                <i class="fa-regular fa-user fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/contact/"
+                        >
+                            <span>
+                                联系
+                            </span>
+                            
+                                <i class="fa-regular fa-envelope fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+                
+                    
+
+                    <li class="drawer-navbar-item text-base my-1.5 flex flex-col w-full">
+                        
+                        <a class="py-1.5 px-2 flex flex-row items-center justify-between gap-1 hover:!text-primary active:!text-primary text-2xl font-semibold group border-b border-border-color hover:border-primary w-full "
+                           href="/privacy/"
+                        >
+                            <span>
+                                隐私
+                            </span>
+                            
+                                <i class="fa-solid fa-shield-halved fa-sm fa-fw"></i>
+                            
+                        </a>
+                        
+
+                        
+                    </li>
+            
+
+            
+            
+        </ul>
+
+        <div class="statistics flex justify-around my-2.5">
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/tags">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">21</div>
+        <div class="label text-third-text-color text-sm">Tags</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/categories">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">5</div>
+        <div class="label text-third-text-color text-sm">Categories</div>
+    </a>
+    <a class="item tag-count-item flex flex-col justify-center items-center w-20" href="/archives">
+        <div class="number text-2xl sm:text-xl text-second-text-color font-semibold">12</div>
+        <div class="label text-third-text-color text-sm">Posts</div>
+    </a>
+</div>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+		</div>
+
+		<div class="main-content-body transition-fade-up">
+			
+
+			<div class="main-content">
+				<div class="post-page-container flex relative justify-between box-border w-full h-full">
+	<div class="article-content-container">
+
+		<div class="article-title relative w-full">
+			
+			
+			
+			<img src="https://app.notion.com/images/page-cover/met_silk_kashan_carpet.jpg" alt="Unary gRPC on Reactor Netty: Event Loop Serialization, Trailers, and Cancellation" class="w-full h-60 sm:h-72 md:h-80 object-cover sm:rounded-t-large dark:brightness-75" />
+			
+			<div class="w-full flex items-center absolute bottom-0 justify-start">
+				<h1 class="article-title-cover text-center mx-6 my-6 text-second-text-color bg-background-color-transparent px-4 py-3 text-3xl sm:text-4xl md:text-5xl font-semibold backdrop-blur-lg rounded-xl border border-border-color ">Unary gRPC on Reactor Netty: Event Loop Serialization, Trailers, and Cancellation</h1>
+			</div>
+			
+		</div>
+
+		
+		<div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+			<div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+				<img src="/images/avatar.png">
+			</div>
+			<div class="info flex flex-col justify-between">
+				<div class="author flex items-center">
+					<span class="name text-default-text-color text-lg font-semibold">Elvis</span>
+					
+					<span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv2</span>
+					
+				</div>
+				<div class="meta-info">
+					<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2026-06-03 15:50</span>
+        <span class="mobile">2026-06-03 15:50</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2026-08-08 10:00</span>
+            <span class="mobile">2026-08-08 10:00</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+        <span class="article-categories article-meta-item">
+            <i class="fa-regular fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/Open-Source/">Open Source</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/gRPC/">gRPC</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Reactor-Netty/">Reactor Netty</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/HTTP-2/">HTTP/2</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/Protobuf/">Protobuf</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+</div>
+
+				</div>
+			</div>
+		</div>
+		
+
+		
+
+
+		<div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+			<p>With protocol values and message framing complete, Stage 2 delivered the first end-to-end call: plaintext h2c unary RPC. This is already on <code>main</code>, and Stage 3 and Stage 4 subsequently completed all four RPC cardinalities on the same transport primitive.</p>
+<h2 id="Method-Descriptor-Is-Where-Protocol-Meets-Types"><a href="#Method-Descriptor-Is-Where-Protocol-Meets-Types" class="headerlink" title="Method Descriptor Is Where Protocol Meets Types"></a>Method Descriptor Is Where Protocol Meets Types</h2><p>A method requires a precise service name, method name, cardinality, and request&#x2F;response marshallers:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">var</span> <span class="variable">echo</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">GrpcMethod</span>&lt;&gt;(</span><br><span class="line">    <span class="string">&quot;testing.EchoService&quot;</span>,</span><br><span class="line">    <span class="string">&quot;Echo&quot;</span>,</span><br><span class="line">    GrpcMethod.Cardinality.UNARY,</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">ProtobufMarshaller</span>&lt;&gt;(StringValue.parser()),</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">ProtobufMarshaller</span>&lt;&gt;(StringValue.parser()));</span><br></pre></td></tr></table></figure></div>
+
+<p>The generated path must be:</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/testing.EchoService/Echo</span><br></pre></td></tr></table></figure></div>
+
+<p>The service registry matches by exact full path. An unknown path returns <code>UNIMPLEMENTED</code>; registering the same path twice fails immediately when building the service definition.</p>
+<h2 id="Server-Validates-Protocol-Before-Subscribing-to-Business-Logic"><a href="#Server-Validates-Protocol-Before-Subscribing-to-Business-Logic" class="headerlink" title="Server Validates Protocol Before Subscribing to Business Logic"></a>Server Validates Protocol Before Subscribing to Business Logic</h2><p><code>ReactorGrpcServer</code> uses Reactor Netty h2c:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">DisposableServer</span> <span class="variable">bound</span> <span class="operator">=</span> HttpServer.create()</span><br><span class="line">    .host(host)</span><br><span class="line">    .port(port)</span><br><span class="line">    .protocol(HttpProtocol.H2C)</span><br><span class="line">    .handle(handler::handle)</span><br><span class="line">    .bindNow(Duration.ofSeconds(<span class="number">10</span>));</span><br></pre></td></tr></table></figure></div>
+
+<p>Incoming requests are validated in order:</p>
+<ul>
+<li>HTTP method must be POST;</li>
+<li>content-type must be <code>application/grpc</code> or <code>application/grpc+...</code>;</li>
+<li><code>te</code> must declare trailers;</li>
+<li>path must exist;</li>
+<li>currently only unary cardinality is allowed;</li>
+<li>metadata and message size must not exceed limits.</li>
+</ul>
+<p>Only after validation passes does it create a <code>GrpcCallContext</code> and subscribe to the request body, preventing invalid requests from entering the business handler.</p>
+<h2 id="HTTP-200-Does-Not-Mean-RPC-Success"><a href="#HTTP-200-Does-Not-Mean-RPC-Success" class="headerlink" title="HTTP 200 Does Not Mean RPC Success"></a>HTTP 200 Does Not Mean RPC Success</h2><p>The server writes a compatible content-type first; the final status comes from trailing headers:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">response.status(<span class="number">200</span>)</span><br><span class="line">    .header(HttpHeaderNames.CONTENT_TYPE, <span class="string">&quot;application/grpc+proto&quot;</span>);</span><br><span class="line"></span><br><span class="line">response.trailerHeaders(trailers -&gt; &#123;</span><br><span class="line">  <span class="type">GrpcException</span> <span class="variable">error</span> <span class="operator">=</span> terminal.get();</span><br><span class="line">  <span class="keyword">if</span> (error == <span class="literal">null</span>) &#123;</span><br><span class="line">    writeStatus(trailers, GrpcStatus.OK, GrpcMetadata.empty());</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    writeStatus(trailers, error.status(), error.trailers());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></div>
+
+<p>A <code>GrpcException</code> thrown by the application preserves an explicit status and trailing metadata. Ordinary application exceptions map to <code>UNKNOWN</code>; protocol violations map to <code>INTERNAL</code>. Fatal JVM errors should not be wrapped as ordinary business status.</p>
+<p>After receiving a response, the client must read the final <code>grpc-status</code>. HTTP 200 without a status is <code>INTERNAL</code>; a non-gRPC HTTP 404 maps to <code>UNIMPLEMENTED</code> per the standard fallback, and 503 maps to <code>UNAVAILABLE</code>.</p>
+<h2 id="Metadata-Must-Preserve-Order-and-Allow-Duplicates"><a href="#Metadata-Must-Preserve-Order-and-Allow-Duplicates" class="headerlink" title="Metadata Must Preserve Order and Allow Duplicates"></a>Metadata Must Preserve Order and Allow Duplicates</h2><p>gRPC metadata is not a simple <code>Map&lt;String, String&gt;</code>. The same key can repeat, order must be preserved, and the <code>-bin</code> suffix indicates binary values encoded as no-padding Base64 on the wire.</p>
+<p><code>GrpcMetadata</code> therefore stores an immutable entry list internally:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">GrpcMetadata.builder()</span><br><span class="line">    .addAscii(<span class="string">&quot;trace-id&quot;</span>, <span class="string">&quot;abc&quot;</span>)</span><br><span class="line">    .addBinary(<span class="string">&quot;span-bin&quot;</span>, bytes)</span><br><span class="line">    .build();</span><br></pre></td></tr></table></figure></div>
+
+<p>User metadata cannot overwrite reserved fields like <code>content-type</code>, <code>te</code>, <code>grpc-status</code>, <code>grpc-timeout</code>, and HTTP&#x2F;2 pseudo headers. The total encoded size is also limited on read to prevent peers from consuming unbounded memory through headers.</p>
+<h2 id="Deadline-Wire-Values-Cannot-Be-Simply-Truncated"><a href="#Deadline-Wire-Values-Cannot-Be-Simply-Truncated" class="headerlink" title="Deadline Wire Values Cannot Be Simply Truncated"></a>Deadline Wire Values Cannot Be Simply Truncated</h2><p><code>grpc-timeout</code> consists of up to eight digits and a unit, such as <code>100m</code> or <code>2S</code>. Formatting must use ceiling division to ensure the wire deadline is never shorter than what the caller requested:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">BigInteger</span> <span class="variable">amount</span> <span class="operator">=</span> ceilDivide(nanos, unit.nanos);</span><br><span class="line"><span class="keyword">if</span> (amount.compareTo(MAX_VALUE) &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> amount + String.valueOf(unit.suffix);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>In the Stage 2 commit covered by this post, the client only writes the timeout header and sets the Reactor Netty response timeout slightly longer to distinguish gRPC deadlines from underlying connection waits. Merely being able to parse the header does not constitute full support; Stage 5 later adds client and server Reactor deadline timers, handler cancellation, and <code>GrpcCallContext</code> propagation. The current implementation still does not automatically derive shorter deadlines for nested calls on behalf of business code.</p>
+<h2 id="Unary-Cardinality-Is-Enforced-with-single"><a href="#Unary-Cardinality-Is-Enforced-with-single" class="headerlink" title="Unary Cardinality Is Enforced with single()"></a>Unary Cardinality Is Enforced with single()</h2><p>The client uses <code>requests.single()</code> for unary requests, and responses likewise require exactly one value. Empty requests, duplicate requests, empty responses, and duplicate responses are not silent defaults — they are explicit errors.</p>
+<p>Current transport test coverage:</p>
+<ul>
+<li>unary message and ASCII metadata round-trip;</li>
+<li>declared error and trailing metadata;</li>
+<li>unknown method;</li>
+<li>empty&#x2F;duplicate unary data;</li>
+<li>non-gRPC HTTP response and missing status;</li>
+<li>client cancellation propagation to server publisher;</li>
+<li>connection failure mapping to <code>UNAVAILABLE</code>.</li>
+</ul>
+<p>The unary vertical slice tests continue serving as regression baselines for streaming transport. Server, client, and bidirectional streaming have been completed in subsequent commits; TLS, GOAWAY, keepalive, compression, deadline, connection pool, and transport diagnostics were also completed in Stage 5 and merged to <code>main</code>.</p>
+<h2 id="Full-Lifecycle-of-a-Client-Request"><a href="#Full-Lifecycle-of-a-Client-Request" class="headerlink" title="Full Lifecycle of a Client Request"></a>Full Lifecycle of a Client Request</h2><p>A <code>ReactorGrpcClient</code> unary call ultimately maps to a complete HTTP&#x2F;2 stream interaction. Here is the full path from user call to network response:</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">client.unary(method, Mono.just(request))</span><br><span class="line">    |</span><br><span class="line">    +-- Flux.defer() -&gt; lazy assembly, independent per subscription</span><br><span class="line">    |</span><br><span class="line">    +-- channel.select() -&gt; pick subchannel (Stage 2: fixed single connection)</span><br><span class="line">    |</span><br><span class="line">    +-- httpClient.post(method.path())</span><br><span class="line">    |   +-- Write HTTP/2 request headers</span><br><span class="line">    |   |   content-type: application/grpc+proto</span><br><span class="line">    |   |   te: trailers</span><br><span class="line">    |   |   grpc-accept-encoding: gzip</span><br><span class="line">    |   |   grpc-timeout: &lt;if set&gt;</span><br><span class="line">    |   |   custom metadata</span><br><span class="line">    |   |</span><br><span class="line">    |   +-- onEventLoop() -&gt; serialize on connection&#x27;s event loop</span><br><span class="line">    |   |</span><br><span class="line">    |   +-- GrpcOutboundMessageEncoder.encode()</span><br><span class="line">    |   |   +-- marshaller.serialize() -&gt; Protobuf -&gt; ByteBuf</span><br><span class="line">    |   |   +-- validate size &lt;= maxOutboundMessageSize</span><br><span class="line">    |   |   +-- GrpcFrameCodec.encode() -&gt; 5-byte header + payload</span><br><span class="line">    |   |</span><br><span class="line">    |   +-- outbound.send(requestFrames) -&gt; HTTP/2 DATA frame</span><br><span class="line">    |</span><br><span class="line">    +-- .response((response, content) -&gt; decodeResponse)</span><br><span class="line">        +-- Check response headers for grpc-status (trailers-only error)</span><br><span class="line">        +-- Validate HTTP 200 + content-type = application/grpc</span><br><span class="line">        +-- Read grpc-encoding header</span><br><span class="line">        +-- GrpcFrameCodec.decode(content) -&gt; incremental frame parsing</span><br><span class="line">        +-- marshaller.deserialize() -&gt; ByteBuf -&gt; Response protobuf</span><br><span class="line">        +-- Read grpc-status + grpc-message from trailers</span><br></pre></td></tr></table></figure></div>
+
+<p>Key design: the entire pipeline is lazy — no HTTP&#x2F;2 connection is initiated until the <code>Mono</code> is subscribed to. This differs from grpc-java’s <code>ClientCall.start()</code> which triggers connection immediately.</p>
+<h2 id="Why-Serialize-on-the-Event-Loop"><a href="#Why-Serialize-on-the-Event-Loop" class="headerlink" title="Why Serialize on the Event Loop"></a>Why Serialize on the Event Loop</h2><p>Each Reactor Netty HTTP&#x2F;2 connection is bound to a single Netty event loop thread. If marshalling happens on the user thread, the serialized ByteBuf must be transferred across threads to the event loop, incurring synchronization overhead.</p>
+<p><code>onEventLoop()</code> defers serialization to the connection’s event loop:</p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> &lt;T&gt; Flux&lt;T&gt; <span class="title function_">onEventLoop</span><span class="params">(NettyOutbound outbound, Flux&lt;T&gt; source)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> source.publishOn(</span><br><span class="line">        Schedulers.fromExecutor(outbound.alloc().buffer(<span class="number">0</span>).alloc()</span><br><span class="line">            ... <span class="comment">// obtain event loop executor</span></span><br><span class="line">        ));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>Benefits:</p>
+<ul>
+<li>Serialization and network writes happen on the same thread, lock-free;</li>
+<li>The ByteBuf allocator is consistent with the connection, reducing cross-arena allocation;</li>
+<li><code>concatMap(..., 1)</code> controls prefetch, ensuring messages are sent in strict order.</li>
+</ul>
+<h2 id="Error-Mapping-From-HTTP-2-Exceptions-to-gRPC-Status"><a href="#Error-Mapping-From-HTTP-2-Exceptions-to-gRPC-Status" class="headerlink" title="Error Mapping: From HTTP&#x2F;2 Exceptions to gRPC Status"></a>Error Mapping: From HTTP&#x2F;2 Exceptions to gRPC Status</h2><p>Network-layer errors cannot be exposed directly to users — they need to be mapped to gRPC semantics:</p>
+<table>
+<thead>
+<tr>
+<th>Network Exception</th>
+<th>gRPC Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Http2Exception.StreamException(REFUSED_STREAM)</code></td>
+<td>UNAVAILABLE</td>
+<td>Server refused this stream, safe to retry</td>
+</tr>
+<tr>
+<td>GOAWAY frame</td>
+<td>UNAVAILABLE</td>
+<td>Server is shutting down gracefully</td>
+</tr>
+<tr>
+<td>Connection closed &#x2F; reset</td>
+<td>UNAVAILABLE</td>
+<td>Network disconnected</td>
+</tr>
+<tr>
+<td>HTTP 404 (non-gRPC response)</td>
+<td>UNIMPLEMENTED</td>
+<td>Path doesn’t exist (may have passed through a non-gRPC proxy)</td>
+</tr>
+<tr>
+<td>HTTP 503</td>
+<td>UNAVAILABLE</td>
+<td>Service temporarily unavailable</td>
+</tr>
+<tr>
+<td>Missing <code>grpc-status</code></td>
+<td>INTERNAL</td>
+<td>Protocol violation</td>
+</tr>
+<tr>
+<td><code>content-type</code> mismatch</td>
+<td>INTERNAL</td>
+<td>Response is not gRPC</td>
+</tr>
+</tbody></table>
+<p>This mapping follows the <a class="link"   target="_blank" rel="noopener" href="https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md" >HTTP status code to gRPC status conversion table<i class="fa-solid fa-arrow-up-right ml-[0.2em] font-light align-text-top text-[0.7em] link-icon"></i></a> defined in the gRPC protocol spec. <code>UNAVAILABLE</code> means the client can retry; <code>INTERNAL</code> and <code>UNIMPLEMENTED</code> are generally not worth retrying.</p>
+<h2 id="How-Client-Cancellation-Propagates-to-Server"><a href="#How-Client-Cancellation-Propagates-to-Server" class="headerlink" title="How Client Cancellation Propagates to Server"></a>How Client Cancellation Propagates to Server</h2><p>Reactor’s <code>dispose()</code> needs to be mapped to HTTP&#x2F;2’s RST_STREAM, letting the server know this call is no longer needed:</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">client: subscription.dispose()</span><br><span class="line">    -&gt; Reactor Netty observes subscriber cancel</span><br><span class="line">    -&gt; Sends HTTP/2 RST_STREAM frame</span><br><span class="line">    -&gt; Server connection receives RST_STREAM</span><br><span class="line">    -&gt; request body publisher is cancelled</span><br><span class="line">    -&gt; server handler&#x27;s Mono/Flux receives cancel signal</span><br></pre></td></tr></table></figure></div>
+
+<p>The server side listens for stream close events through a connection handler and converts them into a <code>peerCancellation</code> signal. The business handler uses <code>takeUntilOther(peerCancellation)</code> to subscribe to this signal, ensuring the server stops unnecessary computation after client cancellation.</p>
+<p>This mechanism naturally aligns Reactor’s backpressure semantics (cancel &#x3D; I no longer need data) with gRPC’s cancellation semantics (RST_STREAM &#x3D; call aborted).</p>
+<h2 id="Interoperability-Verification-with-grpc-java"><a href="#Interoperability-Verification-with-grpc-java" class="headerlink" title="Interoperability Verification with grpc-java"></a>Interoperability Verification with grpc-java</h2><p>Stage 2’s exit criteria are not “calling ourselves successfully” — it must interoperate bidirectionally with grpc-java. <code>UnaryInteroperabilityTest</code> verifies both directions:</p>
+<p><strong>Reactor client -&gt; grpc-java server:</strong></p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">reactorClientCallsGrpcJavaServer</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> (<span class="type">var</span> <span class="variable">fixture</span> <span class="operator">=</span> GrpcJavaFixture.start();</span><br><span class="line">         <span class="type">var</span> <span class="variable">client</span> <span class="operator">=</span> ReactorGrpcClient.builder().port(fixture.port()).build()) &#123;</span><br><span class="line">        <span class="type">var</span> <span class="variable">response</span> <span class="operator">=</span> stub.unary(Mono.just(request(<span class="string">&quot;hello&quot;</span>))).block();</span><br><span class="line">        assertEquals(<span class="string">&quot;hello&quot;</span>, response.getValue());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Verify error status and trailing metadata propagate correctly</span></span><br><span class="line">        <span class="type">var</span> <span class="variable">error</span> <span class="operator">=</span> assertThrows(GrpcException.class,</span><br><span class="line">            () -&gt; stub.unary(Mono.just(request(<span class="string">&quot;error&quot;</span>))).block());</span><br><span class="line">        assertEquals(GrpcStatus.Code.INVALID_ARGUMENT, error.status().code());</span><br><span class="line">        assertEquals(<span class="string">&quot;rejected&quot;</span>, error.status().message());</span><br><span class="line">        assertEquals(<span class="string">&quot;fixture&quot;</span>, error.trailers().getLast(<span class="string">&quot;error-id&quot;</span>).orElseThrow().asciiValue());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p><strong>grpc-java client -&gt; Reactor server:</strong></p>
+<div class="code-container" data-rel="Java"><figure class="iseeu highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">grpcJavaClientCallsReactorServer</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">var</span> <span class="variable">service</span> <span class="operator">=</span> InteropTestServiceReactorGrpc.bindService(<span class="keyword">new</span> <span class="title class_">Service</span>() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> Mono&lt;TestResponse&gt; <span class="title function_">unary</span><span class="params">(GrpcCallContext context, Mono&lt;TestRequest&gt; requests)</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> requests.map(req -&gt; &#123;</span><br><span class="line">                <span class="keyword">if</span> (req.getValue().equals(<span class="string">&quot;error&quot;</span>)) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">GrpcException</span>(</span><br><span class="line">                        <span class="keyword">new</span> <span class="title class_">GrpcStatus</span>(GrpcStatus.Code.INVALID_ARGUMENT, <span class="string">&quot;rejected&quot;</span>),</span><br><span class="line">                        GrpcMetadata.builder().addAscii(<span class="string">&quot;error-id&quot;</span>, <span class="string">&quot;reactor&quot;</span>).build());</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> TestResponse.newBuilder().setValue(req.getValue()).build();</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> (<span class="type">var</span> <span class="variable">server</span> <span class="operator">=</span> ReactorGrpcServer.builder().addService(service).start()) &#123;</span><br><span class="line">        <span class="type">var</span> <span class="variable">stub</span> <span class="operator">=</span> InteropTestServiceGrpc.newBlockingStub(channel);</span><br><span class="line">        assertEquals(<span class="string">&quot;hello&quot;</span>, stub.unary(request(<span class="string">&quot;hello&quot;</span>)).getValue());</span><br><span class="line"></span><br><span class="line">        <span class="type">var</span> <span class="variable">error</span> <span class="operator">=</span> assertThrows(StatusRuntimeException.class,</span><br><span class="line">            () -&gt; stub.unary(request(<span class="string">&quot;error&quot;</span>)));</span><br><span class="line">        assertEquals(Status.Code.INVALID_ARGUMENT, error.getStatus().getCode());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<p>Both directions verify: normal responses, error status codes, percent-encoding round-trip of error messages, and custom trailing metadata propagation. Only when grpc-java can correctly parse Reactor server’s response can we prove the wire protocol implementation is compatible.</p>
+<h2 id="Stage-2-Exit-Criteria"><a href="#Stage-2-Exit-Criteria" class="headerlink" title="Stage 2 Exit Criteria"></a>Stage 2 Exit Criteria</h2><ul>
+<li><code>./gradlew clean spotlessCheck test --no-daemon</code> passes in full</li>
+<li>Reactor client &lt;-&gt; grpc-java server bidirectional unary calls succeed</li>
+<li>grpc-java client &lt;-&gt; Reactor server bidirectional unary calls succeed</li>
+<li>Error status, message, and trailing metadata propagate correctly</li>
+<li>Client cancellation propagates to server via RST_STREAM</li>
+<li>Connection failure maps to UNAVAILABLE</li>
+<li>Unknown path maps to UNIMPLEMENTED</li>
+<li>All Stage 0 and Stage 1 tests remain green</li>
+</ul>
+<p>The next post enters Stage 3 and Stage 4: implementing server streaming, client streaming, and bidirectional streaming on the same transport primitive, facing new challenges of multi-message backpressure coordination, bounded inbound buffering, and resource cleanup on premature stream termination.</p>
+
+		</div>
+
+		
+		<div class="post-copyright-info w-full my-8 px-2 sm:px-6 md:px-8">
+			<div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> Unary gRPC on Reactor Netty: Event Loop Serialization, Trailers, and Cancellation</li>
+        <li><strong>Author:</strong> Elvis</li>
+        <li><strong>Created at
+                :</strong> 2026-06-03 15:50:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2026-08-08 10:00:00
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://qianwj.github.io/en/2026/06/03/grpc-reactor-series-3/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+		</div>
+		
+
+		
+		<ul class="post-tags-box text-lg mt-1.5 flex-wrap justify-center flex md:hidden">
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/gRPC/">#gRPC</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Reactor-Netty/">#Reactor Netty</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/HTTP-2/">#HTTP/2</a>&nbsp;
+			</li>
+			
+			<li class="tag-item mx-0.5">
+				<a href="/tags/Protobuf/">#Protobuf</a>&nbsp;
+			</li>
+			
+		</ul>
+		
+
+		
+
+		
+		<div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+			
+			
+			<div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+				<a class="next" rel="next" href="/2026/06/03/grpc-reactor-series-3/">
+					<span class="title flex justify-center items-center">
+						<span class="post-nav-title-item truncate max-w-48">grpc-reactor 实战（三）：把 Unary RPC 映射到 Reactor Netty HTTP/2</span>
+						<span class="post-nav-item">Next posts</span>
+					</span>
+					<span class="right arrow-icon flex justify-center items-center">
+						<i class="fa-solid fa-chevron-right"></i>
+					</span>
+				</a>
+			</div>
+			
+		</div>
+		
+
+
+		
+	</div>
+
+	
+	<div class="toc-content-container">
+		<div class="post-toc-wrap">
+	<div class="post-toc">
+		<div class="toc-title">On this page</div>
+		<div class="page-title">Unary gRPC on Reactor Netty: Event Loop Serialization, Trailers, and Cancellation</div>
+		<ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Method-Descriptor-Is-Where-Protocol-Meets-Types"><span class="nav-text">Method Descriptor Is Where Protocol Meets Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Server-Validates-Protocol-Before-Subscribing-to-Business-Logic"><span class="nav-text">Server Validates Protocol Before Subscribing to Business Logic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP-200-Does-Not-Mean-RPC-Success"><span class="nav-text">HTTP 200 Does Not Mean RPC Success</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Metadata-Must-Preserve-Order-and-Allow-Duplicates"><span class="nav-text">Metadata Must Preserve Order and Allow Duplicates</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Deadline-Wire-Values-Cannot-Be-Simply-Truncated"><span class="nav-text">Deadline Wire Values Cannot Be Simply Truncated</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Unary-Cardinality-Is-Enforced-with-single"><span class="nav-text">Unary Cardinality Is Enforced with single()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Full-Lifecycle-of-a-Client-Request"><span class="nav-text">Full Lifecycle of a Client Request</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-Serialize-on-the-Event-Loop"><span class="nav-text">Why Serialize on the Event Loop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Error-Mapping-From-HTTP-2-Exceptions-to-gRPC-Status"><span class="nav-text">Error Mapping: From HTTP&#x2F;2 Exceptions to gRPC Status</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-Client-Cancellation-Propagates-to-Server"><span class="nav-text">How Client Cancellation Propagates to Server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interoperability-Verification-with-grpc-java"><span class="nav-text">Interoperability Verification with grpc-java</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stage-2-Exit-Criteria"><span class="nav-text">Stage 2 Exit Criteria</span></a></li></ol>
+
+	</div>
+</div>
+	</div>
+	
+</div>
+			</div>
+
+			
+		</div>
+
+		<div class="main-content-footer">
+			<footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2026&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Elvis</a>
+            
+                
+                <p class="post-count space-x-0.5">
+                    <span>
+                        12 posts in total
+                    </span>
+                    
+                </p>
+            
+        </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.8.5</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+            
+                
+        
+                
+        
+                
+
+                    
+                        <script data-swup-reload-script>
+(function(){
+  var path = location.pathname;
+  var isEn = path.startsWith('/en/') || path === '/en';
+  var isArticle = /\/\d{4}\/\d{2}\/\d{2}\//.test(path);
+  function insertBtn() {
+    if (document.querySelector('.lang-toggle')) return;
+    var list = document.querySelector('.navbar-content .desktop .navbar-list');
+    if (!list) return;
+    var li = document.createElement('li');
+    li.className = 'navbar-item';
+    var a = document.createElement('a');
+    a.className = 'lang-toggle';
+    a.href = '#';
+    a.innerHTML = '<i class="fa-solid fa-globe fa-fw"></i> ' + (isEn ? '中文' : 'EN');
+    a.onclick = function(e) {
+      e.preventDefault();
+      if (isEn) {
+        var zhPath = path.replace(/^\/en\/?/, '/') || '/';
+        location.href = isArticle ? zhPath : '/';
+      } else {
+        location.href = isArticle ? '/en' + path : '/en/';
+      }
+    };
+    li.appendChild(a);
+    list.appendChild(li);
+    if (isEn) translateNavbar();
+  }
+  function translateNavbar() {
+    var map = {'HOME':'HOME','标签':'TAGS','关于':'ABOUT','联系':'CONTACT','隐私':'PRIVACY'};
+    var links = document.querySelectorAll('.navbar-content .desktop .navbar-list .navbar-item a:not(.lang-toggle)');
+    links.forEach(function(a) {
+      var text = a.textContent.trim();
+      if (map[text]) a.childNodes[a.childNodes.length - 1].textContent = ' ' + map[text];
+    });
+    var drawer = document.querySelectorAll('.drawer-navbar-list span');
+    var drawerMap = {'HOME':'HOME','标签':'TAGS','关于':'ABOUT','联系':'CONTACT','隐私':'PRIVACY'};
+    drawer.forEach(function(span) {
+      var t = span.textContent.trim();
+      if (drawerMap[t]) span.textContent = drawerMap[t];
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', insertBtn);
+  } else {
+    insertBtn();
+  }
+})();
+</script>
+
+                    
+        
+        
+    </div>  
+</footer>
+		</div>
+	</div>
+
+	
+	<div class="post-tools">
+		<div class="post-tools-container">
+	<ul class="article-tools-list">
+		<!-- TOC aside toggle -->
+		
+		<li class="right-bottom-tools page-aside-toggle">
+			<i class="fa-regular fa-outdent"></i>
+		</li>
+		
+
+		<!-- go comment -->
+		
+	</ul>
+</div>
+	</div>
+	
+
+	<div class="right-side-tools-container">
+		<div class="side-tools-container">
+	<ul class="hidden-tools-list">
+		<li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-plus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+			<i class="fa-regular fa-magnifying-glass-minus"></i>
+		</li>
+
+		<li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+			<i class="fa-regular fa-moon"></i>
+		</li>
+
+		<!-- rss -->
+		
+
+		
+
+		<li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+			<i class="fa-regular fa-arrow-down"></i>
+		</li>
+	</ul>
+
+	<ul class="visible-tools-list">
+		<li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+			<i class="fa-regular fa-cog fa-spin"></i>
+		</li>
+		
+		<li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+			<i class="arrow-up fas fa-arrow-up"></i>
+			<span class="percent"></span>
+		</li>
+		
+		
+	</ul>
+</div>
+	</div>
+
+	<div class="image-viewer-container">
+	<img src="">
+</div>
+
+	
+
+</main>
+
+
+
+<script src="/js/build/libs/Swup.min.js"></script>
+
+<script src="/js/build/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/build/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/build/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+	
+<script src="/js/build/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/build/utils.js" type="module"></script>
+
+<script src="/js/build/main.js" type="module"></script>
+
+<script src="/js/build/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/build/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/build/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/build/layouts/categoryList.js" type="module"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/build/tools/runtime.js"></script>
+
+    
+<script src="/js/build/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/build/libs/Typed.min.js"></script>
+
+  
+<script src="/js/build/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+
+    
+<script src="/js/build/libs/anime.min.js"></script>
+
+
+
+
+
+    
+<script src="/js/build/tools/tocToggle.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/layouts/toc.js" type="module" data-swup-reload-script=""></script>
+
+<script src="/js/build/plugins/tabs.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+<script src="/js/build/libs/moment-with-locales.min.js" data-swup-reload-script=""></script>
+
+
+<script src="/js/build/layouts/essays.js" type="module" data-swup-reload-script=""></script>
+
+
+
+
+
+	
+</body>
+
+</html>
