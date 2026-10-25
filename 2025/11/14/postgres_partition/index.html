@@ -626,6 +626,43 @@
 <li>向第四天写入时，由于没有对应分区且未设置默认分区，预期写入失败。脚本捕获这个预期错误；如果意外成功，则抛出异常。</li>
 </ol>
 <p>这些检查可以暴露“分区建出来了，但边界或覆盖日期不对”的问题。它们不会替代并发写入、迁移和容量测试。</p>
+<h3 id="Docker-验证记录"><a href="#Docker-验证记录" class="headerlink" title="Docker 验证记录"></a>Docker 验证记录</h3><p>本示例已在 Docker 中的 PostgreSQL 17.10（Debian 17.10-1.pgdg13+1，aarch64）执行通过。该环境的实际结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>实际结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模拟数据写入</td>
+<td>共写入 4320 条，三个日分区各 1440 条</td>
+</tr>
+<tr>
+<td>零点记录路由</td>
+<td><code>2025-11-14 00:00:00+00</code> 进入 <code>ai_call_record_20251114</code>，断言通过</td>
+</tr>
+<tr>
+<td>单日时间范围查询</td>
+<td>仅扫描 <code>ai_call_record_20251114</code>，返回计数 1440</td>
+</tr>
+<tr>
+<td>仅按 <code>call_id</code> 查询</td>
+<td><code>Append</code> 下扫描全部三个分区，在 11 月 14 日分区匹配到一条记录</td>
+</tr>
+<tr>
+<td>缺失分区写入</td>
+<td>第四天的写入被拒绝，预期异常检查通过</td>
+</tr>
+<tr>
+<td>事务回滚</td>
+<td><code>ROLLBACK</code> 完成后，独立连接确认 <code>partition_demo</code> schema 不存在</td>
+</tr>
+</tbody></table>
+<p>两条查询的执行计划结构分别为：</p>
+<div class="code-container" data-rel="Text"><figure class="iseeu highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">单日时间范围：</span><br><span class="line">Aggregate</span><br><span class="line">  -&gt; Seq Scan on ai_call_record_20251114</span><br><span class="line"></span><br><span class="line">仅按 call_id：</span><br><span class="line">Append</span><br><span class="line">  -&gt; Seq Scan on ai_call_record_20251113</span><br><span class="line">  -&gt; Seq Scan on ai_call_record_20251114</span><br><span class="line">  -&gt; Seq Scan on ai_call_record_20251115</span><br></pre></td></tr></table></figure></div>
+
+<p>这次运行确认了示例中的路由、裁剪、失败处理和回滚行为。4320 条模拟记录下的单次执行耗时不用于评估生产容量，也不能用于比较 PostgreSQL 与 MySQL 的性能。</p>
 <h2 id="用执行计划确认分区裁剪"><a href="#用执行计划确认分区裁剪" class="headerlink" title="用执行计划确认分区裁剪"></a>用执行计划确认分区裁剪</h2><p>完整脚本还包含两条 <code>EXPLAIN (ANALYZE, BUFFERS)</code>。第一条明确限定一天：</p>
 <div class="code-container" data-rel="Sql"><figure class="iseeu highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">EXPLAIN (ANALYZE, BUFFERS)</span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">count</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">FROM</span> ai_call_record</span><br><span class="line"><span class="keyword">WHERE</span> started_at <span class="operator">&gt;=</span> TIMESTAMPTZ <span class="string">&#x27;2025-11-14 00:00:00+00&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> started_at <span class="operator">&lt;</span>  TIMESTAMPTZ <span class="string">&#x27;2025-11-15 00:00:00+00&#x27;</span>;</span><br></pre></td></tr></table></figure></div>
 
@@ -762,7 +799,7 @@
 	<div class="post-toc">
 		<div class="toc-title">目录</div>
 		<div class="page-title">PostgreSQL 分区表的原理、实践与 MySQL 对比</div>
-		<ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%88%E4%BB%8E%E6%9F%A5%E8%AF%A2%E5%92%8C%E4%BF%9D%E7%95%99%E5%91%A8%E6%9C%9F%E5%86%B3%E5%AE%9A%E5%88%86%E5%8C%BA%E9%94%AE"><span class="nav-text">先从查询和保留周期决定分区键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E7%BB%93%E6%9E%84%EF%BC%9A%E6%8A%8A%E6%97%B6%E9%97%B4%E8%BE%B9%E7%95%8C%E5%86%99%E6%B8%85%E6%A5%9A"><span class="nav-text">表结构：把时间边界写清楚</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E4%B8%80%E4%BB%BD%E5%B0%8F%E6%95%B0%E6%8D%AE%E8%84%9A%E6%9C%AC%E9%AA%8C%E8%AF%81%E4%B8%89%E4%B8%AA%E8%A1%8C%E4%B8%BA"><span class="nav-text">用一份小数据脚本验证三个行为</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E7%A1%AE%E8%AE%A4%E5%88%86%E5%8C%BA%E8%A3%81%E5%89%AA"><span class="nav-text">用执行计划确认分区裁剪</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E5%BB%BA%E5%88%86%E5%8C%BA%E5%92%8C%E5%8E%86%E5%8F%B2%E6%B8%85%E7%90%86%E9%83%BD%E9%9C%80%E8%A6%81%E5%A4%B1%E8%B4%A5%E8%B7%AF%E5%BE%84"><span class="nav-text">自动建分区和历史清理都需要失败路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8E-MySQL-%E5%AF%B9%E6%AF%94%EF%BC%9A%E5%85%88%E6%AF%94%E8%BE%83%E7%BA%A6%E6%9D%9F%EF%BC%8C%E5%86%8D%E5%81%9A%E6%B5%8B%E9%87%8F"><span class="nav-text">与 MySQL 对比：先比较约束，再做测量</span></a></li></ol>
+		<ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%88%E4%BB%8E%E6%9F%A5%E8%AF%A2%E5%92%8C%E4%BF%9D%E7%95%99%E5%91%A8%E6%9C%9F%E5%86%B3%E5%AE%9A%E5%88%86%E5%8C%BA%E9%94%AE"><span class="nav-text">先从查询和保留周期决定分区键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E7%BB%93%E6%9E%84%EF%BC%9A%E6%8A%8A%E6%97%B6%E9%97%B4%E8%BE%B9%E7%95%8C%E5%86%99%E6%B8%85%E6%A5%9A"><span class="nav-text">表结构：把时间边界写清楚</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E4%B8%80%E4%BB%BD%E5%B0%8F%E6%95%B0%E6%8D%AE%E8%84%9A%E6%9C%AC%E9%AA%8C%E8%AF%81%E4%B8%89%E4%B8%AA%E8%A1%8C%E4%B8%BA"><span class="nav-text">用一份小数据脚本验证三个行为</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-%E9%AA%8C%E8%AF%81%E8%AE%B0%E5%BD%95"><span class="nav-text">Docker 验证记录</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E7%A1%AE%E8%AE%A4%E5%88%86%E5%8C%BA%E8%A3%81%E5%89%AA"><span class="nav-text">用执行计划确认分区裁剪</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E5%BB%BA%E5%88%86%E5%8C%BA%E5%92%8C%E5%8E%86%E5%8F%B2%E6%B8%85%E7%90%86%E9%83%BD%E9%9C%80%E8%A6%81%E5%A4%B1%E8%B4%A5%E8%B7%AF%E5%BE%84"><span class="nav-text">自动建分区和历史清理都需要失败路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8E-MySQL-%E5%AF%B9%E6%AF%94%EF%BC%9A%E5%85%88%E6%AF%94%E8%BE%83%E7%BA%A6%E6%9D%9F%EF%BC%8C%E5%86%8D%E5%81%9A%E6%B5%8B%E9%87%8F"><span class="nav-text">与 MySQL 对比：先比较约束，再做测量</span></a></li></ol>
 
 	</div>
 </div>
